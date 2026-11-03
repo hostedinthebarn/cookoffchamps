@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# Read-only by default (code scanning: actions/missing-workflow-permissions); deploy sets its own.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
