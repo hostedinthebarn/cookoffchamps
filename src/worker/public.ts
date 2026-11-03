@@ -3,7 +3,7 @@
 
 import { rankTallies } from "../shared/ranking";
 import { loadEvent } from "./access";
-import { clientIp, sha256 } from "./auth";
+import { clientIp, hashIp } from "./auth";
 import { cookie, readCookie } from "./cookies";
 import type { Env } from "./env";
 import { HttpError, json, readJson } from "./http";
@@ -34,7 +34,7 @@ const CODE_WINDOW_MS = 10 * 60 * 1000;
  */
 export async function lookupCode(request: Request, env: Env, code: string): Promise<Response> {
   const ip = clientIp(request);
-  const ipHash = ip ? await sha256(ip) : null;
+  const ipHash = ip ? await hashIp(env, ip) : null;
   const since = new Date(Date.now() - CODE_WINDOW_MS).toISOString();
   if (ipHash) {
     await env.DB.prepare("DELETE FROM code_misses WHERE at < ?").bind(since).run();

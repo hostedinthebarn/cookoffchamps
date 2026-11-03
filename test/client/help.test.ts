@@ -59,7 +59,7 @@ describe("the help page", () => {
 
   it("covers the decisions Gary asked to see explained", () => {
     const text = load().body.textContent!;
-    for (const phrase of ["Undo the reveal", "Reopen voting", "soft limit", "strip all of it", "15 minutes", "30 days", "no analytics"]) {
+    for (const phrase of ["Undo the reveal", "Reopen voting", "soft limit", "strip all of it", "15 minutes", "30 days", "Cloudflare Web Analytics"]) {
       expect(text).toContain(phrase);
     }
   });
@@ -118,7 +118,9 @@ describe("sitemap and robots", () => {
     expect(xml).toContain(`<loc>${ORIGIN}/</loc>`);
     expect(xml).toContain(`<loc>${ORIGIN}/help/</loc>`);
     expect(xml).toContain(`<loc>${ORIGIN}/es/ayuda/</loc>`);
-    expect(xml.match(/<loc>/g)).toHaveLength(3);
+    expect(xml).toContain(`<loc>${ORIGIN}/privacy/</loc>`);
+    expect(xml).toContain(`<loc>${ORIGIN}/es/privacidad/</loc>`);
+    expect(xml.match(/<loc>/g)).toHaveLength(5);
   });
 
   it("keeps event, results and organizer pages out of search engines", () => {

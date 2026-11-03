@@ -33,6 +33,8 @@ export const es: Messages = {
     helpHref: "/es/ayuda/",
     printablesLink: "Imprimibles gratis",
     printablesHref: "/es/imprimibles/",
+    privacyLink: "Privacidad",
+    privacyHref: "/es/privacidad/",
     partOf: "Parte de",
   },
 

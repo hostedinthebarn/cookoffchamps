@@ -3,7 +3,7 @@
 
 import { env } from "cloudflare:workers";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MAX_LINKS_PER_EMAIL_PER_HOUR, MAX_LINKS_PER_IP_PER_HOUR, safeNext } from "../../src/worker/auth";
+import { hashIp, MAX_LINKS_PER_EMAIL_PER_HOUR, MAX_LINKS_PER_IP_PER_HOUR, safeNext } from "../../src/worker/auth";
 import worker, { matchPath } from "../../src/worker/index";
 import { sniffImageType } from "../../src/worker/photos";
 import { CSP } from "../../src/worker/security";
@@ -165,7 +165,7 @@ describe("login-link rate limits", () => {
     expect((await ask("spray-last@example.com", "198.51.100.7")).status).toBe(429);
     expect((await ask("spray-last@example.com", "198.51.100.8")).status).toBe(200);
     const row = await env.DB.prepare("SELECT ip_hash FROM login_tokens WHERE email = 'spray0@example.com'").first<{ ip_hash: string }>();
-    expect(row!.ip_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(row!.ip_hash).toBe(await hashIp(env, "198.51.100.7"));
   });
 
   it("counts only the last hour", async () => {
@@ -291,8 +291,8 @@ describe("typed-code lookup limit", () => {
 
   it("forgets misses outside the window, and stores the IP hashed", async () => {
     for (let i = 0; i < MAX_CODE_MISSES; i++) await lookup(`OLD${i}`, "192.0.2.70");
-    const row = await env.DB.prepare("SELECT ip_hash FROM code_misses LIMIT 1").first<{ ip_hash: string }>();
-    expect(row!.ip_hash).toMatch(/^[0-9a-f]{64}$/);
+    const stored = await env.DB.prepare("SELECT COUNT(*) AS n FROM code_misses WHERE ip_hash = ?").bind(await hashIp(env, "192.0.2.70")).first<{ n: number }>();
+    expect(stored!.n).toBe(MAX_CODE_MISSES);
     await env.DB.prepare("UPDATE code_misses SET at = '2000-01-01T00:00:00Z'").run();
     expect((await lookup("NOPE99", "192.0.2.70")).status).toBe(404);
     const { n } = (await env.DB.prepare("SELECT COUNT(*) AS n FROM code_misses").first<{ n: number }>())!;

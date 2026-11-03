@@ -26,6 +26,9 @@ export const es: HelpContent = {
     { text: "Guía para juzgar chili", href: "/es/guias/como-juzgar-un-concurso-de-chili/" },
   ],
   partOf: "Parte de",
+  privacyLink: "Privacidad",
+  privacyHref: "/es/privacidad/",
+  privacyNote: "La página completa de privacidad:",
   sections: [
     {
       id: "guests",
@@ -217,7 +220,8 @@ export const es: HelpContent = {
           id: "ip-addresses",
           q: "¿Guardan direcciones IP?",
           a: [
-            "Solo como un código cifrado de un solo sentido, y solo por poco tiempo, para limitar cuántos correos para entrar puede pedir una dirección y cuántos códigos puede probar. Ese código no se puede convertir de nuevo en la dirección.",
+            "Solo de forma codificada y solo por poco tiempo: un día para los correos de acceso y diez minutos para los códigos escritos. Los usamos para evitar que una misma dirección envíe muchos correos de acceso o pruebe muchos códigos. Después se borran.",
+            "La forma codificada no se puede convertir de nuevo en la dirección sin una clave secreta que solo tiene la app.",
           ],
         },
         {
@@ -238,7 +242,21 @@ export const es: HelpContent = {
         {
           id: "tracking",
           q: "¿Hay anuncios o rastreo?",
-          a: ["No hay anuncios, ni analíticas, ni scripts de rastreo."],
+          a: ["No hay anuncios ni rastreo que te siga. Usamos Cloudflare Web Analytics para contar las visitas a las páginas. No usa cookies ni crea un perfil tuyo."],
+        },
+        {
+          id: "cook-data",
+          q: "¿Qué guardan de quienes cocinan?",
+          a: [
+            "El nombre que quien organiza escribe para cada platillo, el nombre del platillo y su foto. Los invitados no ven el nombre de quien cocinó hasta el anuncio de ganadores. Si cocinaste y quieres que quitemos tu nombre o tu foto, pídeselo a quien organiza o escribe a privacy@cookoffchamps.com.",
+          ],
+        },
+        {
+          id: "other-handlers",
+          q: "¿Quién más maneja los datos?",
+          a: [
+            "Cloudflare hace funcionar la app, guarda los concursos y las fotos, y hace la verificación contra robots. Resend entrega los correos de acceso y de invitación. No vendemos los datos ni los compartimos con nadie más.",
+          ],
         },
         {
           id: "who-runs-it",

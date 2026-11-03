@@ -35,7 +35,8 @@
     "APP_ORIGIN": "https://cookoffchamps.com",
     "EMAIL_FROM": "hello@cookoffchamps.com",
     // Public by design: the site key is embedded in every page. The secrets are
-    // set with `wrangler secret put TURNSTILE_SECRET` and `RESEND_API_KEY`.
+    // set with `wrangler secret put TURNSTILE_SECRET`, `RESEND_API_KEY` and
+    // `IP_HASH_KEY` (the key for the IP-address hashes; the app fails without it).
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFktbyWGH6J6pHxl"
   }
 }
