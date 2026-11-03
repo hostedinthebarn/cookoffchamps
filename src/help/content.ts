@@ -38,6 +38,8 @@ export interface HelpContent {
   printablesHref: string;
   /** Footer links to the holiday guides (SW-63), in this language. */
   guides: { text: string; href: string }[];
+  /** The footer link to the third-party licence notices (SW-89). */
+  noticesLink: string;
   partOf: string;
   sections: Section[];
 }
@@ -62,6 +64,7 @@ export const en: HelpContent = {
     { text: "Cookie contest guide", href: "/guides/christmas-cookie-contest/" },
     { text: "Chili judging guide", href: "/guides/judge-a-chili-cookoff/" },
   ],
+  noticesLink: "Open-source licences",
   partOf: "Part of",
   sections: [
     {

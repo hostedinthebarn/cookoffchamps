@@ -107,7 +107,7 @@ ${s.questions.map((q) => question(q, content.linkLabel)).join("\n")}
       <p><a class="button" href="${escapeHtml(content.appHref)}">${escapeHtml(content.backToApp)}</a></p>
     </main>
     <footer class="site-footer">
-      <a href="${escapeHtml(content.printablesHref)}">${escapeHtml(content.printablesLink)}</a> · ${content.guides.map((g) => `<a href="${escapeHtml(g.href)}">${escapeHtml(g.text)}</a>`).join(" · ")} · ${escapeHtml(content.partOf)} <a href="https://hostedinthebarn.com">Hosted in the Barn</a>
+      <a href="${escapeHtml(content.printablesHref)}">${escapeHtml(content.printablesLink)}</a> · ${content.guides.map((g) => `<a href="${escapeHtml(g.href)}">${escapeHtml(g.text)}</a>`).join(" · ")} · <a href="/third-party-notices.txt">${escapeHtml(content.noticesLink)}</a> · ${escapeHtml(content.partOf)} <a href="https://hostedinthebarn.com">Hosted in the Barn</a>
     </footer>
   </body>
 </html>

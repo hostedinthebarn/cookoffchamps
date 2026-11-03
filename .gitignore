@@ -17,6 +17,7 @@ public/printables/
 public/guides/
 public/sitemap.xml
 public/robots.txt
+public/third-party-notices.txt
 test-results/
 playwright-report/
 design-review/
