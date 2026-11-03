@@ -134,9 +134,10 @@ async function respond(request: Request, env: Env, url: URL, isApi: boolean): Pr
 
 /**
  * The surfaces that link back to the home page with a ?ref=: the results page and
- * the reveal (SW-59), the QR codes on the printables (SW-62) and the guides' closing links (SW-63).
+ * the reveal (SW-59), the QR codes on the printables (SW-62), the guides' closing links (SW-63)
+ * and the social posts, one ref per platform: fb, ig, yt, pin (BIZ-57).
  */
-const REFS = new Set(["results", "reveal", "pie", "cookie", "chili", "guide-pie", "guide-cookie", "guide-chili"]);
+const REFS = new Set(["results", "reveal", "pie", "cookie", "chili", "guide-pie", "guide-cookie", "guide-chili", "fb", "ig", "yt", "pin"]);
 
 /**
  * Counts a home-page visit that came from a "run your own cookoff" link. Unknown
