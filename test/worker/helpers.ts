@@ -92,7 +92,7 @@ export function jpeg(bytes = 12, type = "image/jpeg"): File {
 export function stubTurnstile(success = true, ok = true) {
   return vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
     const url = input instanceof Request ? input.url : String(input);
-    if (url.includes("challenges.cloudflare.com")) {
+    if (new URL(url).hostname === "challenges.cloudflare.com") {
       return new Response(JSON.stringify({ success }), { status: ok ? 200 : 500 });
     }
     throw new Error(`unexpected fetch to ${url}`);

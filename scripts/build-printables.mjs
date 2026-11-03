@@ -29,12 +29,12 @@ try {
   await page.route(`${ORIGIN}/**`, (route) => {
     const rel = decodeURIComponent(new URL(route.request().url()).pathname);
     let file = path.join(pub, rel);
-    if (!file.startsWith(pub)) return route.abort();
+    if (file !== pub && !file.startsWith(pub + path.sep)) return route.abort();
     if (rel.endsWith("/")) file = path.join(file, "index.html");
     if (!fs.existsSync(file)) return route.fulfill({ status: 404 });
     return route.fulfill({ body: fs.readFileSync(file), contentType: TYPES[path.extname(file)] ?? "application/octet-stream" });
   });
-  await page.route((url) => !url.href.startsWith(ORIGIN), (route) => route.abort());
+  await page.route((url) => url.origin !== ORIGIN, (route) => route.abort());
   for (const dir of sheets) {
     const rel = `/${path.relative(pub, dir).split(path.sep).join("/")}/`;
     await page.goto(`${ORIGIN}${rel}`, { waitUntil: "load" });
