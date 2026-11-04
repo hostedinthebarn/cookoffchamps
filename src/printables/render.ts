@@ -1,4 +1,5 @@
 import { escapeHtml, ORIGIN } from "../help/render";
+import { privacyFooterLink } from "../privacy/render";
 import type { Part, PrintablesContent, Sheet } from "./content";
 
 // The printables (SW-62) are plain HTML written at build time, like the help
@@ -104,7 +105,7 @@ ${alternates}
 ${s.main}
     </main>
     <footer class="site-footer no-print">
-      ${escapeHtml(content.partOf)} <a href="https://hostedinthebarn.com">Hosted in the Barn</a>
+      ${privacyFooterLink(content.lang)} · ${escapeHtml(content.partOf)} <a href="https://hostedinthebarn.com">Hosted in the Barn</a>
     </footer>
   </body>
 </html>

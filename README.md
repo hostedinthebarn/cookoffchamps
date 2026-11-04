@@ -23,6 +23,8 @@ npm run db:migrate:local
 npm run dev        # http://localhost:8787
 ```
 
+Copy `.dev.vars.example` to `.dev.vars` first. In production, the IP-address hashes are keyed with a secret: `npx wrangler secret put IP_HASH_KEY` (a long random string). Without it, login and code lookups fail rather than store weak hashes.
+
 In development, magic-link emails are kept in a dev outbox instead of sent (`EMAIL_MODE=log`): open http://localhost:8787/api/dev/outbox to see them.
 
 ## Tests

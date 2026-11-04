@@ -39,6 +39,11 @@ export interface HelpContent {
   /** Footer links to the holiday guides (SW-63), in this language. */
   guides: { text: string; href: string }[];
   partOf: string;
+  /** The privacy page (BIZ-38): linked from the footer and from the Privacy section. */
+  privacyLink: string;
+  privacyHref: string;
+  /** The line that links to the full privacy page, under the Privacy section's questions. */
+  privacyNote: string;
   sections: Section[];
 }
 
@@ -63,6 +68,9 @@ export const en: HelpContent = {
     { text: "Chili judging guide", href: "/guides/judge-a-chili-cookoff/" },
   ],
   partOf: "Part of",
+  privacyLink: "Privacy",
+  privacyHref: "/privacy/",
+  privacyNote: "The full privacy page:",
   sections: [
     {
       id: "guests",
@@ -250,7 +258,8 @@ export const en: HelpContent = {
           id: "ip-addresses",
           q: "Do you keep IP addresses?",
           a: [
-            "Only as one-way hashes, and only briefly, to limit how many login emails one address can request and how many codes one address can guess. A hash can't be turned back into the address.",
+            "Only in a scrambled form, and only briefly: a day at most for login emails and 20 minutes at most for typed codes. We use them to stop one address sending lots of login emails or guessing codes. Then they're deleted.",
+            "The scrambled form can't be turned back into the address without a secret key that only the app holds.",
           ],
         },
         {
@@ -271,7 +280,21 @@ export const en: HelpContent = {
         {
           id: "tracking",
           q: "Are there ads or tracking?",
-          a: ["No ads, and no analytics or tracking scripts."],
+          a: ["No ads, and no tracking that follows you. We use Cloudflare Web Analytics to count page visits. It doesn't set cookies or build a profile of you."],
+        },
+        {
+          id: "cook-data",
+          q: "What do you store about cooks?",
+          a: [
+            "The name the organizer types in for each dish, the dish name and its photo. Guests don't see the cook's name until the reveal. If you're a cook and want your name or photo taken down, ask the organizer, or email privacy@cookoffchamps.com.",
+          ],
+        },
+        {
+          id: "other-handlers",
+          q: "Who else handles the data?",
+          a: [
+            "Cloudflare runs the app, stores events and photos, and runs the anti-bot check. Resend delivers login and invite emails. We don't sell data or share it with anyone else.",
+          ],
         },
         {
           id: "who-runs-it",

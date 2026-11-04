@@ -12,4 +12,6 @@ export interface Env {
   RESEND_API_KEY?: string;
   TURNSTILE_SITE_KEY: string;
   TURNSTILE_SECRET: string;
+  /** Set with `wrangler secret put IP_HASH_KEY`: the key for the IP-address hashes. */
+  IP_HASH_KEY: string;
 }

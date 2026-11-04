@@ -30,12 +30,15 @@
   "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "cookoffchamps-photos" }],
   // Production values. Local dev and the e2e tests override them from .dev.vars
   // (copy .dev.vars.example), and the unit tests set their own in vitest.config.ts.
+  // Every 10 minutes: delete scrambled IP addresses past the privacy page's limits (src/worker/purge.ts).
+  "triggers": { "crons": ["*/10 * * * *"] },
   "vars": {
     "EMAIL_MODE": "resend",
     "APP_ORIGIN": "https://cookoffchamps.com",
     "EMAIL_FROM": "hello@cookoffchamps.com",
     // Public by design: the site key is embedded in every page. The secrets are
-    // set with `wrangler secret put TURNSTILE_SECRET` and `RESEND_API_KEY`.
+    // set with `wrangler secret put TURNSTILE_SECRET`, `RESEND_API_KEY` and
+    // `IP_HASH_KEY` (the key for the IP-address hashes; the app fails without it).
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFktbyWGH6J6pHxl"
   }
 }

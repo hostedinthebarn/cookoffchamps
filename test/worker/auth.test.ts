@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { safeNext, sha256 } from "../../src/worker/auth";
+import { hashIp, safeNext, sha256 } from "../../src/worker/auth";
 import { call, latestLink, login, send } from "./helpers";
 
 afterEach(() => vi.restoreAllMocks());
@@ -160,5 +160,20 @@ describe("email delivery", () => {
       APP_ORIGIN: "https://cookoffchamps.com",
     });
     expect(res.status).toBe(404);
+  });
+});
+
+describe("IP hashing", () => {
+  it("is a keyed HMAC-SHA-256: stable, not the bare SHA-256, and different under another key", async () => {
+    const a = await hashIp(env, "203.0.113.9");
+    expect(a).toMatch(/^[0-9a-f]{64}$/);
+    expect(await hashIp(env, "203.0.113.9")).toBe(a);
+    expect(a).not.toBe(await sha256("203.0.113.9"));
+    expect(await hashIp({ ...env, IP_HASH_KEY: "another-key" }, "203.0.113.9")).not.toBe(a);
+    expect(await hashIp(env, "203.0.113.10")).not.toBe(a);
+  });
+
+  it("refuses to hash without the key, so a deploy missing the secret fails loudly", async () => {
+    await expect(hashIp({ ...env, IP_HASH_KEY: "" }, "203.0.113.9")).rejects.toThrow();
   });
 });

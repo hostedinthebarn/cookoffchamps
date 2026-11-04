@@ -19,6 +19,7 @@ export default defineConfig(async () => {
                   APP_ORIGIN: "http://localhost:8787",
                   TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
                   TURNSTILE_SECRET: "test-secret",
+                  IP_HASH_KEY: "test-ip-hash-key",
                 },
               },
             }),

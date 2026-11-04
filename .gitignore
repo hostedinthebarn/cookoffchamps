@@ -10,10 +10,11 @@ coverage/
 !.dev.vars.example
 public/app.js
 public/app.js.map
-# Written by scripts/build-help.mjs from src/help/
+# Written by scripts/build-help.mjs from src/help/, src/privacy/ and the others
 public/help/
 public/es/
 public/printables/
+public/privacy/
 public/guides/
 public/sitemap.xml
 public/robots.txt

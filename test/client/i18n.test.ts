@@ -144,7 +144,7 @@ describe("errors in Spanish", () => {
 describe("the page around the app", () => {
   function shell(): void {
     document.body.innerHTML = `<header><span id="lang-switch"></span></header><main id="app"></main>
-      <footer><a id="help-link" href="/help/">Help and questions</a> · <a id="printables-link" href="/printables/">Free printables</a> · <span id="part-of">Part of</span></footer>`;
+      <footer><a id="help-link" href="/help/">Help and questions</a> · <a id="printables-link" href="/printables/">Free printables</a> · <a id="privacy-link" href="/privacy/">Privacy</a> · <span id="part-of">Part of</span></footer>`;
   }
 
   it("offers the other language, and switching redraws in it", () => {
@@ -165,6 +165,8 @@ describe("the page around the app", () => {
     expect(document.getElementById("help-link")!.getAttribute("href")).toBe("/es/ayuda/");
     expect(document.getElementById("printables-link")!.textContent).toBe("Imprimibles gratis");
     expect(document.getElementById("printables-link")!.getAttribute("href")).toBe("/es/imprimibles/");
+    expect(document.getElementById("privacy-link")!.textContent).toBe("Privacidad");
+    expect(document.getElementById("privacy-link")!.getAttribute("href")).toBe("/es/privacidad/");
     expect(document.getElementById("part-of")!.textContent).toBe("Parte de");
   });
 

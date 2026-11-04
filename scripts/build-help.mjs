@@ -23,6 +23,8 @@ await build({
       `export { guidePage, guidePaths } from "./src/guides/render.ts";`,
       `export { en as guidesEn } from "./src/guides/content.ts"; export { es as guidesEs } from "./src/guides/content-es.ts";`,
       `export { qrSvg } from "./src/client/qr.ts";`,
+      `export { privacyPage } from "./src/privacy/render.ts";`,
+      `export { en as privacyEn, es as privacyEs } from "./src/privacy/content.ts";`,
     ].join("\n"),
     resolveDir: root,
     loader: "ts",
@@ -35,7 +37,7 @@ await build({
   outfile: tmp,
   logLevel: "warning",
 });
-const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, qrSvg, qrTarget } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
+const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, qrSvg, qrTarget, privacyPage, privacyEn, privacyEs } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
 
 const versions = [en, es]; // English first: it's the x-default for search engines
 for (const content of versions) {
@@ -63,6 +65,10 @@ const guideVersions = [guidesEn, guidesEs];
 for (const content of guideVersions) {
   for (const guide of content.guides) write(guide.path, guidePage(content, guideVersions, printVersions, guide.id));
 }
+
+// The privacy page (BIZ-38). /privacy/ and /es/privacidad/ are already in the sitemap (PUBLIC_PATHS).
+const privacyVersions = [privacyEn, privacyEs];
+for (const content of privacyVersions) write(content.path, privacyPage(content, privacyVersions));
 
 fs.writeFileSync(path.join(pub, "sitemap.xml"), sitemap([...printablePaths(printVersions), ...guidePaths(guideVersions)]));
 fs.writeFileSync(path.join(pub, "robots.txt"), robots());

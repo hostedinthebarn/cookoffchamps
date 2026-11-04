@@ -1,4 +1,5 @@
 import { escapeHtml, ORIGIN } from "../help/render";
+import { privacyFooterLink } from "../privacy/render";
 import type { PrintablesContent, Sheet } from "../printables/content";
 import { pdfPath } from "../printables/render";
 import type { Block, Guide, GuidesContent } from "./content";
@@ -126,7 +127,7 @@ ${guide.faq.map((f) => `        <h3>${escapeHtml(f.q)}</h3>\n        <p>${escape
       </section>
     </main>
     <footer class="site-footer">
-      ${escapeHtml(content.partOf)} <a href="https://hostedinthebarn.com">Hosted in the Barn</a>
+      ${privacyFooterLink(content.lang)} · ${escapeHtml(content.partOf)} <a href="https://hostedinthebarn.com">Hosted in the Barn</a>
     </footer>
   </body>
 </html>

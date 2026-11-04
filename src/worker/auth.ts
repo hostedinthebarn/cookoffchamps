@@ -21,6 +21,18 @@ export async function sha256(text: string): Promise<string> {
 }
 
 /**
+ * A client IP as HMAC-SHA-256 under the IP_HASH_KEY secret, hex. A bare SHA-256 of
+ * an IP can be reversed by trying all 4.3 billion IPv4 addresses; without the key
+ * this can't. A missing or empty key makes importKey throw, so a deploy without
+ * the secret fails loudly instead of quietly storing weak hashes.
+ */
+export async function hashIp(env: Env, ip: string): Promise<string> {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(env.IP_HASH_KEY), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(ip));
+  return Array.from(new Uint8Array(mac), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
  * Only same-site paths, so a crafted link can't bounce a login off-site.
  * Browsers read "/\evil.example" as "//evil.example" and drop tabs and
  * newlines, so backslashes and control characters are refused outright.
@@ -75,7 +87,7 @@ export async function sendLoginLink(
   text: LoginEmailText,
 ): Promise<void> {
   const ip = clientIp(request);
-  const ipHash = ip ? await sha256(ip) : null;
+  const ipHash = ip ? await hashIp(env, ip) : null;
   await purgeExpired(env);
   await checkLinkQuota(env, email, ipHash);
   const token = newId() + newId();
