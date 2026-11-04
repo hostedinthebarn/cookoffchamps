@@ -142,10 +142,12 @@ const REFS = new Set(["results", "reveal", "pie", "cookie", "chili", "guide-pie"
 /**
  * Link-preview fetchers, crawlers and scripts. They open every link a profile or
  * post carries, so on the night the social profiles were set up they counted 40
- * "visits" before anything was posted (BIZ-60).
+ * "visits" before anything was posted (BIZ-60). WhatsApp's preview fetcher is
+ * matched only at the start ("WhatsApp/2.x"), so a browser that mentions WhatsApp
+ * later in its User-Agent still counts; Telegram's says "TelegramBot (like TwitterBot)".
  */
 const NOT_A_PERSON =
-  /https?:\/\/|bot\/|crawl|spider|slurp|preview|facebookexternalhit|facebot|meta-externalagent|whatsapp|embedly|headless|curl\/|wget\/|python-requests/i;
+  /https?:\/\/|bot\/|crawl|spider|slurp|preview|facebookexternalhit|facebot|meta-externalagent|telegrambot|^whatsapp\/|embedly|headless|curl\/|wget\/|python-requests/i;
 
 /**
  * Counts a page visit that came from a link carrying a known ?ref=: the home page,

@@ -55,7 +55,8 @@ describe("worker routing", () => {
       "Mozilla/5.0 (compatible; Pinterestbot/1.0; +http://www.pinterest.com/bot.html)",
       "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
       "Twitterbot/1.0",
-      "WhatsApp/2.23.20.0",
+      "WhatsApp/2.23.20.0 A",
+      "TelegramBot (like TwitterBot)",
       "curl/8.7.1",
     ]) {
       await visit("/?ref=fb", { headers: { "user-agent": agent } });
@@ -63,6 +64,8 @@ describe("worker routing", () => {
     await call("/?ref=fb");
     // A phone whose model name ends in "bot" is still a person.
     await visit("/?ref=ig", { headers: { "user-agent": "Mozilla/5.0 (Linux; Android 13; CUBOT KINGKONG 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36" } });
+    // A browser that mentions WhatsApp later on is a person opening the link, so it counts.
+    await visit("/?ref=yt", { headers: { "user-agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36 WhatsApp/2.24.1" } });
     expect(await hits()).toEqual([
       { ref: "chili", hits: 1 },
       { ref: "fb", hits: 1 },
@@ -71,7 +74,7 @@ describe("worker routing", () => {
       { ref: "pin", hits: 4 },
       { ref: "results", hits: 2 },
       { ref: "reveal", hits: 1 },
-      { ref: "yt", hits: 1 },
+      { ref: "yt", hits: 2 },
     ]);
   });
 
