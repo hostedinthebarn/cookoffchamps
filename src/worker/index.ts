@@ -140,13 +140,27 @@ async function respond(request: Request, env: Env, url: URL, isApi: boolean): Pr
 const REFS = new Set(["results", "reveal", "pie", "cookie", "chili", "guide-pie", "guide-cookie", "guide-chili", "fb", "ig", "yt", "pin"]);
 
 /**
- * Counts a home-page visit that came from a "run your own cookoff" link. Unknown
- * refs are ignored so the table can't be filled with junk, and a failed write
- * never stops the page from loading.
+ * Link-preview fetchers, crawlers and scripts. They open every link a profile or
+ * post carries, so on the night the social profiles were set up they counted 40
+ * "visits" before anything was posted (BIZ-60). WhatsApp's preview fetcher is
+ * matched only at the start ("WhatsApp/2.x"), so a browser that mentions WhatsApp
+ * later in its User-Agent still counts; Telegram's says "TelegramBot (like TwitterBot)".
+ */
+const NOT_A_PERSON =
+  /https?:\/\/|bot\/|crawl|spider|slurp|preview|facebookexternalhit|facebot|meta-externalagent|telegrambot|^whatsapp\/|embedly|headless|curl\/|wget\/|python-requests/i;
+
+/**
+ * Counts a page visit that came from a link carrying a known ?ref=: the home page,
+ * or any static page (printables and guides, which Pinterest pins open; they all
+ * end in "/"). Unknown refs are ignored so the table can't be filled with junk,
+ * bots and requests without a User-Agent aren't people, and a failed write never
+ * stops the page from loading.
  */
 async function countRef(request: Request, env: Env, url: URL): Promise<void> {
   const ref = url.searchParams.get("ref");
-  if (request.method !== "GET" || url.pathname !== "/" || !ref || !REFS.has(ref)) return;
+  if (request.method !== "GET" || !url.pathname.endsWith("/") || !ref || !REFS.has(ref)) return;
+  const agent = request.headers.get("user-agent") ?? "";
+  if (!agent || NOT_A_PERSON.test(agent)) return;
   try {
     await env.DB.prepare(
       "INSERT INTO ref_counts (ref, day, hits) VALUES (?, ?, 1) ON CONFLICT (ref, day) DO UPDATE SET hits = hits + 1",
