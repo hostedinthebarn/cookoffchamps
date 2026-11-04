@@ -38,6 +38,7 @@ describe("the privacy page", () => {
       expect(text).toContain("Resend");
       expect(text).toContain("Cloudflare");
       expect(text).toContain("secret");
+      expect(text).toContain("Pinterest"); // our own social accounts' analytics (BIZ-61)
     }
   });
 

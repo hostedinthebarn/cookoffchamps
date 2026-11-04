@@ -87,7 +87,10 @@ export const en: PrivacyContent = {
     {
       id: "others",
       title: "Who else handles it",
-      body: ["Cloudflare (hosting, storage, anti-bot check, visit counts) and Resend (email). They process it for us, not for themselves. We don't sell data."],
+      body: [
+        "Cloudflare (hosting, storage, anti-bot check, visit counts) and Resend (email). They process it for us, not for themselves. We don't sell data.",
+        "We also read the analytics for our own social media accounts (Facebook, Instagram, YouTube and Pinterest) to see how our posts do. That's about our posts and holds nothing about the people who use the app.",
+      ],
     },
     {
       id: "choices",
@@ -157,7 +160,10 @@ export const es: PrivacyContent = {
     {
       id: "others",
       title: "Quién más lo maneja",
-      body: ["Cloudflare (alojamiento, almacenamiento, verificación contra robots y conteo de visitas) y Resend (correo). Lo procesan por nosotros, no para sí mismos. No vendemos datos."],
+      body: [
+        "Cloudflare (alojamiento, almacenamiento, verificación contra robots y conteo de visitas) y Resend (correo). Lo procesan por nosotros, no para sí mismos. No vendemos datos.",
+        "También leemos las estadísticas de nuestras propias cuentas en redes sociales (Facebook, Instagram, YouTube y Pinterest) para ver cómo les va a nuestras publicaciones. Son datos sobre nuestras publicaciones y no incluyen nada sobre las personas que usan la app.",
+      ],
     },
     {
       id: "choices",
