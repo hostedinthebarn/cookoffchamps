@@ -30,6 +30,8 @@
   "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "cookoffchamps-photos" }],
   // Production values. Local dev and the e2e tests override them from .dev.vars
   // (copy .dev.vars.example), and the unit tests set their own in vitest.config.ts.
+  // Every 10 minutes: delete scrambled IP addresses past the privacy page's limits (src/worker/purge.ts).
+  "triggers": { "crons": ["*/10 * * * *"] },
   "vars": {
     "EMAIL_MODE": "resend",
     "APP_ORIGIN": "https://cookoffchamps.com",

@@ -258,7 +258,7 @@ export const en: HelpContent = {
           id: "ip-addresses",
           q: "Do you keep IP addresses?",
           a: [
-            "Only in a scrambled form, and only briefly: a day for login emails and ten minutes for typed codes. We use them to stop one address sending lots of login emails or guessing codes. Then they're deleted.",
+            "Only in a scrambled form, and only briefly: a day at most for login emails and 20 minutes at most for typed codes. We use them to stop one address sending lots of login emails or guessing codes. Then they're deleted.",
             "The scrambled form can't be turned back into the address without a secret key that only the app holds.",
           ],
         },

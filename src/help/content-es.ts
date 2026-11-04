@@ -220,7 +220,7 @@ export const es: HelpContent = {
           id: "ip-addresses",
           q: "¿Guardan direcciones IP?",
           a: [
-            "Solo de forma codificada y solo por poco tiempo: un día para los correos de acceso y diez minutos para los códigos escritos. Los usamos para evitar que una misma dirección envíe muchos correos de acceso o pruebe muchos códigos. Después se borran.",
+            "Solo de forma codificada y solo por poco tiempo: un día como máximo para los correos de acceso y 20 minutos como máximo para los códigos escritos. Los usamos para evitar que una misma dirección envíe muchos correos de acceso o pruebe muchos códigos. Después se borran.",
             "La forma codificada no se puede convertir de nuevo en la dirección sin una clave secreta que solo tiene la app.",
           ],
         },

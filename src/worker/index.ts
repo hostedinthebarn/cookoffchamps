@@ -19,6 +19,7 @@ import {
 import { error, HttpError, json } from "./http";
 import { getPhoto } from "./photos";
 import { castVote, lookupCode, publicEvent } from "./public";
+import { purgeIpHashes } from "./purge";
 import { canonicalRedirect, isCrossSite, withSecurityHeaders } from "./security";
 
 type Handler = (request: Request, env: Env, ...params: string[]) => Promise<Response>;
@@ -112,6 +113,10 @@ export default {
     const url = new URL(request.url);
     const isApi = url.pathname.startsWith("/api/");
     return withSecurityHeaders(await respond(request, env, url, isApi), env, isApi);
+  },
+  // The cron trigger in wrangler.jsonc: keeps the privacy page's IP-hash retention true.
+  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(purgeIpHashes(env));
   },
 } satisfies ExportedHandler<Env>;
 
