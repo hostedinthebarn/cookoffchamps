@@ -52,6 +52,11 @@ export const es: Messages = {
     cookLabel: "Quién lo cocinó ",
     dishLabel: "Platillo ",
     runYourOwn: "Organiza tu propio concurso, gratis",
+    ticket: (ticket) => `Boleto ${ticket}`,
+    score: (score) => `Calificación: ${score}`,
+    peoplesChoice: "Premio del público",
+    grandChampion: "Gran campeón",
+    grandTotal: (total) => `${total} sumando todas las categorías`,
   },
 
   status: {
@@ -106,6 +111,14 @@ export const es: Messages = {
     entryAria: (n, dish) => `Platillo ${n}, ${dish}`,
     loadFailed: "No se pudo cargar la verificación del voto. Revisa tu conexión e inténtalo de nuevo.",
     checkFailed: "Falló la verificación del voto. Inténtalo de nuevo.",
+    judgesOnly: "Los jueces están calificando los platillos. Los resultados aparecerán aquí después del anuncio.",
+    ticketAria: (ticket, dish) => `Boleto ${ticket}${dish ? `, ${dish}` : ""}`,
+    breakdown: "Cómo lo calificaron los jueces",
+    commentsTitle: "Comentarios de los jueces",
+    commentsHint: "Cocineros: escriban el número de su mitad del boleto para leer los comentarios de los jueces sobre su platillo.",
+    commentsTicket: "Número de boleto ",
+    commentsShow: "Ver comentarios",
+    noComments: "Los jueces no dejaron comentarios sobre ese platillo.",
   },
 
   manage: {
@@ -219,6 +232,16 @@ export const es: Messages = {
     judgedRow: (label, dish, cook, score, judges) =>
       `${label}${dish ? `, ${dish}` : ""} (${cook}): ${score} de ${judges} ${judges === 1 ? "juez" : "jueces"}`,
     notScored: (label, cook) => `${label} (${cook}): todavía sin calificar`,
+    peoplesChoiceSetting: "Premio del público: los invitados votan por su favorito, como un premio aparte",
+    grandChampionSetting: "Gran campeón: el mejor total sumando todas las categorías, entre quienes participaron en todas",
+    cookCommentsSetting: "Dejar que cada cocinero lea los comentarios de los jueces sobre su platillo después del anuncio, con su número de boleto",
+    finalTitle: "¿Anunciar los resultados definitivos?",
+    finalBody:
+      "El anuncio muestra el premio del público y luego el 3.º, 2.º y 1.er lugar de cada categoría. Cuando aparece el último resultado, los resultados son públicos y definitivos: no se pueden volver a ocultar ni desbloquear calificaciones.",
+    finalAck: "Entiendo que los resultados serán definitivos",
+    resultsFinal: "Los resultados ya se publicaron y son definitivos.",
+    exportCsv: "Descargar los resultados (CSV)",
+    judgeComment: (judge, comment) => `${judge}: «${comment}»`,
   },
 
   reveal: {
@@ -231,6 +254,7 @@ export const es: Messages = {
     cookedBy: "Lo cocinó",
     tapNext: "Toca para ver el siguiente lugar",
     congrats: "🎉 ¡Felicidades a todos los que cocinaron!",
+    tapToStart: "Toca para empezar",
   },
 
   judge: {
@@ -267,6 +291,7 @@ export const es: Messages = {
     enterCode: "y escribe el código ",
     scanToVote: "Escanea para votar",
     addDishesFirst: "Primero agrega algunos platillos.",
+    addTicketsFirst: "Las tarjetas muestran el número de boleto, así que agrégalo cuando entreguen cada platillo.",
     runYourOwnAt: (host: string) => `Organiza tu propio concurso, gratis, en ${host}`,
   },
 };
@@ -313,4 +338,8 @@ export const esErrors: Record<ErrorCode, string> = {
   scoreLocked: "Ya calificaste ese platillo.",
   noScorecard: "Ese juez todavía no ha enviado calificaciones para ese platillo.",
   notADish: "Ese platillo no está en este concurso.",
+  resultsFinal: "Los resultados de un concurso con jueces son definitivos y no se pueden ocultar.",
+  noPeoplesChoice: "En este concurso solo califican los jueces; no hay voto del público.",
+  commentsUnavailable: "Los comentarios de los jueces no están disponibles para este concurso.",
+  noSuchTicket: "No hay ningún platillo con ese número de boleto.",
 };

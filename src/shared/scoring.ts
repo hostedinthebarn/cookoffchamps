@@ -115,3 +115,54 @@ export function rankScores(results: readonly EntryScore[], criteria: readonly Cr
 export function formatScore(score: number): string {
   return score.toFixed(2);
 }
+
+export interface CookResult {
+  entryId: string;
+  categoryId: string;
+  cookName: string;
+  score: number | null;
+}
+
+export interface GrandChampion {
+  /** The cook's name as first entered. */
+  cook: string;
+  /** Their best score in each category, added up. */
+  total: number;
+  /** The dishes that made up the total, one per category, in category order. */
+  entryIds: string[];
+}
+
+/** Cooks are matched by name, ignoring case and spacing: "Ana  Ruiz" is "ana ruiz". */
+export function cookKey(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/**
+ * The Grand Champion (rule 16): the best total across every category, for cooks
+ * with a scored dish in each one. A cook with two dishes in a category counts
+ * their better one. Only meaningful with two or more categories, so fewer gives
+ * nobody. A tie on the total shares the title: there's no criterion to break it
+ * on across categories. Nobody qualifying gives an empty list.
+ */
+export function grandChampions(results: readonly CookResult[], categoryIds: readonly string[]): GrandChampion[] {
+  if (categoryIds.length < 2) return [];
+  const cooks = new Map<string, { cook: string; best: Map<string, CookResult> }>();
+  for (const r of results) {
+    if (r.score === null) continue;
+    const key = cookKey(r.cookName);
+    const cook = cooks.get(key) ?? { cook: r.cookName.trim(), best: new Map() };
+    const current = cook.best.get(r.categoryId);
+    if (!current || r.score > current.score!) cook.best.set(r.categoryId, r);
+    cooks.set(key, cook);
+  }
+  const eligible = [...cooks.values()]
+    .filter((c) => categoryIds.every((id) => c.best.has(id)))
+    .map((c) => ({
+      cook: c.cook,
+      total: categoryIds.reduce((sum, id) => sum + c.best.get(id)!.score!, 0),
+      entryIds: categoryIds.map((id) => c.best.get(id)!.entryId),
+    }));
+  if (!eligible.length) return [];
+  const top = Math.max(...eligible.map((c) => c.total));
+  return eligible.filter((c) => top - c.total <= EPSILON);
+}

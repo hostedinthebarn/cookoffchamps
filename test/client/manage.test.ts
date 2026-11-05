@@ -21,7 +21,7 @@ function view(overrides: Partial<ManageView> = {}, status: ManageView["event"]["
     votesCast: [{ categoryId: "c1", votes: 7 }],
     proPreview: true,
     judges: [],
-    judging: { criteria: [], dropOutliers: true, showDishNames: false, scored: [] },
+    judging: { criteria: [], dropOutliers: true, showDishNames: false, peoplesChoice: true, grandChampion: false, cookComments: false, scored: [] },
     ...overrides,
   };
 }
@@ -565,7 +565,7 @@ describe("pro scoring (SW-25, part 2)", () => {
         { id: "n3", categoryId: "c1", number: 3, cookName: "Cy", dishName: "", photoKey: null, ticket: null },
       ],
       judges: [{ id: "j1", name: "Pat" }, { id: "j2", name: "Lee" }],
-      judging: { criteria, dropOutliers: true, showDishNames: false, scored: [{ judgeId: "j1", entryId: "n1" }], ...judging },
+      judging: { criteria, dropOutliers: true, showDishNames: false, peoplesChoice: true, grandChampion: false, cookComments: false, scored: [{ judgeId: "j1", entryId: "n1" }], ...judging },
       ...overrides,
     }, status);
   }
@@ -706,21 +706,78 @@ describe("pro scoring (SW-25, part 2)", () => {
         { entryId: "n1", categoryId: "c1", score: null, judges: 0, counted: 0, byCriterion: {} },
       ],
       placings: { c1: [{ place: 1, entryIds: ["n2"], score: 8.746 }, { place: 2, entryIds: ["n1"], score: null }] },
+      criteria: [],
+      peoplesChoice: null,
+      grandChampion: null,
+      comments: [{ entryId: "n2", judgeId: "j1", judge: "Pat", comment: "Great heat" }],
     };
     const { ctx, cleanup } = await open(scoring({}, "open"), { "GET /api/events/e1/totals": { totals: [], judged } });
     byText(ctx.root, "button", "Peek").click();
-    await vi.waitFor(() => expect(ctx.root.querySelectorAll(".peek li")).toHaveLength(2));
-    expect([...ctx.root.querySelectorAll(".peek li")].map((li) => li.textContent)).toEqual([
+    await vi.waitFor(() => expect(ctx.root.querySelectorAll(".peek ol > li")).toHaveLength(2));
+    expect([...ctx.root.querySelectorAll(".peek ol > li")].map((li) => li.firstChild!.textContent)).toEqual([
       "Ticket 300 (Ben): 8.75 from 3 judges",
       "Ticket 214 (Ana): not scored yet",
     ]);
+    // The organizer sees who wrote each comment (rules 14 and 19).
+    expect(ctx.root.querySelector(".peek .comments")!.textContent).toBe("Pat: “Great heat”");
     cleanup();
 
     const two = scoring({ categories: [{ id: "c1", name: "Chili", position: 1 }, { id: "c2", name: "Dessert", position: 2 }] }, "open");
     const { ctx: multi, cleanup: done } = await open(two, { "GET /api/events/e1/totals": { totals: [], judged: { ...judged, scores: [{ ...judged.scores[0]!, counted: 1 }, judged.scores[1]!] } } });
     byText(multi.root, "button", "Peek").click();
     await vi.waitFor(() => expect(multi.root.querySelectorAll(".peek h3")).toHaveLength(2));
-    expect(multi.root.querySelector(".peek li")!.textContent).toBe("Ticket 300 (Ben): 8.75 from 1 judge");
+    expect(multi.root.querySelector(".peek li")!.firstChild!.textContent).toBe("Ticket 300 (Ben): 8.75 from 1 judge");
     done();
+  });
+});
+
+describe("pro results (SW-25, part 3)", () => {
+  const pro = (status: ManageView["event"]["status"], overrides: Partial<ManageView> = {}) => {
+    const base = view({}, status);
+    return view({ event: { ...base.event, kind: "pro" }, ...overrides }, status);
+  };
+
+  it("asks for a ticked acknowledgement before a final reveal (rule 18)", async () => {
+    const { ctx } = await open(pro("closed"));
+    byText(ctx.root, "button", "Start the reveal").click();
+    await flush();
+    const dialog = document.querySelector("dialog.confirm")!;
+    expect(dialog.querySelector("h2")!.textContent).toBe("Reveal the final results?");
+    const go = byText(dialog, "button", "Reveal the winners") as HTMLButtonElement;
+    expect(go.disabled).toBe(true);
+    const box = dialog.querySelector<HTMLInputElement>('input[name="acknowledge"]')!;
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    go.click();
+    await flush();
+    expect(ctx.navigate).toHaveBeenCalledWith("/e/e1/reveal");
+  });
+
+  it("has no undo once a pro event's results are out", async () => {
+    const { ctx } = await open(pro("revealed"));
+    expect(ctx.root.textContent).toContain("The results are out, and final.");
+    expect([...ctx.root.querySelectorAll("button")].some((b) => b.textContent === "Undo the reveal")).toBe(false);
+    expect(byText(ctx.root, "a", "See the results page").getAttribute("href")).toBe("/v/e1");
+  });
+
+  it("saves the award settings as they're ticked, with Grand Champion only for several categories", async () => {
+    const { ctx } = await open(pro("setup"));
+    expect(ctx.root.querySelector('input[name="grandChampion"]')).toBeNull();
+    const pc = ctx.root.querySelector<HTMLInputElement>('input[name="peoplesChoice"]')!;
+    expect(pc.checked).toBe(true);
+    pc.checked = false;
+    pc.dispatchEvent(new Event("change"));
+    await flush();
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ peoplesChoice: false });
+    // No export while setting up: there's nothing to export.
+    expect(ctx.root.textContent).not.toContain("Download the results");
+
+    const two = pro("closed", { categories: [{ id: "c1", name: "Chili", position: 1 }, { id: "c2", name: "Dessert", position: 2 }] });
+    const { ctx: multi } = await open(two);
+    expect(multi.root.querySelector('input[name="grandChampion"]')).not.toBeNull();
+    expect(multi.root.querySelector<HTMLInputElement>('input[name="cookComments"]')!.checked).toBe(false);
+    const link = byText(multi.root, "a", "Download the results (CSV)");
+    expect(link.getAttribute("href")).toBe("/api/events/e1/export.csv?lang=en");
+    expect(link.hasAttribute("download")).toBe(true);
   });
 });

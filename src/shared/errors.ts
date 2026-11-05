@@ -44,6 +44,10 @@ export const ERROR_CODES = [
   "scoreLocked",
   "noScorecard",
   "notADish",
+  "resultsFinal",
+  "noPeoplesChoice",
+  "commentsUnavailable",
+  "noSuchTicket",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

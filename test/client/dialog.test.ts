@@ -62,6 +62,33 @@ describe("confirmDialog", () => {
 });
 
 
+describe("confirmDialog with an acknowledgement (rule 18)", () => {
+  it("keeps the confirm button off until the box is ticked", async () => {
+    const answer = confirmDialog({ ...ask, acknowledge: "I understand the results will be final" });
+    const dialog = shown();
+    const go = byText(dialog, "button", "Reveal the winners") as HTMLButtonElement;
+    const box = dialog.querySelector<HTMLInputElement>('input[name="acknowledge"]')!;
+    expect(box.closest("label")!.textContent).toBe(" I understand the results will be final");
+    expect(go.disabled).toBe(true);
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    expect(go.disabled).toBe(false);
+    box.checked = false;
+    box.dispatchEvent(new Event("change"));
+    expect(go.disabled).toBe(true);
+    box.checked = true;
+    box.dispatchEvent(new Event("change"));
+    go.click();
+    expect(await answer).toBe(true);
+  });
+
+  it("has no box without one", () => {
+    void confirmDialog(ask);
+    expect(shown().querySelector("input")).toBeNull();
+    expect((byText(shown(), "button", "Reveal the winners") as HTMLButtonElement).disabled).toBe(false);
+  });
+});
+
 describe("chooseDialog", () => {
   const pick = () => chooseDialog("Revoke Pat's link?", "Keep or drop?", [{ label: "Keep", value: "keep" }, { label: "Drop", value: "drop" }]);
   const box = () => document.querySelector("dialog.choose") as HTMLDialogElement;

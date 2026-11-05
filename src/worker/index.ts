@@ -21,6 +21,7 @@ import { addJudge, judgePage, revokeJudge } from "./judges";
 import { addCriterion, applyPreset, deleteCriterion, submitScores, unlockScores, updateCriterion } from "./judging";
 import { getPhoto } from "./photos";
 import { castVote, lookupCode, publicEvent } from "./public";
+import { cookComments, exportResults } from "./results";
 import { purgeIpHashes } from "./purge";
 import { canonicalRedirect, isCrossSite, withSecurityHeaders } from "./security";
 
@@ -45,6 +46,7 @@ const ROUTES: [string, string, Handler][] = [
   ["DELETE", "/api/events/:id", deleteEvent],
   ["POST", "/api/events/:id/status", setStatus],
   ["GET", "/api/events/:id/totals", totals],
+  ["GET", "/api/events/:id/export.csv", exportResults],
   ["POST", "/api/events/:id/categories", addCategory],
   ["POST", "/api/events/:id/organizers", addOrganizer],
   ["DELETE", "/api/events/:id/organizers/:email", removeOrganizer],
@@ -64,6 +66,7 @@ const ROUTES: [string, string, Handler][] = [
   ["GET", "/api/public/codes/:code", (r, env, code) => lookupCode(r, env, code!)],
   ["GET", "/api/public/events/:id", publicEvent],
   ["POST", "/api/public/events/:id/votes", castVote],
+  ["GET", "/api/public/events/:id/comments/:ticket", cookComments],
   ["GET", "/api/public/judges/:id", judgePage],
   ["POST", "/api/public/judges/:id/scores", submitScores],
   ["GET", "/api/photos/*", (r, env, key) => getPhoto(env, key!, r)],

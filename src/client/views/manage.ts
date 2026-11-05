@@ -91,7 +91,11 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
   }
 
   async function startReveal(): Promise<void> {
-    const sure = await confirmDialog({ title: t.revealTitle, body: t.revealBody, confirm: t.revealConfirm });
+    // A pro reveal is final (rule 18), so it says so and needs a tick first.
+    const ask = isPro()
+      ? { title: t.finalTitle, body: t.finalBody, confirm: t.revealConfirm, acknowledge: t.finalAck }
+      : { title: t.revealTitle, body: t.revealBody, confirm: t.revealConfirm };
+    const sure = await confirmDialog(ask);
     if (sure) ctx.navigate(`/e/${eventId}/reveal`);
   }
 
@@ -115,6 +119,11 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
         h("button", { onclick: () => void startReveal() }, t.startReveal),
         h("button", { class: "secondary", onclick: () => setStatus("open") }, t.reopen),
         h("p", { class: "aside" }, t.reopenAside),
+      );
+    } else if (isPro()) {
+      box.append(
+        h("p", {}, t.resultsFinal),
+        h("a", { class: "button", href: `/v/${eventId}`, "data-link": true }, t.seeResults),
       );
     } else {
       const undo = () => setStatusIfSure("closed", { title: t.undoTitle, body: t.undoBody, confirm: t.undo });
@@ -203,9 +212,16 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       h("ol", {}, ...rows.map((entryId) => {
         const entry = data.entries.find((e) => e.id === entryId)!;
         const result = judged.scores.find((s) => s.entryId === entryId)!;
-        return h("li", {}, result.score === null
-          ? t.notScored(label(entry), entry.cookName)
-          : t.judgedRow(label(entry), entry.dishName, entry.cookName, formatScore(result.score), result.counted));
+        // Only organizers see who wrote each comment (rules 14 and 19).
+        const notes = judged.comments.filter((c) => c.entryId === entryId);
+        return h(
+          "li",
+          {},
+          result.score === null
+            ? t.notScored(label(entry), entry.cookName)
+            : t.judgedRow(label(entry), entry.dishName, entry.cookName, formatScore(result.score), result.counted),
+          notes.length ? h("ul", { class: "comments" }, ...notes.map((n) => h("li", {}, t.judgeComment(n.judge, n.comment)))) : null,
+        );
       })),
     );
   }
@@ -477,14 +493,25 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
 
     // The settings save as they're ticked; they're fixed once the results are out.
     const revealed = data.event.status === "revealed";
-    const setting = (key: "dropOutliers" | "showDishNames", text: string) => {
+    const setting = (key: "dropOutliers" | "showDishNames" | "peoplesChoice" | "grandChampion" | "cookComments", text: string) => {
       const box = h("input", { type: "checkbox", name: key, checked: data.judging[key], disabled: revealed }) as HTMLInputElement;
       box.addEventListener("change", () => void act(() => api(`/api/events/${eventId}`, { method: "PATCH", body: { [key]: box.checked } })));
       return h("label", { class: "check" }, box, ` ${text}`);
     };
-    section.append(setting("dropOutliers", t.dropOutliers), setting("showDishNames", t.showDishNames));
+    section.append(
+      setting("dropOutliers", t.dropOutliers),
+      setting("showDishNames", t.showDishNames),
+      setting("peoplesChoice", t.peoplesChoiceSetting),
+      setting("cookComments", t.cookCommentsSetting),
+    );
+    // The Grand Champion needs categories to add up across (rule 16).
+    if (data.categories.length > 1) section.append(setting("grandChampion", t.grandChampionSetting));
 
     if (!setup && data.judges.length) section.append(progressPanel());
+    // The export (rule 19): every judge's scores and comments, for the organizer's records.
+    if (!setup) {
+      section.append(h("p", {}, h("a", { class: "button secondary", href: `/api/events/${eventId}/export.csv?lang=${lang()}`, download: "" }, t.exportCsv)));
+    }
     return section;
   }
 

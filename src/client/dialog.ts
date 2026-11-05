@@ -43,6 +43,8 @@ export interface ConfirmOptions {
   title: string;
   body: string;
   confirm: string; // the label says what happens, e.g. "Reveal the winners", never just "OK"
+  /** A box to tick before the confirm button works, for a step that can't be undone (rule 18). */
+  acknowledge?: string;
 }
 
 /**
@@ -51,15 +53,22 @@ export interface ConfirmOptions {
  * focus, so a stray tap or Enter does nothing. Escape cancels too. Resolves
  * true only for the confirm button.
  */
-export function confirmDialog({ title, body, confirm }: ConfirmOptions): Promise<boolean> {
+export function confirmDialog({ title, body, confirm, acknowledge }: ConfirmOptions): Promise<boolean> {
   return new Promise((resolve) => {
     const cancelButton = h("button", { type: "button", class: "secondary" }, m().common.cancel);
-    const confirmButton = h("button", { type: "button" }, confirm);
+    const confirmButton = h("button", { type: "button", disabled: Boolean(acknowledge) }, confirm) as HTMLButtonElement;
+    let ack: HTMLElement | null = null;
+    if (acknowledge) {
+      const box = h("input", { type: "checkbox", name: "acknowledge" }) as HTMLInputElement;
+      box.addEventListener("change", () => (confirmButton.disabled = !box.checked));
+      ack = h("label", { class: "check" }, box, ` ${acknowledge}`);
+    }
     const dialog = h(
       "dialog",
       { class: "confirm", "aria-labelledby": "confirm-title", "aria-describedby": "confirm-body" },
       h("h2", { id: "confirm-title" }, title),
       h("p", { id: "confirm-body" }, body),
+      ack,
       h("div", { class: "actions" }, cancelButton, confirmButton),
     ) as HTMLDialogElement;
 

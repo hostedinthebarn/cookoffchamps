@@ -1,13 +1,20 @@
 import { revealSequence, type RevealStep } from "../../shared/ranking";
+import { formatScore, type GrandChampion } from "../../shared/scoring";
 import { api } from "../api";
 import type { Ctx } from "../app";
 import { dateEl, h, logo, madeWith, mount, photoUrl } from "../dom";
 import { m } from "../i18n";
 import type { ManageView, Totals } from "../types";
 
-interface Slide {
+export interface Slide {
   category: string | null; // null for a single contest (decision 12)
   step: RevealStep;
+  /** Pro events (SW-25): an award rather than a judged place. */
+  award?: "peoples" | "grand";
+  /** Pro events: the judged score, shown where a family slide shows votes. */
+  score?: number;
+  /** The Grand Champion slide names cooks, not dishes. */
+  cooks?: GrandChampion[];
 }
 
 /** Every click of the reveal, category by category, 3rd → 1st within each (decisions 7, 8, 12). */
@@ -16,6 +23,41 @@ export function buildSlides(data: ManageView, totals: Totals["totals"]): Slide[]
   return data.categories.flatMap((c) =>
     revealSequence(totals.filter((t) => t.categoryId === c.id)).map((step) => ({ category: multi ? c.name : null, step })),
   );
+}
+
+/**
+ * A pro event's reveal (rule 17): People's Choice first, then each category
+ * 3rd, 2nd, 1st by the judges' scores, then the Grand Champion. A dish no judge
+ * scored isn't revealed, and an award nobody won has no slide.
+ */
+export function buildProSlides(data: ManageView, judged: NonNullable<Totals["judged"]>): Slide[] {
+  const multi = data.categories.length > 1;
+  const slides: Slide[] = [];
+  for (const c of data.categories) {
+    const top = judged.peoplesChoice?.[c.id];
+    if (top) {
+      slides.push({ category: multi ? c.name : null, award: "peoples", step: { ...top, coChampions: false } });
+    }
+  }
+  for (const c of data.categories) {
+    const podium = (judged.placings[c.id] ?? []).filter((p) => p.score !== null && p.place <= 3).reverse();
+    for (const p of podium) {
+      const step = { place: p.place, entryIds: p.entryIds, votes: 0, coChampions: p.place === 1 && p.entryIds.length > 1 };
+      slides.push({ category: multi ? c.name : null, step, score: p.score! });
+    }
+  }
+  const grand = judged.grandChampion;
+  if (grand?.length) {
+    slides.push({ category: null, award: "grand", step: { place: 1, entryIds: [], votes: 0, coChampions: false }, cooks: grand });
+  }
+  return slides;
+}
+
+/** The heading on a slide: the award's name, or the place. */
+export function slideLabel(slide: Slide): string {
+  if (slide.award === "peoples") return m().common.peoplesChoice;
+  if (slide.award === "grand") return m().common.grandChampion;
+  return placeLabel(slide.step);
 }
 
 export function placeLabel(step: RevealStep): string {
@@ -59,8 +101,9 @@ export async function revealView(ctx: Ctx, eventId: string): Promise<() => void>
     return () => {};
   }
 
-  const { totals } = await api<Totals>(`/api/events/${eventId}/totals`);
-  const slides = buildSlides(data, totals);
+  const { totals, judged } = await api<Totals>(`/api/events/${eventId}/totals`);
+  const pro = data.event.kind === "pro";
+  const slides = judged ? buildProSlides(data, judged) : buildSlides(data, totals);
   let shown = -1; // -1 is the title card
   // aria-live, so a screen reader announces each place as it lands.
   const stage = h("div", { class: "reveal", tabindex: "0", "aria-live": "polite" });
@@ -72,32 +115,37 @@ export async function revealView(ctx: Ctx, eventId: string): Promise<() => void>
         logo(),
         h("h1", {}, data.event.name),
         data.event.date ? dateEl(data.event.date, "event-date") : null,
-        h("p", { class: "hint" }, slides.length ? t.reveal.tapFirst : t.reveal.nothing),
+        h("p", { class: "hint" }, slides.length ? (pro ? t.reveal.tapToStart : t.reveal.tapFirst) : t.reveal.nothing),
       );
       return;
     }
-    const { category, step } = slides[shown]!;
+    const slide = slides[shown]!;
+    const { category, step } = slide;
     stage.dataset.place = String(step.place);
-    const champion = step.place === 1;
+    // Confetti for a champion, not for People's Choice, which comes first.
+    const champion = step.place === 1 && slide.award !== "peoples";
     mount(
       stage,
       champion ? h("div", { class: "sunburst", "aria-hidden": "true" }) : null,
       champion ? confetti() : null,
       category ? h("p", { class: "category" }, category) : null,
       // The medal repeats the place for the eye; the label below says it for everyone.
-      h("div", { class: "medal", "aria-hidden": "true" }, String(step.place)),
-      h("p", { class: "place" }, placeLabel(step)),
-      h("div", { class: "winners" }, ...step.entryIds.map((id) => {
+      h("div", { class: "medal", "aria-hidden": "true" }, slide.award ? "★" : String(step.place)),
+      h("p", { class: "place" }, slideLabel(slide)),
+      h("div", { class: "winners" }, ...(slide.cooks ?? []).map((c) =>
+        h("div", { class: "winner" }, h("p", { class: "cook" }, c.cook), h("p", { class: "votes" }, t.common.grandTotal(formatScore(c.total)))),
+      ), ...step.entryIds.map((id) => {
         const e = data.entries.find((x) => x.id === id)!;
         return h(
           "div",
           { class: "winner" },
           e.photoKey ? h("img", { src: photoUrl(e.photoKey), alt: e.dishName }) : null,
-          h("p", { class: "dish-name" }, e.dishName),
+          pro ? h("p", { class: "number" }, t.common.ticket(e.ticket!)) : null,
+          e.dishName ? h("p", { class: "dish-name" }, e.dishName) : null,
           // The cook's name is seen here for the first time (decision 9).
           h("p", { class: "cook-label" }, t.reveal.cookedBy),
           h("p", { class: "cook" }, e.cookName),
-          h("p", { class: "votes" }, t.common.votes(step.votes)),
+          h("p", { class: "votes" }, slide.score === undefined ? t.common.votes(step.votes) : t.common.score(formatScore(slide.score))),
         );
       })),
       h("p", { class: "hint" }, shown < slides.length - 1 ? t.reveal.tapNext : t.reveal.congrats),

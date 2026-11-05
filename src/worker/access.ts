@@ -13,6 +13,9 @@ export interface EventRow {
   kind: Kind;
   drop_outliers: number;
   show_dish_names: number;
+  peoples_choice: number;
+  grand_champion: number;
+  cook_comments: number;
   created_by: string;
   created_at: string;
 }
