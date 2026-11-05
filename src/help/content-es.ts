@@ -198,6 +198,120 @@ export const es: HelpContent = {
       ],
     },
     {
+      id: "pro",
+      title: "Concursos con jueces (pro)",
+      questions: [
+        {
+          id: "pro-what",
+          q: "¿Qué es un concurso con jueces?",
+          a: [
+            "Un concurso en el que jueces con nombre califican los platillos y deciden los lugares, como en un campeonato de una iglesia, una obra benéfica o una oficina. Eliges Familiar o Pro al crear el concurso, y queda fijo cuando se abre la votación. Los platillos, las categorías, lo que se imprime y el anuncio funcionan igual que en un concurso familiar.",
+          ],
+        },
+        {
+          id: "pro-cost",
+          q: "¿Cuánto cuesta un concurso con jueces?",
+          a: [
+            "Los concursos con jueces son gratis por tiempo limitado mientras están en versión preliminar. Más adelante serán de pago. Los concursos que hagas durante este periodo, y sus páginas de resultados, siguen funcionando.",
+          ],
+        },
+        {
+          id: "pro-tickets",
+          q: "¿Por qué los platillos usan boletos de rifa?",
+          a: [
+            "Usa un rollo de boletos dobles: una mitad va en el platillo y la otra se la queda quien cocinó. Al entregar cada platillo, escribe su número de boleto. La aplicación revisa que no se repita. Jueces e invitados ven el número de boleto en lugar de \"Platillo 1\", y la mitad del cocinero prueba cuál platillo es suyo.",
+            "Corta los boletos en orden aleatorio. Si se reparten en secuencia, los números revelan quién llegó primero.",
+          ],
+        },
+        {
+          id: "pro-judges",
+          q: "¿Cómo califican los jueces?",
+          a: [
+            "Agrega a cada juez por su nombre. Cada uno recibe un enlace o código QR personal, sin crear cuenta. Ahí califica cada platillo en cada criterio con un número entero del 1 al 10: 5 es normal, 8 es excelente y 10 es lo mejor que ha probado. También puede dejar un comentario.",
+            "Las calificaciones de un platillo se bloquean al enviarlas, como una hoja de papel entregada. Si un juez se equivocó, puedes desbloquearle ese platillo antes del anuncio. La página del concurso muestra el avance de cada juez, por ejemplo \"Pat: 14 de 18 calificados\".",
+          ],
+        },
+        {
+          id: "pro-blind",
+          q: "¿Los jueces saben de quién es cada platillo?",
+          a: [
+            "No. Los jueces solo ven el número de boleto, porque el plato lo tienen enfrente. Puedes mostrarles también el nombre de los platillos, pero viene desactivado, porque un nombre como \"El chili premiado de la abuela\" delata a quien lo cocinó. Hasta el anuncio, los invitados ven los nombres solo si los jueces también, ya que un juez podría abrir la página de los invitados.",
+          ],
+        },
+        {
+          id: "pro-criteria",
+          q: "¿Cómo funcionan los criterios y sus pesos?",
+          a: [
+            "Empieza con una plantilla de chili, barbacoa o uso general, y luego cambia el nombre, agrega o quita criterios. Cada uno tiene un peso, y el sabor suele pesar más: Sabor ×2, Textura ×1.5, Presentación ×1 y Aroma ×1, como en la barbacoa de competencia. La calificación de un juez para un platillo es el promedio ponderado de sus criterios, así que se queda en la escala del 1 al 10. Los criterios quedan fijos cuando se abre la votación.",
+          ],
+        },
+        {
+          id: "pro-outliers",
+          q: "¿Por qué se quitan la calificación más alta y la más baja?",
+          a: [
+            "Con 5 jueces o más, antes de promediar se quitan la calificación más alta y la más baja de cada platillo, como en clavados y gimnasia. En un evento de la comunidad es tan probable que un amigo suba la calificación de otro como que un rival la baje. Con menos de 5 jueces no se quita nada, porque se perdería demasiado. Puedes desactivarlo.",
+          ],
+        },
+        {
+          id: "pro-ties",
+          q: "¿Qué pasa si dos platillos empatan?",
+          a: [
+            "El empate se rompe con el criterio de más peso, luego con el siguiente, y así sucesivamente. Si siguen iguales, comparten el lugar. No se echa a la suerte.",
+          ],
+        },
+        {
+          id: "pro-missed",
+          q: "¿Y si un juez no califica un platillo o se tiene que ir?",
+          a: [
+            "Un platillo que un juez no calificó se promedia con los jueces que sí lo hicieron. Antes de cerrar, la aplicación avisa qué platillos le faltan a cada juez.",
+            "Para que el enlace de un juez deje de funcionar, revócalo. Tú decides qué pasa con sus calificaciones: consérvalas si tuvo que irse antes, o quítalas si el enlace cayó en malas manos.",
+          ],
+        },
+        {
+          id: "pro-comments",
+          q: "¿Quién ve los comentarios de los jueces?",
+          a: [
+            "Tú, con el nombre del juez, en la página del concurso y en la exportación. Como opción, cada cocinero puede leer los comentarios sobre su platillo después del anuncio escribiendo su número de boleto, sin los nombres de los jueces. Los números de boleto son fáciles de adivinar, así que se avisa a los jueces que sus comentarios podrían leerse y que los hagan amables y útiles.",
+          ],
+        },
+        {
+          id: "pro-peoples-choice",
+          q: "¿Los invitados todavía pueden votar?",
+          a: [
+            "Sí, por el premio del público, que está activado a menos que lo quites. Los invitados votan por su favorito como en un concurso familiar, un voto por teléfono en cada categoría. No cambia los lugares que deciden los jueces. Al abrir y cerrar la votación se abren y cierran juntos los jueces y el voto del público.",
+          ],
+        },
+        {
+          id: "pro-grand-champion",
+          q: "¿Qué es el gran campeón?",
+          a: [
+            "Un premio opcional cuando hay varias categorías: el mejor total sumando todas las categorías, entre quienes participaron en todas. El nombre del cocinero se reconoce aunque se haya escrito distinto, así que \"Ana Ruiz\" y \"ana ruiz\" son la misma persona. Si tiene dos platillos en una categoría, cuenta el mejor.",
+          ],
+        },
+        {
+          id: "pro-reveal",
+          q: "¿Cómo es el anuncio en un concurso con jueces?",
+          a: [
+            "Primero va el premio del público, luego el 3.º, 2.º y 1.er lugar de cada categoría, y al final el gran campeón. Cada lugar muestra la calificación final del platillo, por ejemplo 8.74, donde un anuncio familiar muestra los votos.",
+          ],
+        },
+        {
+          id: "pro-final",
+          q: "¿Por qué no puedo deshacer el anuncio en un concurso con jueces?",
+          a: [
+            "Porque los resultados de los jueces son un veredicto, y volver a ocultarlos parecería que se cambió. La aplicación lo dice antes de empezar el anuncio y te pide marcar \"Entiendo que los resultados serán definitivos\". Hasta entonces todavía puedes reabrir la votación y desbloquear calificaciones.",
+          ],
+        },
+        {
+          id: "pro-results",
+          q: "¿Qué muestran los resultados?",
+          a: [
+            "El enlace de los invitados se convierte en una página de resultados con los lugares, la calificación final de cada platillo y cómo salió en cada criterio. Los nombres de los jueces nunca se muestran en público. Puedes descargar una hoja de cálculo (CSV) con las calificaciones y comentarios de cada juez para tus registros.",
+          ],
+        },
+      ],
+    },
+    {
       id: "privacy",
       title: "Privacidad",
       questions: [

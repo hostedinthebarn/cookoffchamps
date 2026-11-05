@@ -286,7 +286,7 @@ export async function unlockScores(request: Request, env: Env, judgeId: string):
  * or who were revoked with their scores kept (they left early). A judge revoked
  * with their scores dropped (a compromised link) doesn't count at all.
  */
-async function countedCards(env: Env, eventId: string): Promise<Card[]> {
+export async function countedCards(env: Env, eventId: string): Promise<Card[]> {
   const { results } = await env.DB.prepare(
     `SELECT s.judge_id AS judgeId, s.entry_id AS entryId, s.criterion_id AS criterionId, s.score
        FROM scores s

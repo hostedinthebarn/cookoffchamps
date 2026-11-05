@@ -303,3 +303,102 @@ test("pro judging: criteria from a preset, a judge scores blind, the organizer s
   await page.getByRole("button", { name: "Peek at the standings" }).click();
   await expect(page.locator(".peek li")).toHaveText("Ticket 214, Brisket chili (Ana): 8.18 from 1 judge");
 });
+
+test("pro results: People's Choice, a final reveal, scores with their breakdown, cooks' comments and the export (SW-25)", async ({ page, browser, request }) => {
+  const email = `pro-results-${Date.now()}@example.com`;
+  await login(page, request, email);
+  await page.getByLabel("Name").fill("Final Chili");
+  await page.getByRole("radio", { name: /^Pro/ }).check();
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page.getByRole("heading", { name: "Final Chili" })).toBeVisible();
+  const eventId = new URL(page.url()).pathname.split("/")[2];
+
+  await page.getByRole("button", { name: "General" }).click();
+  await expect(page.locator(".criteria li")).toHaveCount(4);
+  // Ticking saves and redraws the page, so wait for that before typing.
+  const saved = page.waitForResponse((r) => r.request().method() === "GET" && r.url().endsWith(`/api/events/${eventId}`));
+  await page.getByLabel(/Let cooks read the judges' comments/).check();
+  await saved;
+  await expect(page.getByLabel(/Let cooks read the judges' comments/)).toBeChecked();
+  for (const [cookName, dish, ticket] of [["Ana", "Brisket chili", "7"], ["Ben", "Verde", "8"]]) {
+    const cook = page.locator(".entry-form").last();
+    await cook.getByLabel("Cook").fill(cookName);
+    await cook.getByLabel("Dish (if known)").fill(dish);
+    await cook.getByLabel("Ticket number").fill(ticket);
+    await cook.getByRole("button", { name: "Add" }).click();
+    await expect(page.locator(".entry", { hasText: `Ticket ${ticket}` })).toBeVisible();
+  }
+  await page.getByLabel("Judge's name").fill("Pat");
+  await page.getByRole("button", { name: "Add judge" }).click();
+  const link = await page.locator(".judge a").getAttribute("href");
+  await page.getByRole("button", { name: "Open voting" }).click();
+  await expect(page.getByText("Pat: 0 of 2 scored")).toBeVisible();
+
+  // Pat scores both: ticket 7 all 9s with a comment, ticket 8 all 6s.
+  const judge = await (await browser.newContext()).newPage();
+  await judge.goto(link!);
+  for (const [ticket, score, comment] of [["7", "9", "More salt next time"], ["8", "6", ""]]) {
+    await judge.getByRole("button", { name: new RegExp(`Ticket ${ticket}`) }).click();
+    for (const criterion of ["Taste", "Texture", "Appearance", "Aroma"]) {
+      await judge.getByLabel(new RegExp(`^${criterion}`)).selectOption(score);
+    }
+    if (comment) await judge.getByLabel(/Comment/).fill(comment);
+    await judge.getByRole("button", { name: "Submit scores" }).click();
+    await judge.locator("dialog.confirm").getByRole("button", { name: "Submit scores" }).click();
+    await expect(judge.getByRole("button", { name: "← All dishes" })).toHaveCount(0);
+  }
+  await expect(judge.getByText("2 of 2 scored")).toBeVisible();
+
+  // A guest votes Ben's dish for People's Choice, by ticket; the dish names stay hidden.
+  const guest = await (await browser.newContext()).newPage();
+  await guest.goto(`/v/${eventId}`);
+  await expect(guest.getByText("Tap your favourite dish.")).toBeVisible();
+  await expect(guest.locator("main")).not.toContainText("Verde");
+  await guest.locator(".dish", { hasText: "Ticket 8" }).click();
+  await expect(guest.getByText("Vote saved. Thanks!")).toBeVisible();
+
+  await page.reload();
+  await page.getByRole("button", { name: "Close voting" }).click();
+  await page.locator("dialog.confirm").getByRole("button", { name: "Close voting" }).click();
+  await expect(page.getByText("Voting is closed.")).toBeVisible();
+
+  // The final reveal needs the box ticked (rule 18).
+  await page.getByRole("button", { name: "Start the reveal" }).click();
+  const dialog = page.locator("dialog.confirm");
+  await expect(dialog.getByRole("heading")).toHaveText("Reveal the final results?");
+  await expect(dialog.getByRole("button", { name: "Reveal the winners" })).toBeDisabled();
+  await dialog.getByLabel("I understand the results will be final").check();
+  await dialog.getByRole("button", { name: "Reveal the winners" }).click();
+  const stage = page.locator(".reveal");
+  await expect(stage).toContainText("Tap to start");
+  await stage.click();
+  await expect(stage.locator(".place")).toHaveText("People's Choice");
+  await expect(stage.locator(".cook")).toHaveText("Ben");
+  await stage.click();
+  await expect(stage.locator(".place")).toHaveText("2nd place");
+  await expect(stage.locator(".votes")).toHaveText("Score 6.00");
+  await stage.click();
+  await expect(stage.locator(".place")).toHaveText("Champion!");
+  await expect(stage.locator(".cook")).toHaveText("Ana");
+  await expect(stage.locator(".votes")).toHaveText("Score 9.00");
+
+  // No undo for a judged event.
+  await page.goto(`/e/${eventId}`);
+  await expect(page.getByText("The results are out, and final.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Undo the reveal" })).toHaveCount(0);
+
+  // The organizer's export names the judge.
+  const csv = await (await page.request.get(`/api/events/${eventId}/export.csv`)).text();
+  expect(csv).toContain("Main,7,Ana,Brisket chili,1,9.00,1,0,Pat,9,9,9,9,9.00,More salt next time");
+
+  // Guests see the scores and the breakdown, never the judge; a cook reads their comments by ticket.
+  await guest.reload();
+  await expect(guest.locator(".placings .votes")).toHaveText(["Score 9.00", "Score 6.00"]);
+  await expect(guest.locator(".peoples-choice")).toContainText("Ben");
+  await guest.locator(".breakdown summary").first().click();
+  await expect(guest.locator(".breakdown li").first()).toHaveText("Taste: 9.00");
+  await expect(guest.locator("main")).not.toContainText("Pat");
+  await guest.getByLabel("Ticket number").fill("7");
+  await guest.getByRole("button", { name: "Show comments" }).click();
+  await expect(guest.locator(".comments li")).toHaveText("More salt next time");
+});

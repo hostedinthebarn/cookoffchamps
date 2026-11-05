@@ -12,7 +12,8 @@ import { requireSession, sendLoginLink } from "./auth";
 import type { Env } from "./env";
 import { HttpError, json, optionalDate, readJson, requireEmail, requireText } from "./http";
 import { langOf, loginEmail } from "./i18n";
-import { judgedResults, listCriteria, progress } from "./judging";
+import { listCriteria, progress } from "./judging";
+import { comments, proResults } from "./results";
 import { newCode, newId } from "./ids";
 import { deletePhotoPrefix } from "./photos";
 
@@ -115,6 +116,9 @@ export async function manageEvent(request: Request, env: Env, eventId: string): 
       criteria: await listCriteria(env, eventId),
       dropOutliers: event.drop_outliers === 1,
       showDishNames: event.show_dish_names === 1,
+      peoplesChoice: event.peoples_choice === 1,
+      grandChampion: event.grand_champion === 1,
+      cookComments: event.cook_comments === 1,
       scored: await progress(env, eventId),
     },
   });
@@ -127,7 +131,7 @@ function optionalFlag(value: unknown, current: number): number {
   return value ? 1 : 0;
 }
 
-/** PATCH /api/events/:id {name?, date?, kind?, dropOutliers?, showDishNames?} */
+/** PATCH /api/events/:id {name?, date?, kind?, dropOutliers?, showDishNames?, peoplesChoice?, grandChampion?, cookComments?} */
 export async function updateEvent(request: Request, env: Env, eventId: string): Promise<Response> {
   const email = await requireSession(request, env);
   const { event } = await requireOrganizer(env, eventId, email);
@@ -140,21 +144,31 @@ export async function updateEvent(request: Request, env: Env, eventId: string): 
     if (event.status !== "setup") throw new HttpError(409, "The kind of event is fixed once voting opens", "kindFixed");
     kind = requireKind(body.kind, env);
   }
-  const dropOutliers = optionalFlag(body.dropOutliers, event.drop_outliers);
-  const showDishNames = optionalFlag(body.showDishNames, event.show_dish_names);
+  const flags = {
+    drop_outliers: optionalFlag(body.dropOutliers, event.drop_outliers),
+    show_dish_names: optionalFlag(body.showDishNames, event.show_dish_names),
+    peoples_choice: optionalFlag(body.peoplesChoice, event.peoples_choice),
+    grand_champion: optionalFlag(body.grandChampion, event.grand_champion),
+    cook_comments: optionalFlag(body.cookComments, event.cook_comments),
+  };
   // Judging settings decide the results, so they're fixed once those are out.
-  if ((dropOutliers !== event.drop_outliers || showDishNames !== event.show_dish_names) && event.status === "revealed") {
+  const changed = (Object.keys(flags) as (keyof typeof flags)[]).some((k) => flags[k] !== event[k]);
+  if (changed && event.status === "revealed") {
     throw new HttpError(409, "The judging settings are fixed once the results are out", "criteriaFixed");
   }
-  await env.DB.prepare("UPDATE events SET name = ?, event_date = ?, kind = ?, drop_outliers = ?, show_dish_names = ? WHERE id = ?")
-    .bind(name, date, kind, dropOutliers, showDishNames, eventId)
+  await env.DB.prepare(
+    `UPDATE events SET name = ?, event_date = ?, kind = ?, drop_outliers = ?, show_dish_names = ?,
+            peoples_choice = ?, grand_champion = ?, cook_comments = ? WHERE id = ?`,
+  )
+    .bind(name, date, kind, flags.drop_outliers, flags.show_dish_names, flags.peoples_choice, flags.grand_champion, flags.cook_comments, eventId)
     .run();
   return json({ ok: true });
 }
 
 // Voting is opened and closed by hand (decision 6). Both a close and a reveal
 // can be undone (decision 17): revealed goes back to closed, which hides the
-// results again. A pro reveal will be final (rule 18), when it's built.
+// results again. A pro reveal is final (rule 18): judges' results are a verdict,
+// and hiding them again would look like the organizer changing it.
 const TRANSITIONS: Record<Status, Status[]> = {
   setup: ["open"],
   open: ["closed"],
@@ -168,6 +182,9 @@ export async function setStatus(request: Request, env: Env, eventId: string): Pr
   const { event } = await requireOrganizer(env, eventId, email);
   const body = await readJson(request);
   const next = body.status as Status;
+  if (event.kind === "pro" && event.status === "revealed") {
+    throw new HttpError(409, "A judged event's results are final", "resultsFinal");
+  }
   if (!TRANSITIONS[event.status].includes(next)) {
     throw new HttpError(409, `Can't go from ${event.status} to ${String(body.status)}`, "badStatusChange");
   }
@@ -205,8 +222,10 @@ export async function totals(request: Request, env: Env, eventId: string): Promi
   )
     .bind(eventId)
     .all();
-  // A pro event's judged standings come too (SW-25); its votes are People's Choice.
-  return json({ totals: results, ...(event.kind === "pro" ? { judged: await judgedResults(env, event) } : {}) });
+  // A pro event's judged standings come too (SW-25), with the awards and the
+  // judges' comments, which only organizers see by name (rules 14 and 19).
+  if (event.kind !== "pro") return json({ totals: results });
+  return json({ totals: results, judged: { ...(await proResults(env, event)), comments: await comments(env, eventId) } });
 }
 
 // --- Categories (decision 12) ------------------------------------------------

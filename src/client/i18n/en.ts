@@ -50,6 +50,12 @@ export const en = {
     dishLabel: "Dish ",
     // SW-59: the "made with" line on results and the reveal.
     runYourOwn: "Run your own cookoff, free",
+    // Pro events (SW-25)
+    ticket: (ticket: string) => `Ticket ${ticket}`,
+    score: (score: string) => `Score ${score}`,
+    peoplesChoice: "People's Choice",
+    grandChampion: "Grand Champion",
+    grandTotal: (total: string) => `${total} across every category`,
   },
 
   status: {
@@ -104,6 +110,15 @@ export const en = {
     entryAria: (n: number, dish: string) => `Entry ${n}, ${dish}`,
     loadFailed: "Couldn't load the vote check. Check your connection and try again.",
     checkFailed: "The vote check failed. Please try again.",
+    // Pro events (SW-25)
+    judgesOnly: "The judges are scoring the dishes. The results appear here after the reveal.",
+    ticketAria: (ticket: string, dish: string) => `Ticket ${ticket}${dish ? `, ${dish}` : ""}`,
+    breakdown: "How the judges scored it",
+    commentsTitle: "Judges' comments",
+    commentsHint: "Cooks: type the number on your half of the raffle ticket to read the judges' comments on your dish.",
+    commentsTicket: "Ticket number ",
+    commentsShow: "Show comments",
+    noComments: "The judges left no comments on that dish.",
   },
 
   manage: {
@@ -218,6 +233,17 @@ export const en = {
     judgedRow: (label: string, dish: string, cook: string, score: string, judges: number) =>
       `${label}${dish ? `, ${dish}` : ""} (${cook}): ${score} from ${plural(judges, "judge", "judges")}`,
     notScored: (label: string, cook: string) => `${label} (${cook}): not scored yet`,
+    // Results (SW-25, part 3)
+    peoplesChoiceSetting: "People's Choice: guests vote for their favourite, as a separate award",
+    grandChampionSetting: "Grand Champion: the best total across every category, for cooks who entered them all",
+    cookCommentsSetting: "Let cooks read the judges' comments on their own dish after the reveal, by typing their ticket number",
+    finalTitle: "Reveal the final results?",
+    finalBody:
+      "The reveal shows People's Choice, then each category's 3rd, 2nd and 1st place. When the last result appears, the results are public and final: they can't be hidden again, and no score can be unlocked.",
+    finalAck: "I understand the results will be final",
+    resultsFinal: "The results are out, and final.",
+    exportCsv: "Download the results (CSV)",
+    judgeComment: (judge: string, comment: string) => `${judge}: “${comment}”`,
   },
 
   reveal: {
@@ -230,6 +256,7 @@ export const en = {
     cookedBy: "Cooked by",
     tapNext: "Tap for the next place",
     congrats: "🎉 Congratulations to every cook!",
+    tapToStart: "Tap to start",
   },
 
   // The judge's own page (SW-25), opened from their personal link.
@@ -267,6 +294,7 @@ export const en = {
     enterCode: "and enter the code ",
     scanToVote: "Scan to vote",
     addDishesFirst: "Add some dishes first.",
+    addTicketsFirst: "Tent cards show the ticket number, so add those as the dishes are turned in.",
     runYourOwnAt: (host: string) => `Run your own cookoff, free at ${host}`,
   },
 };

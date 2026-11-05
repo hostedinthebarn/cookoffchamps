@@ -49,15 +49,19 @@ export async function printView(ctx: Ctx, eventId: string, kind: string): Promis
   // Tent cards: one per dish, "Entry N" to match the voting page (decision 9),
   // and a QR code that opens voting with this dish highlighted.
   const multi = data.categories.length > 1;
-  const cards = data.entries.map((e) => {
+  // A pro event's cards carry the raffle ticket (rule 3), so only dishes that
+  // have one, and the dish name only if the judges see it too (rule 6).
+  const pro = data.event.kind === "pro";
+  const entries = pro ? data.entries.filter((e) => e.ticket !== null) : data.entries;
+  const cards = entries.map((e) => {
     const qr = h("div", { class: "qr small" });
     const category = data.categories.find((c) => c.id === e.categoryId)!;
     const card = h(
       "div",
       { class: "tent-card" },
       multi ? h("p", { class: "category" }, category.name) : null,
-      h("p", { class: "number" }, m().common.entry(e.number)),
-      h("p", { class: "dish-name" }, e.dishName),
+      h("p", { class: "number" }, pro ? m().common.ticket(e.ticket!) : m().common.entry(e.number)),
+      !pro || data.judging.showDishNames ? h("p", { class: "dish-name" }, e.dishName) : null,
       qr,
       h("p", { class: "muted" }, t.scanToVote),
     );
@@ -66,7 +70,7 @@ export async function printView(ctx: Ctx, eventId: string, kind: string): Promis
   mount(
     ctx.root,
     toolbar,
-    cards.length ? h("div", { class: "page cards" }, ...cards.map((c) => c.card)) : h("p", {}, t.addDishesFirst),
+    cards.length ? h("div", { class: "page cards" }, ...cards.map((c) => c.card)) : h("p", {}, pro && data.entries.length ? t.addTicketsFirst : t.addDishesFirst),
   );
   await Promise.all(cards.map((c) => renderQr(c.qr, c.url)));
 }

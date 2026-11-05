@@ -1,5 +1,5 @@
 import type { Placing } from "../shared/ranking";
-import type { ScorePlacing } from "../shared/scoring";
+import type { GrandChampion, ScorePlacing } from "../shared/scoring";
 
 export type Status = "setup" | "open" | "closed" | "revealed";
 export type Kind = "family" | "pro";
@@ -42,6 +42,9 @@ export interface Judging {
   criteria: Criterion[];
   dropOutliers: boolean;
   showDishNames: boolean;
+  peoplesChoice: boolean;
+  grandChampion: boolean;
+  cookComments: boolean;
   /** The submitted cards: which judge has scored which dish. */
   scored: { judgeId: string; entryId: string }[];
 }
@@ -89,10 +92,24 @@ export interface JudgedScore {
   byCriterion: Record<string, number>;
 }
 
+export interface JudgeComment {
+  entryId: string;
+  judgeId: string;
+  judge: string;
+  comment: string;
+}
+
 export interface Totals {
   totals: { entryId: string; categoryId: string; votes: number }[];
-  /** Pro events only (SW-25): the judged standings. */
-  judged?: { scores: JudgedScore[]; placings: Record<string, ScorePlacing[]> };
+  /** Pro events only (SW-25): the judged standings, the awards and the comments. */
+  judged?: {
+    scores: JudgedScore[];
+    placings: Record<string, ScorePlacing[]>;
+    criteria: { id: string; name: string; weight: number }[];
+    peoplesChoice: Record<string, Placing> | null;
+    grandChampion: GrandChampion[] | null;
+    comments: JudgeComment[];
+  };
 }
 
 export interface PublicEntry {
@@ -102,11 +119,29 @@ export interface PublicEntry {
   photoKey: string | null;
   cookName?: string;
   votes?: number;
+  /** Pro events (SW-25): the raffle ticket, and once revealed the judged result. */
+  ticket?: string;
+  score?: number | null;
+  byCriterion?: Record<string, number>;
+}
+
+export interface PublicCategory {
+  id: string;
+  name: string;
+  entries: PublicEntry[];
+  /** Family events, once revealed. */
+  placings?: Placing[];
+  /** Pro events, once revealed. */
+  scorePlacings?: ScorePlacing[];
+  peoplesChoice?: Placing | null;
 }
 
 export interface PublicView {
-  event: EventSummary;
+  event: EventSummary & { peoplesChoice?: boolean; cookComments?: boolean };
   turnstileSiteKey: string;
   myVotes: Record<string, string>;
-  categories: { id: string; name: string; entries: PublicEntry[]; placings?: Placing[] }[];
+  categories: PublicCategory[];
+  /** Pro events, once revealed. */
+  criteria?: { id: string; name: string; weight: number }[];
+  grandChampion?: GrandChampion[] | null;
 }

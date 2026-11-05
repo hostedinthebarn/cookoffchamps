@@ -236,6 +236,120 @@ export const en: HelpContent = {
       ],
     },
     {
+      id: "pro",
+      title: "Judged (pro) cookoffs",
+      questions: [
+        {
+          id: "pro-what",
+          q: "What is a judged cookoff?",
+          a: [
+            "A cookoff where named judges score the dishes and decide the placings, as at a church, charity or office championship. You choose Family or Pro when you create the event, and it's fixed once voting opens. Entries, categories, printing and the reveal work as in a family cookoff.",
+          ],
+        },
+        {
+          id: "pro-cost",
+          q: "What does a judged cookoff cost?",
+          a: [
+            "Judged cookoffs are free for a limited time while they're in preview. They'll become a paid feature later. Events you run during the preview, and their results pages, keep working.",
+          ],
+        },
+        {
+          id: "pro-tickets",
+          q: "Why do dishes use raffle tickets?",
+          a: [
+            "Use a roll of double raffle tickets: half goes on the dish, half to the cook. When a dish is turned in, type its ticket number in. The app checks no two dishes share one. Judges and guests see the ticket number instead of \"Entry 1\", and the cook's half proves which dish is theirs.",
+            "Tear the tickets off in random order. Handed out in sequence, the numbers show who arrived first.",
+          ],
+        },
+        {
+          id: "pro-judges",
+          q: "How do judges score?",
+          a: [
+            "Add each judge by name. Each gets a personal link or QR code, with no account to make. On it they score every dish on each criterion, a whole number from 1 to 10: 5 is average, 8 is excellent and 10 is the best they've had. There's room for a comment too.",
+            "A judge's scores for a dish lock when they submit them, as with a paper sheet handed in. If a judge made a mistake, you can unlock that dish for them before the reveal. The event page shows each judge's progress, such as \"Pat: 14 of 18 scored\".",
+          ],
+        },
+        {
+          id: "pro-blind",
+          q: "Do judges know whose dish it is?",
+          a: [
+            "No. Judges see the ticket number only, since the plate is in front of them. You can choose to show them the dish names too, but it's off by default, because a name like \"Grandma's Prize Chili\" gives the cook away. Until the reveal, guests see dish names only if the judges do, since a judge could open the guests' page too.",
+          ],
+        },
+        {
+          id: "pro-criteria",
+          q: "How do the criteria and weights work?",
+          a: [
+            "Start from a Chili, BBQ or General preset, then rename, add or remove criteria. Each has a weight, with taste usually heaviest: Taste ×2, Texture ×1.5, Appearance ×1 and Aroma ×1, as in sanctioned barbecue. A judge's score for a dish is the weighted average of their criterion scores, so it stays on the 1 to 10 scale. The criteria are fixed once voting opens.",
+          ],
+        },
+        {
+          id: "pro-outliers",
+          q: "Why are the highest and lowest scores dropped?",
+          a: [
+            "With 5 or more judges, each dish's highest and lowest score are dropped before averaging, as in diving and gymnastics. At a community event a friend scoring a friend up is as likely as a rival scoring them down. With fewer than 5 judges, nothing is dropped, because that would throw away too much. You can turn it off.",
+          ],
+        },
+        {
+          id: "pro-ties",
+          q: "What if two dishes tie?",
+          a: [
+            "The tie is broken on the most heavily weighted criterion, then the next, and so on. If the dishes are still level, they share the place. There are no coin flips.",
+          ],
+        },
+        {
+          id: "pro-missed",
+          q: "What if a judge misses a dish or has to leave?",
+          a: [
+            "A dish a judge didn't score is averaged over the judges who did. Before you close judging, the app lists any dish a judge hasn't scored.",
+            "To stop a judge's link working, revoke it. You choose what happens to their scores: keep them if they had to leave early, or drop them if the link got into the wrong hands.",
+          ],
+        },
+        {
+          id: "pro-comments",
+          q: "Who sees the judges' comments?",
+          a: [
+            "You do, with the judge's name, on the event page and in the export. As an option, cooks can read the comments on their own dish after the reveal by typing their ticket number, without the judges' names. Ticket numbers are easy to guess, so judges are told their comments may be read, and should keep them kind and useful.",
+          ],
+        },
+        {
+          id: "pro-peoples-choice",
+          q: "Can guests still vote?",
+          a: [
+            "Yes, for a People's Choice award, which is on unless you turn it off. Guests vote for their favourite as in a family cookoff, one vote per phone per category. It doesn't change the judges' placings. One open and close covers judging and guest voting together.",
+          ],
+        },
+        {
+          id: "pro-grand-champion",
+          q: "What is the Grand Champion?",
+          a: [
+            "An optional award when there are several categories: the best total across every category, for cooks who entered them all. A cook's name is matched however it was typed, so \"Ana Ruiz\" and \"ana ruiz\" are the same cook. With two dishes in one category, their better one counts.",
+          ],
+        },
+        {
+          id: "pro-reveal",
+          q: "How does a judged reveal work?",
+          a: [
+            "People's Choice comes first, then each category's 3rd, 2nd and 1st place, then the Grand Champion. Each place shows the dish's final score, such as 8.74, where a family reveal shows votes.",
+          ],
+        },
+        {
+          id: "pro-final",
+          q: "Why can't I undo a judged reveal?",
+          a: [
+            "Because the judges' results are a verdict, and hiding them again would look like changing it. The app says so before the reveal starts and asks you to tick \"I understand the results will be final\". Until then you can still reopen judging and unlock scores.",
+          ],
+        },
+        {
+          id: "pro-results",
+          q: "What do the results show?",
+          a: [
+            "The guests' link becomes a results page with the places, each dish's final score and how it scored on each criterion. Judges' names are never shown publicly. You can download a spreadsheet (CSV) with every judge's scores and comments for your records.",
+          ],
+        },
+      ],
+    },
+    {
       id: "privacy",
       title: "Privacy",
       questions: [

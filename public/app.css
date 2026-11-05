@@ -598,6 +598,18 @@ main:has(.toast:not(:empty)) { padding-bottom: 88px; }
 .results [data-place="1"] .place { font-size: 1.7rem; }
 .cook { font-weight: 650; }
 .votes { color: var(--muted); font-size: 0.95rem; }
+/* Pro results (SW-25): People's Choice beside the judged places, the per-criterion
+   breakdown folded under each score, and the cooks' comment lookup. */
+.results .peoples-choice { margin-bottom: 8px; }
+.results .peoples-choice .place::before { content: "★"; display: grid; place-items: center; font-size: 0.9rem; background: var(--line); }
+.results.grand .cook { font-size: 1.35rem; }
+.breakdown { font-size: 0.95rem; margin-top: 4px; }
+.breakdown summary { cursor: pointer; color: var(--muted); }
+.breakdown ul { margin: 4px 0 0; padding-left: 1.2em; }
+.comment-lookup { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.comment-lookup label { flex: 1 1 12em; }
+.comments ul, ul.comments { margin: 6px 0 0; padding-left: 1.2em; }
+dialog.confirm label.check { margin: 0 0 16px; }
 
 [data-place="1"], .reveal[data-place="1"] { --medal: var(--gold); --medal-deep: var(--gold-deep); --medal-ink: var(--gold-ink); }
 [data-place="2"], .reveal[data-place="2"] { --medal: var(--silver); --medal-deep: var(--silver-deep); --medal-ink: var(--silver-ink); }

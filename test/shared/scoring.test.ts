@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type Card, cardScore, entryScore, formatScore, rankScores, tieBreakOrder } from "../../src/shared/scoring";
+import { type Card, cardScore, cookKey, entryScore, formatScore, grandChampions, rankScores, tieBreakOrder } from "../../src/shared/scoring";
 
 // Rule 8's example weights: Taste ×2, Texture ×1.5, Appearance ×1, Aroma ×1.
 const CRITERIA = [
@@ -101,4 +101,30 @@ describe("rankScores", () => {
 it("formats a score with two decimals", () => {
   expect(formatScore(43 / 5.5)).toBe("7.82");
   expect(formatScore(9)).toBe("9.00");
+});
+
+describe("grandChampions (rule 16)", () => {
+  const r = (entryId: string, categoryId: string, cookName: string, score: number | null) => ({ entryId, categoryId, cookName, score });
+
+  it("is the best total among cooks who entered every category, matching names loosely", () => {
+    expect(cookKey("  Ana   RUIZ ")).toBe("ana ruiz");
+    const results = [
+      r("a1", "chili", "Ana Ruiz", 8),
+      r("a2", "salsa", "ana  ruiz", 7.5),
+      r("a3", "salsa", "Ana Ruiz", 6), // her weaker salsa doesn't count
+      r("b1", "chili", "Bo", 9.9), // no salsa, so not eligible
+      r("c1", "chili", "Cy", 7),
+      r("c2", "salsa", "Cy", 8),
+      r("d1", "chili", "Di", null), // unscored dishes don't count
+      r("d2", "salsa", "Di", 10),
+    ];
+    expect(grandChampions(results, ["chili", "salsa"])).toEqual([{ cook: "Ana Ruiz", total: 15.5, entryIds: ["a1", "a2"] }]);
+  });
+
+  it("shares the title on an equal total, and needs two categories and someone eligible", () => {
+    const results = [r("a1", "x", "Ana", 8), r("a2", "y", "Ana", 7), r("b1", "x", "Bo", 7), r("b2", "y", "Bo", 8)];
+    expect(grandChampions(results, ["x", "y"]).map((c) => c.cook)).toEqual(["Ana", "Bo"]);
+    expect(grandChampions(results, ["x"])).toEqual([]);
+    expect(grandChampions([r("a1", "x", "Ana", 8)], ["x", "y"])).toEqual([]);
+  });
 });
