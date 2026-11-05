@@ -82,6 +82,8 @@ export const en = {
     pro: "Pro",
     proHint: "Judges score every dish blind.",
     comingSoon: "(coming soon)",
+    proPreview: "Free preview, for a limited time",
+    proTag: "Pro",
     loggedInAs: (email: string) => `Logged in as ${email} `,
     logout: "Log out",
     yourCookoffs: "Your cookoffs",
@@ -164,6 +166,27 @@ export const en = {
     deleteEvent: "Delete this event",
     deleteEventConfirm: (name: string) => `Delete ${name} for good, with all its photos and votes?`,
     photoFailed: "Could not process that photo",
+    // Pro events (SW-25)
+    proEvent: "Pro event: judges score every dish blind.",
+    proPreview: "Pro is a free preview, for a limited time.",
+    kindLabel: "Kind of cookoff ",
+    ticket: (ticket: string) => `Ticket ${ticket}`,
+    noTicket: "No ticket yet",
+    ticketLabel: "Ticket number ",
+    ticketHint: "From the raffle ticket on the dish. Leave it empty until the dish is turned in.",
+    dishIfKnown: "Dish (if known) ",
+    addCook: "Add a cook",
+    noCooks: "No cooks yet.",
+    cooks: "Cooks and dishes",
+    judges: "Judges",
+    judgesHint: "Each judge gets a personal link. Send it to them, or let them scan the code. They don't need an account.",
+    noJudges: "No judges yet.",
+    judgeName: "Judge's name ",
+    addJudge: "Add judge",
+    showQr: "Show the QR code",
+    judgeLink: "Link: ",
+    revoke: "Revoke",
+    revokeConfirm: (name: string) => `Revoke ${name}'s link? It stops working straight away.`,
   },
 
   reveal: {
@@ -176,6 +199,16 @@ export const en = {
     cookedBy: "Cooked by",
     tapNext: "Tap for the next place",
     congrats: "🎉 Congratulations to every cook!",
+  },
+
+  // The judge's own page (SW-25), opened from their personal link.
+  judge: {
+    title: (event: string) => `Judging ${event}`,
+    hello: (name: string) => `Hello, ${name}.`,
+    waiting: "Your score sheet will appear here when judging begins. Keep this page, or come back to the same link.",
+    blind: "You'll know each dish by its ticket number only.",
+    finished: "Judging has finished. Thank you!",
+    badLink: "This judge's link doesn't work. It may have been revoked, so ask the organizer for a new one.",
   },
 
   print: {

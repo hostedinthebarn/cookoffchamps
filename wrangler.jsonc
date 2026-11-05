@@ -39,6 +39,8 @@
     // Public by design: the site key is embedded in every page. The secrets are
     // set with `wrangler secret put TURNSTILE_SECRET`, `RESEND_API_KEY` and
     // `IP_HASH_KEY` (the key for the IP-address hashes; the app fails without it).
-    "TURNSTILE_SITE_KEY": "0x4AAAAAAFktbyWGH6J6pHxl"
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAFktbyWGH6J6pHxl",
+    // Pro events (SW-25) stay off until they're finished; "on" opens the free preview.
+    "PRO_PREVIEW": "off"
   }
 }

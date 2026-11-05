@@ -2,6 +2,7 @@ import { ApiError } from "./api";
 import { h, mount } from "./dom";
 import { detectLang, errorText, langName, m, otherLang, setLang } from "./i18n";
 import { codeView, homeView } from "./views/home";
+import { judgeView } from "./views/judge";
 import { manageView } from "./views/manage";
 import { printView } from "./views/print";
 import { revealView } from "./views/reveal";
@@ -23,6 +24,7 @@ const ROUTES: [RegExp, View][] = [
   [/^\/e\/([^/]+)$/, manageView],
   [/^\/e\/([^/]+)\/reveal$/, revealView],
   [/^\/e\/([^/]+)\/print\/(poster|cards)$/, printView],
+  [/^\/j\/([^/]+)$/, judgeView],
 ];
 
 export function findRoute(path: string): { view: View; params: string[] } | null {

@@ -2,6 +2,7 @@
 // ids are random; only their SHA-256 hashes are stored, so a database leak does
 // not hand out working logins.
 
+import { proPreview } from "./access";
 import { cookie, readCookie } from "./cookies";
 import { sendEmail } from "./email";
 import type { Env } from "./env";
@@ -173,5 +174,6 @@ export async function logout(request: Request, env: Env): Promise<Response> {
 
 /** GET /api/me */
 export async function me(request: Request, env: Env): Promise<Response> {
-  return json({ email: await requireSession(request, env) });
+  // proPreview tells the app whether to offer Pro when creating an event (SW-25).
+  return json({ email: await requireSession(request, env), proPreview: proPreview(env) });
 }

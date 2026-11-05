@@ -12,13 +12,15 @@ function view(status: ManageView["event"]["status"], twoCategories = false): Man
       ? [{ id: "c1", name: "Chili", position: 1 }, { id: "c2", name: "Dessert", position: 2 }]
       : [{ id: "c1", name: "Main", position: 1 }],
     entries: [
-      { id: "a", categoryId: "c1", number: 1, cookName: "Grandma", dishName: "Red", photoKey: "events/e1/a" },
-      { id: "b", categoryId: "c1", number: 2, cookName: "Kiana", dishName: "White", photoKey: null },
-      { id: "c", categoryId: "c1", number: 3, cookName: "Shannon", dishName: "Verde", photoKey: null },
-      { id: "d", categoryId: twoCategories ? "c2" : "c1", number: twoCategories ? 1 : 4, cookName: "Gary", dishName: "Pie", photoKey: null },
+      { id: "a", categoryId: "c1", number: 1, cookName: "Grandma", dishName: "Red", photoKey: "events/e1/a", ticket: null },
+      { id: "b", categoryId: "c1", number: 2, cookName: "Kiana", dishName: "White", photoKey: null, ticket: null },
+      { id: "c", categoryId: "c1", number: 3, cookName: "Shannon", dishName: "Verde", photoKey: null, ticket: null },
+      { id: "d", categoryId: twoCategories ? "c2" : "c1", number: twoCategories ? 1 : 4, cookName: "Gary", dishName: "Pie", photoKey: null, ticket: null },
     ],
     organizers: [],
     votesCast: [],
+    proPreview: true,
+    judges: [],
   };
 }
 

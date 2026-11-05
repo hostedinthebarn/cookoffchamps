@@ -17,6 +17,7 @@ import {
   updateEvent,
 } from "./events";
 import { error, HttpError, json } from "./http";
+import { addJudge, judgePage, revokeJudge } from "./judges";
 import { getPhoto } from "./photos";
 import { castVote, lookupCode, publicEvent } from "./public";
 import { purgeIpHashes } from "./purge";
@@ -46,6 +47,8 @@ const ROUTES: [string, string, Handler][] = [
   ["POST", "/api/events/:id/categories", addCategory],
   ["POST", "/api/events/:id/organizers", addOrganizer],
   ["DELETE", "/api/events/:id/organizers/:email", removeOrganizer],
+  ["POST", "/api/events/:id/judges", addJudge],
+  ["DELETE", "/api/judges/:id", revokeJudge],
   ["PATCH", "/api/categories/:id", renameCategory],
   ["DELETE", "/api/categories/:id", deleteCategory],
   ["POST", "/api/categories/:id/entries", addEntry],
@@ -55,6 +58,7 @@ const ROUTES: [string, string, Handler][] = [
   ["GET", "/api/public/codes/:code", (r, env, code) => lookupCode(r, env, code!)],
   ["GET", "/api/public/events/:id", publicEvent],
   ["POST", "/api/public/events/:id/votes", castVote],
+  ["GET", "/api/public/judges/:id", judgePage],
   ["GET", "/api/photos/*", (r, env, key) => getPhoto(env, key!, r)],
 ];
 

@@ -2,6 +2,7 @@ import type { Env } from "./env";
 import { HttpError } from "./http";
 
 export type Status = "setup" | "open" | "closed" | "revealed";
+export type Kind = "family" | "pro";
 
 export interface EventRow {
   id: string;
@@ -9,6 +10,7 @@ export interface EventRow {
   name: string;
   event_date: string | null;
   status: Status;
+  kind: Kind;
   created_by: string;
   created_at: string;
 }
@@ -36,6 +38,24 @@ export async function requireCreator(env: Env, eventId: string, email: string): 
   const { event, role } = await requireOrganizer(env, eventId, email);
   if (role !== "creator") throw new HttpError(403, "Only the event's creator can do that", "creatorOnly");
   return event;
+}
+
+/** Pro events can be created while the preview is on (SW-25). */
+export function proPreview(env: Env): boolean {
+  return env.PRO_PREVIEW === "on";
+}
+
+/** The kind a request asked for: family unless it says pro, which the preview must allow. */
+export function requireKind(value: unknown, env: Env): Kind {
+  if (value === undefined || value === null || value === "family") return "family";
+  if (value !== "pro") throw new HttpError(400, "kind must be family or pro");
+  if (!proPreview(env)) throw new HttpError(403, "Pro events aren't available yet", "proUnavailable");
+  return "pro";
+}
+
+/** Judges and ticket numbers belong to pro events only. */
+export function requirePro(event: EventRow): void {
+  if (event.kind !== "pro") throw new HttpError(409, "That's only for pro events", "notPro");
 }
 
 /** Entries and categories can change only before voting closes. */

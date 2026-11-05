@@ -7,3 +7,5 @@ TURNSTILE_SITE_KEY=1x00000000000000000000AA
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
 # Any string will do locally. In production it is a secret: wrangler secret put IP_HASH_KEY
 IP_HASH_KEY=local-dev-only-ip-hash-key
+# Pro events (SW-25) as a free preview. Production keeps this "off" (wrangler.jsonc) until they're finished.
+PRO_PREVIEW=on

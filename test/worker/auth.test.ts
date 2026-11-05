@@ -20,7 +20,7 @@ describe("magic-link login", () => {
     expect(setCookie).toMatch(/^__Host-cc_session=.+; Path=\/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax$/);
 
     const me = await call("/api/me", { cookie: setCookie.split(";")[0] });
-    expect(await me.json()).toEqual({ email: "gary@example.com" });
+    expect(await me.json()).toEqual({ email: "gary@example.com", proPreview: true });
 
     // The same link a second time is refused.
     const again = await call(link.pathname + link.search);

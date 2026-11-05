@@ -152,10 +152,10 @@ describe("events", () => {
     const { code } = await makeEvent(host);
     const now = new Date().toISOString();
     const codes = [code, code, "ZZZZZZ"];
-    const got = await insertEvent(env, { id: "retry-1", name: "R", date: null, email: "code@example.com", now }, () => codes.shift()!);
+    const got = await insertEvent(env, { id: "retry-1", name: "R", date: null, kind: "family", email: "code@example.com", now }, () => codes.shift()!);
     expect(got).toBe("ZZZZZZ");
     await expect(
-      insertEvent(env, { id: "retry-2", name: "R", date: null, email: "code@example.com", now }, () => code),
+      insertEvent(env, { id: "retry-2", name: "R", date: null, kind: "family", email: "code@example.com", now }, () => code),
     ).rejects.toMatchObject({ status: 500 });
   });
 });
