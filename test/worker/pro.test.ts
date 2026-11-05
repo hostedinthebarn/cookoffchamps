@@ -174,7 +174,10 @@ describe("judges (rule 5)", () => {
     const stranger = await login("not-an-organizer@example.com");
     expect((await call(`/api/judges/${judgeId}`, { method: "DELETE", cookie: stranger })).status).toBe(403);
 
-    expect((await call(`/api/judges/${judgeId}`, { method: "DELETE", cookie })).status).toBe(200);
+    // Revoking says what happens to the judge's scores (part 2 counts them).
+    expect((await call(`/api/judges/${judgeId}`, { method: "DELETE", cookie })).status).toBe(400);
+    expect((await send(`/api/judges/${judgeId}`, "DELETE", { keepScores: "yes" }, cookie)).status).toBe(400);
+    expect((await send(`/api/judges/${judgeId}`, "DELETE", { keepScores: false }, cookie)).status).toBe(200);
     const gone = await call(`/api/public/judges/${judgeId}`);
     expect(gone.status).toBe(404);
     expect(await gone.json()).toMatchObject({ code: "judgeNotFound" });

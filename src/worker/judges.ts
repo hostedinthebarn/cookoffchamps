@@ -40,14 +40,19 @@ export async function activeJudge(env: Env, judgeId: string): Promise<JudgeRow> 
 }
 
 /**
- * DELETE /api/judges/:id — any organizer. The link stops working at once; the
- * row stays, so scores already given remain tied to the judge.
+ * DELETE /api/judges/:id {keepScores} — any organizer. The link stops working
+ * at once. The organizer says what happens to the scores already given: kept,
+ * when a judge had to leave early, or dropped, when the link was compromised.
  */
 export async function revokeJudge(request: Request, env: Env, judgeId: string): Promise<Response> {
   const email = await requireSession(request, env);
   const judge = await activeJudge(env, judgeId);
   await requireOrganizer(env, judge.event_id, email);
-  await env.DB.prepare("UPDATE judges SET revoked_at = ? WHERE id = ?").bind(new Date().toISOString(), judgeId).run();
+  const { keepScores } = await readJson(request);
+  if (typeof keepScores !== "boolean") throw new HttpError(400, "Say whether to keep the judge's scores (keepScores)");
+  await env.DB.prepare("UPDATE judges SET revoked_at = ?, keep_scores = ? WHERE id = ?")
+    .bind(new Date().toISOString(), keepScores ? 1 : 0, judgeId)
+    .run();
   return json({ ok: true });
 }
 

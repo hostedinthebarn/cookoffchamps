@@ -1,6 +1,6 @@
 import { api } from "../api";
 import type { Ctx } from "../app";
-import { confirmDialog, type ConfirmOptions } from "../dialog";
+import { chooseDialog, confirmDialog, type ConfirmOptions } from "../dialog";
 import { h, mount, photoUrl } from "../dom";
 import { errorText, lang, m } from "../i18n";
 import { resizePhoto } from "../photo";
@@ -380,8 +380,13 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
         details,
         h("button", {
           class: "link danger",
-          onclick: () => {
-            if (confirm(t.revokeConfirm(judge.name))) void act(() => api(`/api/judges/${judge.id}`, { method: "DELETE" }));
+          // Leaving early and a compromised link need different answers for the scores given so far.
+          onclick: async () => {
+            const keepScores = await chooseDialog(t.revokeTitle(judge.name), t.revokeBody, [
+              { label: t.revokeKeep, value: true },
+              { label: t.revokeDrop, value: false },
+            ]);
+            if (keepScores !== null) await act(() => api(`/api/judges/${judge.id}`, { method: "DELETE", body: { keepScores } }));
           },
         }, t.revoke),
       );

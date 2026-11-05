@@ -255,8 +255,8 @@ test("a pro event: cooks with ticket numbers, and a judge's personal link (SW-25
   await expect(judge.getByText("Hello, Pat.")).toBeVisible();
 
   // Revoked, the same link stops working.
-  page.once("dialog", (d) => void d.accept());
-  await page.getByRole("button", { name: "Revoke" }).click();
+  await page.getByRole("button", { name: "Revoke", exact: true }).click();
+  await page.locator("dialog.choose").getByRole("button", { name: "Revoke, drop their scores" }).click();
   await expect(page.getByText("No judges yet.")).toBeVisible();
   await judge.reload();
   await expect(judge.getByText("This judge's link doesn't work.")).toBeVisible();

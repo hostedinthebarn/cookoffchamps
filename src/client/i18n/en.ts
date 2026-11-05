@@ -186,7 +186,11 @@ export const en = {
     showQr: "Show the QR code",
     judgeLink: "Link: ",
     revoke: "Revoke",
-    revokeConfirm: (name: string) => `Revoke ${name}'s link? It stops working straight away.`,
+    revokeTitle: (name: string) => `Revoke ${name}'s link?`,
+    revokeBody:
+      "The link stops working straight away. What about the scores they've already given? Keep them if they had to leave early; drop them if the link got into the wrong hands.",
+    revokeKeep: "Revoke, keep their scores",
+    revokeDrop: "Revoke, drop their scores",
     // Scoring (SW-25, part 2)
     judging: "Judging",
     criteria: "Criteria",

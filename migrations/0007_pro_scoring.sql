@@ -6,6 +6,10 @@ ALTER TABLE events ADD COLUMN drop_outliers INTEGER NOT NULL DEFAULT 1;
 -- Rule 6: judges see the ticket number only, unless the organizer turns this on.
 ALTER TABLE events ADD COLUMN show_dish_names INTEGER NOT NULL DEFAULT 0;
 
+-- Revoking a judge asks what happens to the scores they've given: kept (they
+-- had to leave early) or dropped (the link got into the wrong hands).
+ALTER TABLE judges ADD COLUMN keep_scores INTEGER NOT NULL DEFAULT 0;
+
 -- Rule 8: one weighted set of criteria per event, from an editable preset.
 CREATE TABLE criteria (
   id        TEXT PRIMARY KEY,

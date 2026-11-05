@@ -188,7 +188,11 @@ export const es: Messages = {
     showQr: "Mostrar el código QR",
     judgeLink: "Enlace: ",
     revoke: "Quitar",
-    revokeConfirm: (name) => `¿Quitarle el enlace a ${name}? Deja de funcionar en ese momento.`,
+    revokeTitle: (name) => `¿Quitarle el enlace a ${name}?`,
+    revokeBody:
+      "El enlace deja de funcionar en ese momento. ¿Y las calificaciones que ya dio? Consérvalas si tuvo que irse antes; descártalas si el enlace cayó en las manos equivocadas.",
+    revokeKeep: "Quitar y conservar sus calificaciones",
+    revokeDrop: "Quitar y descartar sus calificaciones",
     judging: "Evaluación",
     criteria: "Criterios",
     criteriaHint: "El jurado califica cada platillo en cada uno de estos, del 1 al 10. Los de más peso cuentan más y desempatan.",

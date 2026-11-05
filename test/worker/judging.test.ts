@@ -251,10 +251,18 @@ describe("judged standings (rules 11–13)", () => {
     ({ judged } = await get());
     expect(judged.scores[0]!.score).toBeCloseTo(6.6, 9);
 
-    // Revoking J1 (the 10) takes their scores out.
-    await call(`/api/judges/${judges[0]}`, { method: "DELETE", cookie });
+    // Revoking J1 (the 10) with their scores dropped, as for a compromised link, takes them out.
+    await send(`/api/judges/${judges[0]}`, "DELETE", { keepScores: false }, cookie);
     ({ judged } = await get());
     expect(judged.scores.map((s) => [s.score, s.judges])).toEqual([[5.75, 4], [8, 1]]);
+    // Revoking J2 with their scores kept, as for a judge who left early, leaves them in.
+    await send(`/api/judges/${judges[1]}`, "DELETE", { keepScores: true }, cookie);
+    ({ judged } = await get());
+    expect(judged.scores.map((s) => [s.score, s.judges])).toEqual([[5.75, 4], [8, 1]]);
+    // Neither shows in the organizer's progress any more.
+    const view = await (await call(`/api/events/${id}`, { cookie })).json<{ judges: unknown[]; judging: { scored: { judgeId: string }[] } }>();
+    expect(view.judges).toHaveLength(3);
+    expect(view.judging.scored.some((s) => s.judgeId === judges[0] || s.judgeId === judges[1])).toBe(false);
   });
 
   it("aren't sent for family events", async () => {

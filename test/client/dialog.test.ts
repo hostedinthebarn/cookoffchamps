@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { confirmDialog } from "../../src/client/dialog";
+import { chooseDialog, confirmDialog } from "../../src/client/dialog";
 import { byText } from "./helpers";
 
 const ask = { title: "Reveal the winners?", body: "The results go public.", confirm: "Reveal the winners" };
@@ -55,6 +55,45 @@ describe("confirmDialog", () => {
       void confirmDialog(ask);
       expect(showModal).toHaveBeenCalledOnce();
       expect(shown().hasAttribute("open")).toBe(false);
+    } finally {
+      delete (HTMLElement.prototype as { showModal?: unknown }).showModal;
+    }
+  });
+});
+
+
+describe("chooseDialog", () => {
+  const pick = () => chooseDialog("Revoke Pat's link?", "Keep or drop?", [{ label: "Keep", value: "keep" }, { label: "Drop", value: "drop" }]);
+  const box = () => document.querySelector("dialog.choose") as HTMLDialogElement;
+
+  it("offers each choice after Cancel, which has the focus, and resolves the one picked", async () => {
+    const answer = pick();
+    expect(box().querySelector("h2")!.textContent).toBe("Revoke Pat's link?");
+    expect(box().getAttribute("aria-describedby")).toBe("choose-body");
+    expect([...box().querySelectorAll("button")].map((b) => b.textContent)).toEqual(["Cancel", "Keep", "Drop"]);
+    expect(document.activeElement!.textContent).toBe("Cancel");
+    byText(box(), "button", "Drop").click();
+    expect(await answer).toBe("drop");
+    expect(box()).toBeNull();
+  });
+
+  it("resolves null for Cancel and for Escape", async () => {
+    const first = pick();
+    byText(box(), "button", "Cancel").click();
+    expect(await first).toBeNull();
+    const second = pick();
+    const escape = new Event("cancel", { cancelable: true });
+    box().dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(true);
+    expect(await second).toBeNull();
+  });
+
+  it("opens as a modal where the browser supports it", () => {
+    const showModal = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "showModal", { value: showModal, configurable: true });
+    try {
+      void pick();
+      expect(showModal).toHaveBeenCalledOnce();
     } finally {
       delete (HTMLElement.prototype as { showModal?: unknown }).showModal;
     }

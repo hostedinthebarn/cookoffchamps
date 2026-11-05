@@ -282,9 +282,9 @@ export async function unlockScores(request: Request, env: Env, judgeId: string):
 // --- Results -----------------------------------------------------------------------
 
 /**
- * The submitted cards that count: locked, from judges whose link still works.
- * A revoked judge's scores are left out, since revoking is how an organizer
- * removes a link that got into the wrong hands.
+ * The submitted cards that count: locked, from judges whose link still works,
+ * or who were revoked with their scores kept (they left early). A judge revoked
+ * with their scores dropped (a compromised link) doesn't count at all.
  */
 async function countedCards(env: Env, eventId: string): Promise<Card[]> {
   const { results } = await env.DB.prepare(
@@ -292,7 +292,7 @@ async function countedCards(env: Env, eventId: string): Promise<Card[]> {
        FROM scores s
        JOIN scorecards sc ON sc.judge_id = s.judge_id AND sc.entry_id = s.entry_id
        JOIN judges j ON j.id = s.judge_id
-      WHERE j.event_id = ? AND j.revoked_at IS NULL AND sc.submitted_at IS NOT NULL`,
+      WHERE j.event_id = ? AND (j.revoked_at IS NULL OR j.keep_scores = 1) AND sc.submitted_at IS NOT NULL`,
   )
     .bind(eventId)
     .all<{ judgeId: string; entryId: string; criterionId: string; score: number }>();

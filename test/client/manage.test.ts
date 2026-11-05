@@ -501,15 +501,21 @@ describe("pro events (SW-25)", () => {
     await flush();
     expect(calls.find((c) => c.method === "POST")!.body).toEqual({ name: "Lee" });
 
+    // Revoking asks what happens to the judge's scores: kept or dropped.
     const { ctx: listed } = await open(pro(), { "DELETE /api/judges/j1": { ok: true } });
-    vi.mocked(window.confirm).mockReturnValueOnce(false);
     byText(listed.root, ".judge button", "Revoke").click();
     await flush();
+    expect(document.querySelector("dialog.choose h2")!.textContent).toBe("Revoke Pat's link?");
+    await answerDialog("Cancel");
     expect(calls.some((c) => c.method === "DELETE")).toBe(false);
     byText(listed.root, ".judge button", "Revoke").click();
     await flush();
-    expect(window.confirm).toHaveBeenLastCalledWith("Revoke Pat's link? It stops working straight away.");
-    expect(calls.some((c) => c.method === "DELETE" && c.path === "/api/judges/j1")).toBe(true);
+    await answerDialog("Revoke, keep their scores");
+    expect(calls.find((c) => c.method === "DELETE")!.body).toEqual({ keepScores: true });
+    byText(listed.root, ".judge button", "Revoke").click();
+    await flush();
+    await answerDialog("Revoke, drop their scores");
+    expect(calls.filter((c) => c.method === "DELETE").at(-1)!.body).toEqual({ keepScores: false });
   });
 
   it("stops adding judges once voting has closed", async () => {
