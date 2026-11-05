@@ -231,7 +231,7 @@ describe("judged standings (rules 11–13)", () => {
     const a = await addDish(cookie, categoryId, "1");
     const b = await addDish(cookie, categoryId, "2");
     await addDish(cookie, categoryId, null); // not turned in: not judged
-    const judges = [];
+    const judges: string[] = [];
     for (const name of ["J1", "J2", "J3", "J4", "J5"]) judges.push(await addJudge(cookie, id, name));
     await setStatus(cookie, id, "open");
     // Dish a: 10, 2, 7, 7, 7 → 7 with the outliers dropped. Dish b: 8 from the first two only.
