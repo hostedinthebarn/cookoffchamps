@@ -1,6 +1,44 @@
 import { h } from "./dom";
 import { m } from "./i18n";
 
+export interface Choice<T> {
+  label: string;
+  value: T;
+}
+
+/**
+ * Asks the organizer to pick between real alternatives, each a button that says
+ * what it does. Cancel (or Escape) resolves null and has the focus, as in
+ * confirmDialog, so a stray tap picks nothing.
+ */
+export function chooseDialog<T>(title: string, body: string, choices: Choice<T>[]): Promise<T | null> {
+  return new Promise((resolve) => {
+    const cancelButton = h("button", { type: "button", class: "secondary" }, m().common.cancel);
+    const buttons = choices.map((c) => h("button", { type: "button" }, c.label));
+    const dialog = h(
+      "dialog",
+      { class: "confirm choose", "aria-labelledby": "choose-title", "aria-describedby": "choose-body" },
+      h("h2", { id: "choose-title" }, title),
+      h("p", { id: "choose-body" }, body),
+      h("div", { class: "actions" }, cancelButton, ...buttons),
+    ) as HTMLDialogElement;
+    const answer = (value: T | null) => {
+      dialog.remove();
+      resolve(value);
+    };
+    cancelButton.addEventListener("click", () => answer(null));
+    buttons.forEach((b, i) => b.addEventListener("click", () => answer(choices[i]!.value)));
+    dialog.addEventListener("cancel", (e) => {
+      e.preventDefault();
+      answer(null);
+    });
+    document.body.append(dialog);
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+    cancelButton.focus();
+  });
+}
+
 export interface ConfirmOptions {
   title: string;
   body: string;

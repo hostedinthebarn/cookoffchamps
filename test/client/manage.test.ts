@@ -21,6 +21,7 @@ function view(overrides: Partial<ManageView> = {}, status: ManageView["event"]["
     votesCast: [{ categoryId: "c1", votes: 7 }],
     proPreview: true,
     judges: [],
+    judging: { criteria: [], dropOutliers: true, showDishNames: false, scored: [] },
     ...overrides,
   };
 }
@@ -500,15 +501,21 @@ describe("pro events (SW-25)", () => {
     await flush();
     expect(calls.find((c) => c.method === "POST")!.body).toEqual({ name: "Lee" });
 
+    // Revoking asks what happens to the judge's scores: kept or dropped.
     const { ctx: listed } = await open(pro(), { "DELETE /api/judges/j1": { ok: true } });
-    vi.mocked(window.confirm).mockReturnValueOnce(false);
     byText(listed.root, ".judge button", "Revoke").click();
     await flush();
+    expect(document.querySelector("dialog.choose h2")!.textContent).toBe("Revoke Pat's link?");
+    await answerDialog("Cancel");
     expect(calls.some((c) => c.method === "DELETE")).toBe(false);
     byText(listed.root, ".judge button", "Revoke").click();
     await flush();
-    expect(window.confirm).toHaveBeenLastCalledWith("Revoke Pat's link? It stops working straight away.");
-    expect(calls.some((c) => c.method === "DELETE" && c.path === "/api/judges/j1")).toBe(true);
+    await answerDialog("Revoke, keep their scores");
+    expect(calls.find((c) => c.method === "DELETE")!.body).toEqual({ keepScores: true });
+    byText(listed.root, ".judge button", "Revoke").click();
+    await flush();
+    await answerDialog("Revoke, drop their scores");
+    expect(calls.filter((c) => c.method === "DELETE").at(-1)!.body).toEqual({ keepScores: false });
   });
 
   it("stops adding judges once voting has closed", async () => {
@@ -539,5 +546,181 @@ describe("pro events (SW-25)", () => {
     submit(later);
     await flush();
     expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ name: "Chili Night", date: "2026-11-01" });
+  });
+});
+
+describe("pro scoring (SW-25, part 2)", () => {
+  const criteria = [
+    { id: "taste", name: "Taste", weight: 2, position: 1 },
+    { id: "aroma", name: "Aroma", weight: 1, position: 2 },
+  ];
+
+  function scoring(overrides: Partial<ManageView> = {}, status: ManageView["event"]["status"] = "setup", judging: Partial<ManageView["judging"]> = {}): ManageView {
+    const base = view({}, status);
+    return view({
+      event: { ...base.event, kind: "pro" },
+      entries: [
+        { id: "n1", categoryId: "c1", number: 1, cookName: "Ana", dishName: "Brisket chili", photoKey: null, ticket: "214" },
+        { id: "n2", categoryId: "c1", number: 2, cookName: "Ben", dishName: "", photoKey: null, ticket: "300" },
+        { id: "n3", categoryId: "c1", number: 3, cookName: "Cy", dishName: "", photoKey: null, ticket: null },
+      ],
+      judges: [{ id: "j1", name: "Pat" }, { id: "j2", name: "Lee" }],
+      judging: { criteria, dropOutliers: true, showDishNames: false, scored: [{ judgeId: "j1", entryId: "n1" }], ...judging },
+      ...overrides,
+    }, status);
+  }
+
+  const judgingCard = (root: HTMLElement) => byText(root, "section", "Criteria");
+
+  it("starts the criteria from a preset, asking before it replaces any", async () => {
+    const { ctx } = await open(scoring({}, "setup", { criteria: [] }), { "POST /api/events/e1/criteria/preset": { criteria: [] } });
+    const card = judgingCard(ctx.root);
+    expect(card.textContent).toContain("No criteria yet.");
+    byText(card, "button", "BBQ").click();
+    await flush();
+    expect(window.confirm).not.toHaveBeenCalled();
+    expect(calls.find((c) => c.method === "POST")!.body).toEqual({ preset: "bbq", lang: "en" });
+
+    const { ctx: withSome } = await open(scoring(), { "POST /api/events/e1/criteria/preset": { criteria: [] } });
+    vi.mocked(window.confirm).mockReturnValueOnce(false);
+    byText(judgingCard(withSome.root), "button", "Chili").click();
+    await flush();
+    expect(window.confirm).toHaveBeenLastCalledWith("Replace the criteria with the Chili preset?");
+    expect(calls.some((c) => c.method === "POST")).toBe(false);
+    byText(judgingCard(withSome.root), "button", "General").click();
+    await flush();
+    expect(calls.find((c) => c.method === "POST")!.body).toEqual({ preset: "general", lang: "en" });
+  });
+
+  it("reweights, renames, removes and adds criteria while setting up", async () => {
+    const { ctx } = await open(scoring(), {
+      "PATCH /api/criteria/taste": { ok: true },
+      "DELETE /api/criteria/aroma": { ok: true },
+      "POST /api/events/e1/criteria": [201, { id: "new" }],
+    });
+    const card = judgingCard(ctx.root);
+    const rows = [...card.querySelectorAll(".criteria li")];
+    expect(rows.map((li) => li.querySelector("strong")!.textContent)).toEqual(["Taste", "Aroma"]);
+    const weight = rows[0]!.querySelector("select") as HTMLSelectElement;
+    expect(weight.value).toBe("2");
+    weight.value = "2.5";
+    weight.dispatchEvent(new Event("change"));
+    await flush();
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ weight: 2.5 });
+
+    vi.mocked(window.prompt).mockReturnValueOnce("Flavour");
+    byText(judgingCard(ctx.root), ".criteria li", "Taste").querySelector<HTMLButtonElement>("button.link:not(.danger)")!.click();
+    await flush();
+    expect(calls.filter((c) => c.method === "PATCH").at(-1)!.body).toEqual({ name: "Flavour" });
+    vi.mocked(window.prompt).mockReturnValueOnce(null);
+    byText(judgingCard(ctx.root), ".criteria li", "Taste").querySelector<HTMLButtonElement>("button.link:not(.danger)")!.click();
+    await flush();
+    expect(calls.filter((c) => c.method === "PATCH")).toHaveLength(2);
+
+    byText(judgingCard(ctx.root), ".criteria li", "Aroma").querySelector<HTMLButtonElement>("button.danger")!.click();
+    await flush();
+    expect(calls.some((c) => c.method === "DELETE" && c.path === "/api/criteria/aroma")).toBe(true);
+
+    const form = judgingCard(ctx.root).querySelector("form.criterion-form")!;
+    fill(form, "criterionName", "Heat");
+    (form.querySelector("select") as HTMLSelectElement).value = "0.5";
+    submit(form);
+    await flush();
+    expect(calls.find((c) => c.method === "POST")!.body).toEqual({ name: "Heat", weight: 0.5 });
+  });
+
+  it("shows the criteria read-only once voting opens", async () => {
+    const { ctx } = await open(scoring({}, "open"));
+    const card = judgingCard(ctx.root);
+    expect([...card.querySelectorAll(".criteria li")].map((li) => li.textContent)).toEqual(["Taste ×2", "Aroma ×1"]);
+    expect(card.querySelector("form")).toBeNull();
+    expect(card.textContent).toContain("The criteria are fixed now that voting has opened.");
+    expect(card.textContent).not.toContain("Start from a preset");
+  });
+
+  it("saves the judging settings as they're ticked, and fixes them once the results are out", async () => {
+    const { ctx } = await open(scoring(), { "PATCH /api/events/e1": { ok: true } });
+    const drop = judgingCard(ctx.root).querySelector("[name=dropOutliers]") as HTMLInputElement;
+    const names = judgingCard(ctx.root).querySelector("[name=showDishNames]") as HTMLInputElement;
+    expect([drop.checked, names.checked]).toEqual([true, false]);
+    names.checked = true;
+    names.dispatchEvent(new Event("change"));
+    await flush();
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ showDishNames: true });
+
+    const { ctx: revealed } = await open(scoring({}, "revealed"));
+    expect((judgingCard(revealed.root).querySelector("[name=dropOutliers]") as HTMLInputElement).disabled).toBe(true);
+  });
+
+  it("shows each judge's progress, with submitted cards unlockable before the reveal", async () => {
+    const { ctx } = await open(scoring({}, "open"), { "POST /api/judges/j1/unlock": { ok: true } });
+    const panel = ctx.root.querySelector(".progress")!;
+    expect([...panel.querySelectorAll("summary")].map((s) => s.textContent)).toEqual(["Pat: 1 of 2 scored", "Lee: 0 of 2 scored"]);
+    vi.mocked(window.confirm).mockReturnValueOnce(false);
+    byText(panel, "button", "Unlock").click();
+    await flush();
+    expect(calls.some((c) => c.method === "POST")).toBe(false);
+    byText(panel, "button", "Unlock").click();
+    await flush();
+    expect(window.confirm).toHaveBeenLastCalledWith(
+      "Unlock Pat's scores for ticket 214? They can change them, and must submit again for them to count.",
+    );
+    expect(calls.find((c) => c.method === "POST")!.body).toEqual({ entryId: "n1" });
+
+    const { ctx: revealed } = await open(scoring({}, "revealed"));
+    expect(revealed.root.querySelector(".progress button")).toBeNull();
+    const { ctx: noJudges } = await open(scoring({ judges: [] }, "open"));
+    expect(noJudges.root.querySelector(".progress")).toBeNull();
+    const { ctx: setup } = await open(scoring());
+    expect(setup.root.querySelector(".progress")).toBeNull();
+  });
+
+  it("warns before closing when scores are missing, naming the first few", async () => {
+    const { ctx } = await open(scoring({}, "open"), { "POST /api/events/e1/status": { status: "closed" } });
+    byText(ctx.root, "button", "Close voting").click();
+    await flush();
+    expect(document.querySelector("dialog.confirm p")!.textContent).toBe(
+      "Guests can't vote until you reopen it. Not every judge has scored every dish: Pat hasn't scored ticket 300; Lee hasn't scored ticket 214; Lee hasn't scored ticket 300. Missed dishes are averaged over the judges who scored them.",
+    );
+    await answerDialog("Cancel");
+
+    const judges = ["A", "B", "C"].map((name, i) => ({ id: `x${i}`, name }));
+    const { ctx: many } = await open(scoring({ judges }, "open", { scored: [] }));
+    byText(many.root, "button", "Close voting").click();
+    await flush();
+    expect(document.querySelector("dialog.confirm p")!.textContent).toContain("C hasn't scored ticket 214; and 1 more.");
+    await answerDialog("Cancel");
+
+    const all = [{ judgeId: "j1", entryId: "n1" }, { judgeId: "j1", entryId: "n2" }, { judgeId: "j2", entryId: "n1" }, { judgeId: "j2", entryId: "n2" }];
+    const { ctx: done } = await open(scoring({}, "open", { scored: all }));
+    byText(done.root, "button", "Close voting").click();
+    await flush();
+    expect(document.querySelector("dialog.confirm p")!.textContent).toBe("Guests can't vote until you reopen it.");
+    await answerDialog("Cancel");
+  });
+
+  it("peeks at the judged standings instead of votes", async () => {
+    const judged = {
+      scores: [
+        { entryId: "n2", categoryId: "c1", score: 8.746, judges: 3, counted: 3, byCriterion: {} },
+        { entryId: "n1", categoryId: "c1", score: null, judges: 0, counted: 0, byCriterion: {} },
+      ],
+      placings: { c1: [{ place: 1, entryIds: ["n2"], score: 8.746 }, { place: 2, entryIds: ["n1"], score: null }] },
+    };
+    const { ctx, cleanup } = await open(scoring({}, "open"), { "GET /api/events/e1/totals": { totals: [], judged } });
+    byText(ctx.root, "button", "Peek").click();
+    await vi.waitFor(() => expect(ctx.root.querySelectorAll(".peek li")).toHaveLength(2));
+    expect([...ctx.root.querySelectorAll(".peek li")].map((li) => li.textContent)).toEqual([
+      "Ticket 300 (Ben): 8.75 from 3 judges",
+      "Ticket 214 (Ana): not scored yet",
+    ]);
+    cleanup();
+
+    const two = scoring({ categories: [{ id: "c1", name: "Chili", position: 1 }, { id: "c2", name: "Dessert", position: 2 }] }, "open");
+    const { ctx: multi, cleanup: done } = await open(two, { "GET /api/events/e1/totals": { totals: [], judged: { ...judged, scores: [{ ...judged.scores[0]!, counted: 1 }, judged.scores[1]!] } } });
+    byText(multi.root, "button", "Peek").click();
+    await vi.waitFor(() => expect(multi.root.querySelectorAll(".peek h3")).toHaveLength(2));
+    expect(multi.root.querySelector(".peek li")!.textContent).toBe("Ticket 300 (Ben): 8.75 from 1 judge");
+    done();
   });
 });

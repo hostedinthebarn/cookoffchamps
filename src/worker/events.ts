@@ -12,6 +12,7 @@ import { requireSession, sendLoginLink } from "./auth";
 import type { Env } from "./env";
 import { HttpError, json, optionalDate, readJson, requireEmail, requireText } from "./http";
 import { langOf, loginEmail } from "./i18n";
+import { judgedResults, listCriteria, progress } from "./judging";
 import { newCode, newId } from "./ids";
 import { deletePhotoPrefix } from "./photos";
 
@@ -109,10 +110,24 @@ export async function manageEvent(request: Request, env: Env, eventId: string): 
     organizers: organizers!.results,
     votesCast: counts!.results,
     judges: judges!.results,
+    // Scoring (SW-25): the criteria and settings, and who has scored what (rule 15).
+    judging: {
+      criteria: await listCriteria(env, eventId),
+      dropOutliers: event.drop_outliers === 1,
+      showDishNames: event.show_dish_names === 1,
+      scored: await progress(env, eventId),
+    },
   });
 }
 
-/** PATCH /api/events/:id {name?, date?, kind?} */
+/** A judging setting (SW-25), if sent: true or false. */
+function optionalFlag(value: unknown, current: number): number {
+  if (value === undefined) return current;
+  if (typeof value !== "boolean") throw new HttpError(400, "Settings are true or false");
+  return value ? 1 : 0;
+}
+
+/** PATCH /api/events/:id {name?, date?, kind?, dropOutliers?, showDishNames?} */
 export async function updateEvent(request: Request, env: Env, eventId: string): Promise<Response> {
   const email = await requireSession(request, env);
   const { event } = await requireOrganizer(env, eventId, email);
@@ -125,7 +140,15 @@ export async function updateEvent(request: Request, env: Env, eventId: string): 
     if (event.status !== "setup") throw new HttpError(409, "The kind of event is fixed once voting opens", "kindFixed");
     kind = requireKind(body.kind, env);
   }
-  await env.DB.prepare("UPDATE events SET name = ?, event_date = ?, kind = ? WHERE id = ?").bind(name, date, kind, eventId).run();
+  const dropOutliers = optionalFlag(body.dropOutliers, event.drop_outliers);
+  const showDishNames = optionalFlag(body.showDishNames, event.show_dish_names);
+  // Judging settings decide the results, so they're fixed once those are out.
+  if ((dropOutliers !== event.drop_outliers || showDishNames !== event.show_dish_names) && event.status === "revealed") {
+    throw new HttpError(409, "The judging settings are fixed once the results are out", "criteriaFixed");
+  }
+  await env.DB.prepare("UPDATE events SET name = ?, event_date = ?, kind = ?, drop_outliers = ?, show_dish_names = ? WHERE id = ?")
+    .bind(name, date, kind, dropOutliers, showDishNames, eventId)
+    .run();
   return json({ ok: true });
 }
 
@@ -148,6 +171,10 @@ export async function setStatus(request: Request, env: Env, eventId: string): Pr
   if (!TRANSITIONS[event.status].includes(next)) {
     throw new HttpError(409, `Can't go from ${event.status} to ${String(body.status)}`, "badStatusChange");
   }
+  // A pro event's judges need something to score on (rule 8).
+  if (event.kind === "pro" && next === "open" && (await listCriteria(env, eventId)).length === 0) {
+    throw new HttpError(409, "Choose the judging criteria before opening", "noCriteria");
+  }
   await env.DB.prepare("UPDATE events SET status = ? WHERE id = ?").bind(next, eventId).run();
   return json({ status: next });
 }
@@ -167,7 +194,7 @@ export async function deleteEvent(request: Request, env: Env, eventId: string): 
  */
 export async function totals(request: Request, env: Env, eventId: string): Promise<Response> {
   const email = await requireSession(request, env);
-  await requireOrganizer(env, eventId, email);
+  const { event } = await requireOrganizer(env, eventId, email);
   const { results } = await env.DB.prepare(
     `SELECT e.id AS entryId, e.category_id AS categoryId, COUNT(v.device_token) AS votes
        FROM entries e
@@ -178,7 +205,8 @@ export async function totals(request: Request, env: Env, eventId: string): Promi
   )
     .bind(eventId)
     .all();
-  return json({ totals: results });
+  // A pro event's judged standings come too (SW-25); its votes are People's Choice.
+  return json({ totals: results, ...(event.kind === "pro" ? { judged: await judgedResults(env, event) } : {}) });
 }
 
 // --- Categories (decision 12) ------------------------------------------------

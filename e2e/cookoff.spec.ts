@@ -255,9 +255,51 @@ test("a pro event: cooks with ticket numbers, and a judge's personal link (SW-25
   await expect(judge.getByText("Hello, Pat.")).toBeVisible();
 
   // Revoked, the same link stops working.
-  page.once("dialog", (d) => void d.accept());
-  await page.getByRole("button", { name: "Revoke" }).click();
+  await page.getByRole("button", { name: "Revoke", exact: true }).click();
+  await page.locator("dialog.choose").getByRole("button", { name: "Revoke, drop their scores" }).click();
   await expect(page.getByText("No judges yet.")).toBeVisible();
   await judge.reload();
   await expect(judge.getByText("This judge's link doesn't work.")).toBeVisible();
+});
+
+test("pro judging: criteria from a preset, a judge scores blind, the organizer sees progress and standings (SW-25)", async ({ page, browser, request }) => {
+  const email = `pro-score-${Date.now()}@example.com`;
+  await login(page, request, email);
+  await page.getByLabel("Name").fill("Scored Chili");
+  await page.getByRole("radio", { name: /^Pro/ }).check();
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page.getByRole("heading", { name: "Scored Chili" })).toBeVisible();
+
+  await page.getByRole("button", { name: "General" }).click();
+  await expect(page.locator(".criteria li")).toHaveCount(4);
+  const cook = page.locator(".entry-form").last();
+  await cook.getByLabel("Cook").fill("Ana");
+  await cook.getByLabel("Dish (if known)").fill("Brisket chili");
+  await cook.getByLabel("Ticket number").fill("214");
+  await cook.getByRole("button", { name: "Add" }).click();
+  await expect(page.locator(".entry", { hasText: "Ticket 214" })).toBeVisible();
+  await page.getByLabel("Judge's name").fill("Pat");
+  await page.getByRole("button", { name: "Add judge" }).click();
+  const link = await page.locator(".judge a").getAttribute("href");
+  await page.getByRole("button", { name: "Open voting" }).click();
+  await expect(page.getByText("Pat: 0 of 1 scored")).toBeVisible();
+
+  // The judge sees the ticket, never the cook, and scores every criterion.
+  const judge = await (await browser.newContext()).newPage();
+  await judge.goto(link!);
+  await expect(judge.getByText("0 of 1 scored")).toBeVisible();
+  await expect(judge.getByText("Ana")).toHaveCount(0);
+  await judge.getByRole("button", { name: /Ticket 214/ }).click();
+  for (const [criterion, score] of [["Taste", "9"], ["Texture", "8"], ["Appearance", "7"], ["Aroma", "8"]] as const) {
+    await judge.getByLabel(new RegExp(`^${criterion}`)).selectOption(score);
+  }
+  await judge.getByRole("button", { name: "Submit scores" }).click();
+  await judge.locator("dialog.confirm").getByRole("button", { name: "Submit scores" }).click();
+  await expect(judge.getByText("1 of 1 scored")).toBeVisible();
+
+  // (9·2 + 8·1.5 + 7 + 8) / 5.5 = 45 / 5.5 = 8.18
+  await page.reload();
+  await expect(page.getByText("Pat: 1 of 1 scored")).toBeVisible();
+  await page.getByRole("button", { name: "Peek at the standings" }).click();
+  await expect(page.locator(".peek li")).toHaveText("Ticket 214, Brisket chili (Ana): 8.18 from 1 judge");
 });

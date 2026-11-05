@@ -1,4 +1,5 @@
 import type { Placing } from "../shared/ranking";
+import type { ScorePlacing } from "../shared/scoring";
 
 export type Status = "setup" | "open" | "closed" | "revealed";
 export type Kind = "family" | "pro";
@@ -29,6 +30,22 @@ export interface Judge {
   name: string;
 }
 
+export interface Criterion {
+  id: string;
+  name: string;
+  weight: number;
+  position: number;
+}
+
+/** A pro event's scoring setup and progress (SW-25). */
+export interface Judging {
+  criteria: Criterion[];
+  dropOutliers: boolean;
+  showDishNames: boolean;
+  /** The submitted cards: which judge has scored which dish. */
+  scored: { judgeId: string; entryId: string }[];
+}
+
 export interface ManageView {
   event: EventSummary;
   role: "creator" | "co";
@@ -38,15 +55,44 @@ export interface ManageView {
   organizers: { email: string; role: "creator" | "co" }[];
   votesCast: { categoryId: string; votes: number }[];
   judges: Judge[];
+  judging: Judging;
+}
+
+export interface JudgeDish {
+  entryId: string;
+  ticket: string;
+  category: string | null;
+  dishName?: string;
+}
+
+export interface JudgeCard {
+  entryId: string;
+  scores: Record<string, number>;
+  comment: string | null;
+  locked: boolean;
 }
 
 export interface JudgePage {
   judge: { name: string };
   event: { id: string; name: string; date: string | null; status: Status };
+  criteria: { id: string; name: string; weight: number }[];
+  dishes: JudgeDish[];
+  cards: JudgeCard[];
+}
+
+export interface JudgedScore {
+  entryId: string;
+  categoryId: string;
+  score: number | null;
+  judges: number;
+  counted: number;
+  byCriterion: Record<string, number>;
 }
 
 export interface Totals {
   totals: { entryId: string; categoryId: string; votes: number }[];
+  /** Pro events only (SW-25): the judged standings. */
+  judged?: { scores: JudgedScore[]; placings: Record<string, ScorePlacing[]> };
 }
 
 export interface PublicEntry {
