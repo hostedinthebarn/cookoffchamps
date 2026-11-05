@@ -103,7 +103,7 @@ describe("home, logged in", () => {
     });
     const ctx = makeCtx();
     await homeView(ctx);
-    // Family is the only kind on offer; Pro is shown as coming soon (SW-59).
+    // Without the pro preview, Family is the only kind on offer and Pro shows as coming soon (SW-59).
     const kinds = [...ctx.root.querySelectorAll<HTMLInputElement>('input[name="kind"]')];
     expect(kinds.map((k) => [k.value, k.checked, k.disabled])).toEqual([["family", true, false], ["pro", false, true]]);
     expect(ctx.root.querySelector(".kinds legend")!.textContent).toBe("Kind of cookoff");
@@ -112,8 +112,30 @@ describe("home, logged in", () => {
     fill(ctx.root, "date", "2026-11-01");
     submit(ctx.root.querySelector("form")!);
     await flush();
-    expect(calls.at(-1)!.body).toEqual({ name: "Chili Night", date: "2026-11-01" });
+    expect(calls.at(-1)!.body).toEqual({ name: "Chili Night", date: "2026-11-01", kind: "family" });
     expect(ctx.navigate).toHaveBeenCalledWith("/e/new1");
+  });
+
+  it("offers Pro as a free preview when it's on, and creates a pro event (SW-25)", async () => {
+    const calls = fakeApi({
+      "GET /api/me": { email: "g@example.com", proPreview: true },
+      "GET /api/events": { events: [{ id: "p1", code: "P", name: "Judged Chili", date: null, status: "setup", kind: "pro", role: "creator" }] },
+      "POST /api/events": [201, { id: "new2", code: "XYZ" }],
+    });
+    const ctx = makeCtx();
+    await homeView(ctx);
+    const kinds = [...ctx.root.querySelectorAll<HTMLInputElement>('input[name="kind"]')];
+    expect(kinds.map((k) => [k.value, k.checked, k.disabled])).toEqual([["family", true, false], ["pro", false, false]]);
+    expect(ctx.root.querySelector(".kind.soon")).toBeNull();
+    expect(byText(ctx.root, ".kind", "Pro").querySelector(".badge")!.textContent).toBe("Free preview, for a limited time");
+    // A pro event in the list is marked as one.
+    expect(byText(ctx.root, ".events li", "Judged Chili").querySelector(".badge")!.textContent).toBe("Pro");
+    kinds[1]!.checked = true;
+    fill(ctx.root, "name", "Judged Chili 2");
+    submit(ctx.root.querySelector("form")!);
+    await flush();
+    expect(calls.at(-1)!.body).toEqual({ name: "Judged Chili 2", date: "", kind: "pro" });
+    expect(ctx.navigate).toHaveBeenCalledWith("/e/new2");
   });
 
   it("shows why creating failed", async () => {

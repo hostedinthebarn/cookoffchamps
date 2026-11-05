@@ -11,14 +11,16 @@ function view(overrides: Partial<ManageView> = {}, status: ManageView["event"]["
     role: "creator",
     categories: [{ id: "c1", name: "Main", position: 1 }],
     entries: [
-      { id: "n1", categoryId: "c1", number: 1, cookName: "Grandma", dishName: "Red chili", photoKey: "events/e1/n1-x" },
-      { id: "n2", categoryId: "c1", number: 2, cookName: "Kiana", dishName: "White chili", photoKey: null },
+      { id: "n1", categoryId: "c1", number: 1, cookName: "Grandma", dishName: "Red chili", photoKey: "events/e1/n1-x", ticket: null },
+      { id: "n2", categoryId: "c1", number: 2, cookName: "Kiana", dishName: "White chili", photoKey: null, ticket: null },
     ],
     organizers: [
       { email: "gary@example.com", role: "creator" },
       { email: "kiana@example.com", role: "co" },
     ],
     votesCast: [{ categoryId: "c1", votes: 7 }],
+    proPreview: true,
+    judges: [],
     ...overrides,
   };
 }
@@ -51,7 +53,8 @@ describe("entryForm", () => {
   it("includes only the fields given, with the photo shrunk", async () => {
     const empty = await entryForm({});
     expect([...empty.keys()]).toEqual([]);
-    const full = await entryForm({ cookName: "A", dishName: "B", photo: new File(["big"], "x.heic") });
+    const full = await entryForm({ cookName: "A", dishName: "B", ticket: "214", photo: new File(["big"], "x.heic") });
+    expect(full.get("ticket")).toBe("214");
     expect(full.get("cookName")).toBe("A");
     expect(full.get("dishName")).toBe("B");
     expect((full.get("photo") as File).name).toBe("dish.jpg");
@@ -387,7 +390,7 @@ describe("share, edit and delete", () => {
     fill(form, "name", "Chili Bowl");
     submit(form);
     await flush();
-    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ name: "Chili Bowl", date: "" });
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ name: "Chili Bowl", date: "", kind: "family" });
   });
 
   it("deletes the event after confirming, then goes home", async () => {
@@ -398,5 +401,143 @@ describe("share, edit and delete", () => {
     byText(ctx.root, "button", "Delete this event").click();
     await flush();
     expect(ctx.navigate).toHaveBeenCalledWith("/");
+  });
+});
+
+
+describe("pro events (SW-25)", () => {
+  function pro(overrides: Partial<ManageView> = {}, status: ManageView["event"]["status"] = "setup"): ManageView {
+    const base = view({}, status);
+    return view({
+      event: { ...base.event, kind: "pro" },
+      entries: [
+        { id: "n1", categoryId: "c1", number: 1, cookName: "Ana", dishName: "Brisket chili", photoKey: null, ticket: "214" },
+        { id: "n2", categoryId: "c1", number: 2, cookName: "Ben", dishName: "", photoKey: null, ticket: null },
+      ],
+      judges: [{ id: "j1", name: "Pat" }],
+      ...overrides,
+    }, status);
+  }
+
+  it("says it's a pro event, and a free preview while that's on", async () => {
+    const { ctx } = await open(pro());
+    expect(ctx.root.querySelector(".pro-line")!.textContent).toBe("Pro Pro event: judges score every dish blind. Pro is a free preview, for a limited time.");
+    const { ctx: after } = await open(pro({ proPreview: false }));
+    expect(after.root.querySelector(".pro-line")!.textContent).toBe("Pro Pro event: judges score every dish blind.");
+    const { ctx: family } = await open(view());
+    expect(family.root.querySelector(".pro-line")).toBeNull();
+    expect([...family.root.querySelectorAll("h2")].map((e) => e.textContent)).not.toContain("Judges");
+  });
+
+  it("names dishes by ticket, and lists cooks who haven't turned in yet", async () => {
+    const { ctx } = await open(pro());
+    expect(byText(ctx.root, "h2", "Cooks and dishes")).toBeTruthy();
+    const rows = [...ctx.root.querySelectorAll(".entry")].map((li) => li.querySelector("span:not(.thumb)")!.textContent);
+    expect(rows).toEqual(["Ticket 214 Brisket chili by Ana", "No ticket yet by Ben"]);
+    const { ctx: empty } = await open(pro({ entries: [] }));
+    expect(empty.root.textContent).toContain("No cooks yet.");
+  });
+
+  it("adds a cook with an optional dish and ticket", async () => {
+    const { ctx } = await open(pro(), { "POST /api/categories/c1/entries": [201, { id: "n3", number: 3 }] });
+    const form = byText(ctx.root, "form", "Add a cook");
+    expect((form.querySelector("[name=dishName]") as HTMLInputElement).required).toBe(false);
+    expect(form.textContent).toContain("Dish (if known)");
+    expect(form.textContent).toContain("Leave it empty until the dish is turned in.");
+    fill(form, "cookName", "Cy");
+    fill(form, "ticket", "300");
+    submit(form);
+    await flush();
+    const body = calls.find((c) => c.method === "POST")!.body as FormData;
+    expect([body.get("cookName"), body.get("dishName"), body.get("ticket")]).toEqual(["Cy", "", "300"]);
+  });
+
+  it("edits a cook's ticket at turn-in", async () => {
+    const { ctx } = await open(pro(), { "PATCH /api/entries/n2": { ok: true } });
+    byText(ctx.root, ".entry", "Ben").querySelector("button")!.click();
+    const form = ctx.root.querySelector(".entry-form")!;
+    expect((form.querySelector("[name=ticket]") as HTMLInputElement).value).toBe("");
+    fill(form, "ticket", "301");
+    fill(form, "dishName", "Verde");
+    submit(form);
+    await flush();
+    const body = calls.find((c) => c.method === "PATCH")!.body as FormData;
+    expect([body.get("ticket"), body.get("dishName")]).toEqual(["301", "Verde"]);
+    // An existing ticket is filled in for editing.
+    byText(ctx.root, ".entry", "Ana").querySelector("button")!.click();
+    expect((ctx.root.querySelector(".entry-form [name=ticket]") as HTMLInputElement).value).toBe("214");
+  });
+
+  it("lists judges with their personal link and a QR code drawn on first open", async () => {
+    const { ctx } = await open(pro());
+    const judge = ctx.root.querySelector(".judge")!;
+    expect(judge.querySelector("strong")!.textContent).toBe("Pat");
+    expect(judge.querySelector("a")!.getAttribute("href")).toBe(`${location.origin}/j/j1`);
+    const details = judge.querySelector("details")!;
+    expect(details.querySelector(".qr svg")).toBeNull();
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    await flush();
+    expect(details.querySelector(".qr svg")).not.toBeNull();
+    // Closing and opening again doesn't draw a second one.
+    details.open = false;
+    details.dispatchEvent(new Event("toggle"));
+    details.open = true;
+    details.dispatchEvent(new Event("toggle"));
+    await flush();
+    expect(details.querySelectorAll(".qr svg").length).toBe(1);
+  });
+
+  it("adds a judge by name, and revokes one after confirming", async () => {
+    const { ctx } = await open(pro({ judges: [] }), {
+      "POST /api/events/e1/judges": [201, { id: "j2", name: "Lee" }],
+      "DELETE /api/judges/j1": { ok: true },
+    });
+    expect(ctx.root.textContent).toContain("No judges yet.");
+    const form = byText(ctx.root, "form", "Add judge");
+    fill(form, "judgeName", "Lee");
+    submit(form);
+    await flush();
+    expect(calls.find((c) => c.method === "POST")!.body).toEqual({ name: "Lee" });
+
+    const { ctx: listed } = await open(pro(), { "DELETE /api/judges/j1": { ok: true } });
+    vi.mocked(window.confirm).mockReturnValueOnce(false);
+    byText(listed.root, ".judge button", "Revoke").click();
+    await flush();
+    expect(calls.some((c) => c.method === "DELETE")).toBe(false);
+    byText(listed.root, ".judge button", "Revoke").click();
+    await flush();
+    expect(window.confirm).toHaveBeenLastCalledWith("Revoke Pat's link? It stops working straight away.");
+    expect(calls.some((c) => c.method === "DELETE" && c.path === "/api/judges/j1")).toBe(true);
+  });
+
+  it("stops adding judges once voting has closed", async () => {
+    const { ctx } = await open(pro({}, "closed"));
+    expect(ctx.root.textContent).toContain("Pat");
+    expect([...ctx.root.querySelectorAll("form")].some((f) => f.textContent?.includes("Add judge"))).toBe(false);
+  });
+
+  it("can switch kind while setting up, but not once voting opens", async () => {
+    const { ctx } = await open(pro(), { "PATCH /api/events/e1": { ok: true } });
+    const form = byText(ctx.root, "details", "Edit name or date").querySelector("form")!;
+    const kinds = [...form.querySelectorAll<HTMLInputElement>('input[name="kind"]')];
+    expect(kinds.map((k) => k.checked)).toEqual([false, true]);
+    kinds[0]!.checked = true;
+    submit(form);
+    await flush();
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ name: "Chili Night", date: "2026-11-01", kind: "family" });
+
+    // With the preview off, a family event isn't offered Pro, but a pro one can still go back.
+    const { ctx: family } = await open(view({ proPreview: false }));
+    expect(byText(family.root, "details", "Edit name or date").querySelector('input[name="kind"]')).toBeNull();
+    const { ctx: stillPro } = await open(pro({ proPreview: false }));
+    expect(byText(stillPro.root, "details", "Edit name or date").querySelectorAll('input[name="kind"]').length).toBe(2);
+
+    const { ctx: open_ } = await open(pro({}, "open"), { "PATCH /api/events/e1": { ok: true } });
+    const later = byText(open_.root, "details", "Edit name or date").querySelector("form")!;
+    expect(later.querySelector('input[name="kind"]')).toBeNull();
+    submit(later);
+    await flush();
+    expect(calls.find((c) => c.method === "PATCH")!.body).toEqual({ name: "Chili Night", date: "2026-11-01" });
   });
 });

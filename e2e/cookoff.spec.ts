@@ -222,3 +222,42 @@ test("the site works in Spanish: a phone set to Spanish, the switch, and the Spa
   expect(raw.status()).toBe(200);
   expect(await raw.text()).toContain('<html lang="es">');
 });
+
+test("a pro event: cooks with ticket numbers, and a judge's personal link (SW-25)", async ({ page, browser, request }) => {
+  const email = `pro-host-${Date.now()}@example.com`;
+  await login(page, request, email);
+
+  await page.getByLabel("Name").fill("Fair Chili Judging");
+  await page.getByRole("radio", { name: /^Pro/ }).check();
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page.getByRole("heading", { name: "Fair Chili Judging" })).toBeVisible();
+  await expect(page.getByText("Pro event: judges score every dish blind.")).toBeVisible();
+
+  // A cook listed before turn-in, then one with their dish and raffle ticket.
+  const cooks = page.locator(".entry-form").last();
+  await cooks.getByLabel("Cook").fill("Ben");
+  await cooks.getByRole("button", { name: "Add" }).click();
+  await expect(page.locator(".entry", { hasText: "No ticket yet" })).toBeVisible();
+  const next = page.locator(".entry-form").last();
+  await next.getByLabel("Cook").fill("Ana");
+  await next.getByLabel("Dish (if known)").fill("Brisket chili");
+  await next.getByLabel("Ticket number").fill("214");
+  await next.getByRole("button", { name: "Add" }).click();
+  await expect(page.locator(".entry", { hasText: "Ticket 214" })).toBeVisible();
+
+  // A judge, whose link opens their page in a browser that has never logged in.
+  await page.getByLabel("Judge's name").fill("Pat");
+  await page.getByRole("button", { name: "Add judge" }).click();
+  const link = await page.locator(".judge a").getAttribute("href");
+  const judge = await (await browser.newContext()).newPage();
+  await judge.goto(link!);
+  await expect(judge.getByRole("heading", { name: "Judging Fair Chili Judging" })).toBeVisible();
+  await expect(judge.getByText("Hello, Pat.")).toBeVisible();
+
+  // Revoked, the same link stops working.
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Revoke" }).click();
+  await expect(page.getByText("No judges yet.")).toBeVisible();
+  await judge.reload();
+  await expect(judge.getByText("This judge's link doesn't work.")).toBeVisible();
+});

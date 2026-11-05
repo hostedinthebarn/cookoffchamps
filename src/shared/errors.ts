@@ -28,6 +28,13 @@ export const ERROR_CODES = [
   "votingNotOpen",
   "wrongCategory",
   "notAPerson",
+  // Pro events (SW-25)
+  "proUnavailable",
+  "kindFixed",
+  "notPro",
+  "badTicket",
+  "ticketTaken",
+  "judgeNotFound",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

@@ -4,16 +4,24 @@ import { confirmDialog, type ConfirmOptions } from "../dialog";
 import { h, mount, photoUrl } from "../dom";
 import { errorText, lang, m } from "../i18n";
 import { resizePhoto } from "../photo";
+import { renderQr } from "../qr";
 import type { ManageEntry, ManageView, Totals } from "../types";
+import { chosenKind, kindChoice } from "./home";
 
 export const POLL_MS = 10_000;
 export const PEEK_MS = 20_000;
 
 /** Builds the entry form body, shrinking the photo first (decision 10). */
-export async function entryForm(fields: { cookName?: string; dishName?: string; photo?: File | null }): Promise<FormData> {
+export async function entryForm(fields: {
+  cookName?: string;
+  dishName?: string;
+  ticket?: string;
+  photo?: File | null;
+}): Promise<FormData> {
   const form = new FormData();
   if (fields.cookName !== undefined) form.set("cookName", fields.cookName);
   if (fields.dishName !== undefined) form.set("dishName", fields.dishName);
+  if (fields.ticket !== undefined) form.set("ticket", fields.ticket);
   if (fields.photo) form.set("photo", await resizePhoto(fields.photo), "dish.jpg");
   return form;
 }
@@ -42,6 +50,13 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
   // Read once per view: a language switch redraws the whole view.
   const t = m().manage;
   const common = m().common;
+  const isPro = () => data.event.kind === "pro";
+
+  /** How a dish is named to the organizer: its ticket in a pro event (rule 3), else "Entry N". */
+  function label(entry: ManageEntry): string {
+    if (!isPro()) return common.entry(entry.number);
+    return entry.ticket ? t.ticket(entry.ticket) : t.noTicket;
+  }
 
   async function reload(): Promise<void> {
     data = await api<ManageView>(`/api/events/${eventId}`);
@@ -171,7 +186,7 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       "li",
       { class: "entry" },
       entry.photoKey ? h("img", { src: photoUrl(entry.photoKey), alt: "", class: "thumb" }) : h("span", { class: "thumb none" }, t.noPhoto),
-      h("span", {}, h("strong", {}, common.entry(entry.number)), ` ${entry.dishName} `, h("span", { class: "muted" }, common.by(entry.cookName))),
+      h("span", {}, h("strong", {}, label(entry)), entry.dishName ? ` ${entry.dishName} ` : " ", h("span", { class: "muted" }, common.by(entry.cookName))),
     );
     if (editable) {
       li.append(
@@ -187,9 +202,16 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
     return li;
   }
 
+  /** The ticket-number field of a pro event's entry forms (rule 3), with its hint. */
+  function ticketField(value = ""): { input: HTMLInputElement; field: HTMLElement } {
+    const input = h("input", { name: "ticket", value, maxlength: 12, inputmode: "numeric", autocomplete: "off" }) as HTMLInputElement;
+    return { input, field: h("label", {}, t.ticketLabel, input, h("span", { class: "muted hint" }, t.ticketHint)) };
+  }
+
   function editEntryForm(entry: ManageEntry): HTMLElement {
     const cook = h("input", { name: "cookName", value: entry.cookName, required: true }) as HTMLInputElement;
-    const dish = h("input", { name: "dishName", value: entry.dishName, required: true }) as HTMLInputElement;
+    const dish = h("input", { name: "dishName", value: entry.dishName, required: !isPro() }) as HTMLInputElement;
+    const ticket = isPro() ? ticketField(entry.ticket ?? "") : null;
     const photo = h("input", { name: "photo", type: "file", accept: "image/*" }) as HTMLInputElement;
     return h(
       "form",
@@ -200,13 +222,14 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
           void act(async () =>
             api(`/api/entries/${entry.id}`, {
               method: "PATCH",
-              body: await entryForm({ cookName: cook.value, dishName: dish.value, photo: photo.files?.[0] ?? null }),
+              body: await entryForm({ cookName: cook.value, dishName: dish.value, ticket: ticket?.input.value, photo: photo.files?.[0] ?? null }),
             }),
           );
         },
       },
       h("label", {}, common.cookLabel, cook),
-      h("label", {}, common.dishLabel, dish),
+      h("label", {}, isPro() ? t.dishIfKnown : common.dishLabel, dish),
+      ticket?.field ?? null,
       h("label", {}, t.newPhoto, photo),
       h("button", { type: "submit" }, common.save),
       h("button", { type: "button", class: "link", onclick: () => draw() }, common.cancel),
@@ -215,7 +238,9 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
 
   function addEntryForm(categoryId: string): HTMLElement {
     const cook = h("input", { name: "cookName", required: true, maxlength: 80 }) as HTMLInputElement;
-    const dish = h("input", { name: "dishName", required: true, maxlength: 80 }) as HTMLInputElement;
+    // A pro event lists its cooks before turn-in, dish and ticket to follow (rule 4).
+    const dish = h("input", { name: "dishName", required: !isPro(), maxlength: 80 }) as HTMLInputElement;
+    const ticket = isPro() ? ticketField() : null;
     // capture opens the camera straight away on a phone.
     const photo = h("input", { name: "photo", type: "file", accept: "image/*", capture: "environment" }) as HTMLInputElement;
     return h(
@@ -228,14 +253,15 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
           void act(async () =>
             api(`/api/categories/${categoryId}/entries`, {
               method: "POST",
-              body: await entryForm({ cookName: cook.value, dishName: dish.value, photo: photo.files?.[0] ?? null }),
+              body: await entryForm({ cookName: cook.value, dishName: dish.value, ticket: ticket?.input.value, photo: photo.files?.[0] ?? null }),
             }),
           );
         },
       },
-      h("h3", {}, t.addDish),
+      h("h3", {}, isPro() ? t.addCook : t.addDish),
       h("label", {}, common.cookLabel, cook),
-      h("label", {}, common.dishLabel, dish),
+      h("label", {}, isPro() ? t.dishIfKnown : common.dishLabel, dish),
+      ticket?.field ?? null,
       h("label", {}, t.photo, photo),
       h("button", { type: "submit" }, t.add),
     );
@@ -245,7 +271,7 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
     const editable = data.event.status === "setup" || data.event.status === "open";
     // A single contest shows no category headings at all (decision 12).
     const multi = data.categories.length > 1;
-    const section = h("section", { class: "card" }, h("h2", {}, t.dishes));
+    const section = h("section", { class: "card" }, h("h2", {}, isPro() ? t.cooks : t.dishes));
     for (const c of data.categories) {
       const entries = data.entries.filter((e) => e.categoryId === c.id);
       const block = h("div", { class: "category" });
@@ -270,7 +296,8 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
           );
         }
       }
-      block.append(entries.length ? h("ul", { class: "entries" }, ...entries.map((e) => entryRow(e, editable))) : h("p", { class: "muted" }, common.noDishes));
+      const none = isPro() ? t.noCooks : common.noDishes;
+      block.append(entries.length ? h("ul", { class: "entries" }, ...entries.map((e) => entryRow(e, editable))) : h("p", { class: "muted" }, none));
       if (editable) block.append(addEntryForm(c.id));
       section.append(block);
     }
@@ -286,6 +313,49 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       );
     }
     return section;
+  }
+
+  /** A pro event's judges (rule 5): each has a personal link and QR code, and can be revoked. */
+  function judgesSection(): HTMLElement {
+    const editable = data.event.status === "setup" || data.event.status === "open";
+    const name = h("input", { name: "judgeName", required: true, maxlength: 60 }) as HTMLInputElement;
+    const row = (judge: { id: string; name: string }) => {
+      const link = `${location.origin}/j/${judge.id}`;
+      const qr = h("div", { class: "qr" });
+      const details = h("details", {}, h("summary", {}, t.showQr), qr);
+      // Drawn on first open: most judges are sent the link, not shown the code.
+      details.addEventListener("toggle", () => {
+        if ((details as HTMLDetailsElement).open && !qr.firstChild) void renderQr(qr, link);
+      });
+      return h(
+        "li",
+        { class: "judge" },
+        h("strong", {}, judge.name),
+        h("p", { class: "muted" }, t.judgeLink, h("a", { href: link }, link)),
+        details,
+        h("button", {
+          class: "link danger",
+          onclick: () => {
+            if (confirm(t.revokeConfirm(judge.name))) void act(() => api(`/api/judges/${judge.id}`, { method: "DELETE" }));
+          },
+        }, t.revoke),
+      );
+    };
+    return h(
+      "section",
+      { class: "card" },
+      h("h2", {}, t.judges),
+      h("p", { class: "muted" }, t.judgesHint),
+      data.judges.length ? h("ul", { class: "judges" }, ...data.judges.map(row)) : h("p", { class: "muted" }, t.noJudges),
+      editable
+        ? h("form", {
+            onsubmit: (e: Event) => {
+              e.preventDefault();
+              void act(() => api(`/api/events/${eventId}/judges`, { method: "POST", body: { name: name.value } }));
+            },
+          }, h("label", {}, t.judgeName, name), h("button", { type: "submit" }, t.addJudge))
+        : null,
+    );
   }
 
   function organizersSection(): HTMLElement {
@@ -316,6 +386,10 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
   function detailsSection(): HTMLElement {
     const name = h("input", { name: "name", value: data.event.name, required: true }) as HTMLInputElement;
     const date = h("input", { name: "date", type: "date", value: data.event.date ?? "" }) as HTMLInputElement;
+    // Rule 1: the kind can still change while setting up. Pro is offered if the
+    // preview is on, or the event is already pro (so it can go back to family).
+    const kinds =
+      data.event.status === "setup" && (data.proPreview || isPro()) ? kindChoice(true, data.event.kind) : null;
     return h(
       "section",
       { class: "card" },
@@ -330,9 +404,10 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
         h("form", {
           onsubmit: (e: Event) => {
             e.preventDefault();
-            void act(() => api(`/api/events/${eventId}`, { method: "PATCH", body: { name: name.value, date: date.value } }));
+            const body = { name: name.value, date: date.value, ...(kinds ? { kind: chosenKind(kinds) } : {}) };
+            void act(() => api(`/api/events/${eventId}`, { method: "PATCH", body }));
           },
-        }, h("label", {}, common.nameLabel, name), h("label", {}, common.dateLabel, date), h("button", { type: "submit" }, common.save))),
+        }, h("label", {}, common.nameLabel, name), h("label", {}, common.dateLabel, date), kinds, h("button", { type: "submit" }, common.save))),
       data.role === "creator"
         ? h("button", {
             class: "link danger",
@@ -352,10 +427,12 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       ctx.root,
       h("p", {}, h("a", { href: "/", "data-link": true }, t.back)),
       h("h1", {}, data.event.name),
+      isPro() ? h("p", { class: "pro-line" }, h("span", { class: "badge" }, m().home.proTag), " ", t.proEvent, data.proPreview ? ` ${t.proPreview}` : null) : null,
       notice,
       statusControls(),
       data.event.status === "open" ? votesCast() : null,
       categoriesSection(),
+      isPro() ? judgesSection() : null,
       detailsSection(),
       organizersSection(),
     );

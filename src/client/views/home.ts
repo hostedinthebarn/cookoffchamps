@@ -62,32 +62,45 @@ function loginForm(ctx: Ctx): HTMLElement {
 }
 
 /**
- * Family or Pro, chosen when the event is created (pro-events design). Pro isn't
- * built yet (SW-25), so it shows as coming soon and every event is a family one.
+ * Family or Pro, chosen when the event is created (pro-events design, rule 1).
+ * While the pro preview is on (SW-25) both can be picked and Pro says it's a
+ * free preview; otherwise Pro shows as coming soon.
  */
-function kindChoice(): HTMLElement {
+export function kindChoice(proPreview: boolean, chosen = "family"): HTMLElement {
   const t = m().home;
-  const option = (value: string, label: string, hint: string, on: boolean) =>
+  const option = (value: string, label: string, hint: string, on: boolean, note: string | null) =>
     h(
       "label",
       { class: on ? "kind" : "kind soon" },
-      h("input", { type: "radio", name: "kind", value, checked: on, disabled: !on }),
-      h("span", {}, h("span", {}, h("strong", {}, label), on ? null : ` ${t.comingSoon}`), h("span", { class: "muted" }, hint)),
+      h("input", { type: "radio", name: "kind", value, checked: on && value === chosen, disabled: !on }),
+      h(
+        "span",
+        {},
+        h("span", {}, h("strong", {}, label), on ? null : ` ${t.comingSoon}`),
+        h("span", { class: "muted" }, hint),
+        note ? h("span", { class: "badge" }, note) : null,
+      ),
     );
   return h(
     "fieldset",
     { class: "kinds" },
     h("legend", {}, t.kind),
-    option("family", t.family, t.familyHint, true),
-    option("pro", t.pro, t.proHint, false),
+    option("family", t.family, t.familyHint, true, null),
+    option("pro", t.pro, t.proHint, proPreview, proPreview ? t.proPreview : null),
   );
 }
 
-function createForm(ctx: Ctx): HTMLElement {
+/** The kind picked in a form built with kindChoice. */
+export function chosenKind(form: ParentNode): string {
+  return (form.querySelector('input[name="kind"]:checked') as HTMLInputElement).value;
+}
+
+function createForm(ctx: Ctx, proPreview: boolean): HTMLElement {
   const t = m();
   const name = h("input", { name: "name", required: true, maxlength: 120, placeholder: t.home.namePlaceholder }) as HTMLInputElement;
   const date = h("input", { name: "date", type: "date" }) as HTMLInputElement;
   const status = h("p", { class: "status", role: "status" });
+  const kinds = kindChoice(proPreview);
   return h(
     "form",
     {
@@ -95,7 +108,8 @@ function createForm(ctx: Ctx): HTMLElement {
       onsubmit: async (e: Event) => {
         e.preventDefault();
         try {
-          const { id } = await api<{ id: string }>("/api/events", { method: "POST", body: { name: name.value, date: date.value } });
+          const body = { name: name.value, date: date.value, kind: chosenKind(kinds) };
+          const { id } = await api<{ id: string }>("/api/events", { method: "POST", body });
           ctx.navigate(`/e/${id}`);
         } catch (err) {
           status.textContent = errorText(err);
@@ -105,7 +119,7 @@ function createForm(ctx: Ctx): HTMLElement {
     h("h2", {}, t.home.newCookoff),
     h("label", {}, t.common.nameLabel, name),
     h("label", {}, t.common.dateLabel, date),
-    kindChoice(),
+    kinds,
     h("button", { type: "submit" }, t.home.create),
     status,
   );
@@ -124,8 +138,9 @@ function hero(compact: boolean): HTMLElement {
 
 export async function homeView(ctx: Ctx): Promise<void> {
   let email: string | null = null;
+  let proPreview = false;
   try {
-    email = (await api<{ email: string }>("/api/me")).email;
+    ({ email, proPreview } = await api<{ email: string; proPreview: boolean }>("/api/me"));
   } catch (err) {
     if (!(err instanceof ApiError && err.status === 401)) throw err;
   }
@@ -149,7 +164,7 @@ export async function homeView(ctx: Ctx): Promise<void> {
     ctx.root,
     hero(true),
     h("p", { class: "muted" }, t.home.loggedInAs(email), logout),
-    createForm(ctx),
+    createForm(ctx, proPreview),
     h("h2", {}, t.home.yourCookoffs),
     events.length
       ? h(
@@ -160,6 +175,7 @@ export async function homeView(ctx: Ctx): Promise<void> {
               "li",
               {},
               h("a", { href: `/e/${ev.id}`, "data-link": true }, ev.name),
+              ev.kind === "pro" ? h("span", { class: "badge" }, t.home.proTag) : null,
               " ",
               h(
                 "span",

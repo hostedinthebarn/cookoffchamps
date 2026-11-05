@@ -14,4 +14,10 @@ export interface Env {
   TURNSTILE_SECRET: string;
   /** Set with `wrangler secret put IP_HASH_KEY`: the key for the IP-address hashes. */
   IP_HASH_KEY: string;
+  /**
+   * "on" while pro events are a free preview (SW-25): anyone can create one.
+   * Anything else and Pro shows as coming soon. Production stays "off" until
+   * pro events are finished; payments (SW-26) replace the preview later.
+   */
+  PRO_PREVIEW?: string;
 }

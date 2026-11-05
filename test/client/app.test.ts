@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../src/client/api";
 import { errorMessage, findRoute, start } from "../../src/client/app";
 import { codeView, homeView } from "../../src/client/views/home";
+import { judgeView } from "../../src/client/views/judge";
 import { manageView } from "../../src/client/views/manage";
 import { printView } from "../../src/client/views/print";
 import { revealView } from "../../src/client/views/reveal";
@@ -23,6 +24,7 @@ describe("findRoute", () => {
     expect(findRoute("/e/abc/reveal")).toEqual({ view: revealView, params: ["abc"] });
     expect(findRoute("/e/abc/print/cards")).toEqual({ view: printView, params: ["abc", "cards"] });
     expect(findRoute("/e/abc/print/flyers")).toBeNull();
+    expect(findRoute("/j/abc")).toEqual({ view: judgeView, params: ["abc"] });
     expect(findRoute("/nope")).toBeNull();
   });
 });

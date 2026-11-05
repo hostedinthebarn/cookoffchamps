@@ -1,4 +1,13 @@
-import { categoryEvent, requireCreator, requireEditable, requireOrganizer, type Status } from "./access";
+import {
+  categoryEvent,
+  proPreview,
+  requireCreator,
+  requireEditable,
+  requireKind,
+  requireOrganizer,
+  type Kind,
+  type Status,
+} from "./access";
 import { requireSession, sendLoginLink } from "./auth";
 import type { Env } from "./env";
 import { HttpError, json, optionalDate, readJson, requireEmail, requireText } from "./http";
@@ -12,7 +21,7 @@ import { deletePhotoPrefix } from "./photos";
 export async function listEvents(request: Request, env: Env): Promise<Response> {
   const email = await requireSession(request, env);
   const { results } = await env.DB.prepare(
-    `SELECT e.id, e.code, e.name, e.event_date AS date, e.status, o.role
+    `SELECT e.id, e.code, e.name, e.event_date AS date, e.status, e.kind, o.role
        FROM events e JOIN organizers o ON o.event_id = e.id
       WHERE o.email = ?
       ORDER BY COALESCE(e.event_date, substr(e.created_at, 1, 10)) DESC, e.created_at DESC`,
@@ -28,7 +37,7 @@ export async function listEvents(request: Request, env: Env): Promise<Response> 
  */
 export async function insertEvent(
   env: Env,
-  fields: { id: string; name: string; date: string | null; email: string; now: string },
+  fields: { id: string; name: string; date: string | null; kind: Kind; email: string; now: string },
   makeCode: () => string = newCode,
 ): Promise<string> {
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -36,25 +45,26 @@ export async function insertEvent(
     const clash = await env.DB.prepare("SELECT 1 FROM events WHERE code = ?").bind(code).first();
     if (clash) continue;
     await env.DB.prepare(
-      "INSERT INTO events (id, code, name, event_date, status, created_by, created_at) VALUES (?, ?, ?, ?, 'setup', ?, ?)",
+      "INSERT INTO events (id, code, name, event_date, status, kind, created_by, created_at) VALUES (?, ?, ?, ?, 'setup', ?, ?, ?)",
     )
-      .bind(fields.id, code, fields.name, fields.date, fields.email, fields.now)
+      .bind(fields.id, code, fields.name, fields.date, fields.kind, fields.email, fields.now)
       .run();
     return code;
   }
   throw new HttpError(500, "Could not allocate an event code");
 }
 
-/** POST /api/events {name, date?} — anyone signed in can create one (decision 1). */
+/** POST /api/events {name, date?, kind?} — anyone signed in can create one (decision 1). */
 export async function createEvent(request: Request, env: Env): Promise<Response> {
   const email = await requireSession(request, env);
   const body = await readJson(request);
   const name = requireText(body.name, "name");
   const date = optionalDate(body.date);
+  const kind = requireKind(body.kind, env);
   const id = newId();
   const now = new Date().toISOString();
 
-  const code = await insertEvent(env, { id, name, date, email, now });
+  const code = await insertEvent(env, { id, name, date, kind, email, now });
   // Every event starts as a single contest (decision 12).
   await env.DB.batch([
     env.DB.prepare("INSERT INTO organizers (event_id, email, role) VALUES (?, ?, 'creator')").bind(id, email),
@@ -68,11 +78,11 @@ export async function manageEvent(request: Request, env: Env, eventId: string): 
   const email = await requireSession(request, env);
   const { event, role } = await requireOrganizer(env, eventId, email);
 
-  const [categories, entries, organizers, counts] = await env.DB.batch([
+  const [categories, entries, organizers, counts, judges] = await env.DB.batch([
     env.DB.prepare("SELECT id, name, position FROM categories WHERE event_id = ? ORDER BY position").bind(eventId),
     env.DB.prepare(
       `SELECT e.id, e.category_id AS categoryId, e.number, e.cook_name AS cookName,
-              e.dish_name AS dishName, e.photo_key AS photoKey
+              e.dish_name AS dishName, e.photo_key AS photoKey, e.ticket
          FROM entries e JOIN categories c ON c.id = e.category_id
         WHERE c.event_id = ? ORDER BY c.position, e.number`,
     ).bind(eventId),
@@ -84,32 +94,44 @@ export async function manageEvent(request: Request, env: Env, eventId: string): 
          FROM categories c LEFT JOIN votes v ON v.category_id = c.id
         WHERE c.event_id = ? GROUP BY c.id`,
     ).bind(eventId),
+    // The judges whose links still work (SW-25); a family event has none.
+    env.DB.prepare(
+      "SELECT id, name FROM judges WHERE event_id = ? AND revoked_at IS NULL ORDER BY created_at, rowid",
+    ).bind(eventId),
   ]);
 
   return json({
-    event: { id: event.id, code: event.code, name: event.name, date: event.event_date, status: event.status },
+    event: { id: event.id, code: event.code, name: event.name, date: event.event_date, status: event.status, kind: event.kind },
     role,
+    proPreview: proPreview(env),
     categories: categories!.results,
     entries: entries!.results,
     organizers: organizers!.results,
     votesCast: counts!.results,
+    judges: judges!.results,
   });
 }
 
-/** PATCH /api/events/:id {name?, date?} */
+/** PATCH /api/events/:id {name?, date?, kind?} */
 export async function updateEvent(request: Request, env: Env, eventId: string): Promise<Response> {
   const email = await requireSession(request, env);
   const { event } = await requireOrganizer(env, eventId, email);
   const body = await readJson(request);
   const name = body.name === undefined ? event.name : requireText(body.name, "name");
   const date = body.date === undefined ? event.event_date : optionalDate(body.date);
-  await env.DB.prepare("UPDATE events SET name = ?, event_date = ? WHERE id = ?").bind(name, date, eventId).run();
+  let kind = event.kind;
+  if (body.kind !== undefined && body.kind !== event.kind) {
+    // Rule 1: the kind can change while setting up, never once voting has opened.
+    if (event.status !== "setup") throw new HttpError(409, "The kind of event is fixed once voting opens", "kindFixed");
+    kind = requireKind(body.kind, env);
+  }
+  await env.DB.prepare("UPDATE events SET name = ?, event_date = ?, kind = ? WHERE id = ?").bind(name, date, kind, eventId).run();
   return json({ ok: true });
 }
 
 // Voting is opened and closed by hand (decision 6). Both a close and a reveal
 // can be undone (decision 17): revealed goes back to closed, which hides the
-// results again. Pro events, when they exist, will keep results final.
+// results again. A pro reveal will be final (rule 18), when it's built.
 const TRANSITIONS: Record<Status, Status[]> = {
   setup: ["open"],
   open: ["closed"],

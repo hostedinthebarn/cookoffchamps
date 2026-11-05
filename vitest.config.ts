@@ -20,6 +20,8 @@ export default defineConfig(async () => {
                   TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
                   TURNSTILE_SECRET: "test-secret",
                   IP_HASH_KEY: "test-ip-hash-key",
+                  // Tests run with the pro preview on; the off case overrides it.
+                  PRO_PREVIEW: "on",
                 },
               },
             }),
