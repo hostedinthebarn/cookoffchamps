@@ -11,6 +11,8 @@ export interface EventRow {
   event_date: string | null;
   status: Status;
   kind: Kind;
+  drop_outliers: number;
+  show_dish_names: number;
   created_by: string;
   created_at: string;
 }

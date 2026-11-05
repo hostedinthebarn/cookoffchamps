@@ -21,6 +21,7 @@ function view(status: ManageView["event"]["status"], twoCategories = false): Man
     votesCast: [],
     proPreview: true,
     judges: [],
+    judging: { criteria: [], dropOutliers: true, showDishNames: false, scored: [] },
   };
 }
 

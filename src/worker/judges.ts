@@ -3,6 +3,7 @@ import { requireSession } from "./auth";
 import type { Env } from "./env";
 import { HttpError, json, readJson, requireText } from "./http";
 import { newId } from "./ids";
+import { scoreSheet } from "./judging";
 
 // Judges for pro events (SW-25, rule 5). The organizer adds a judge by name and
 // hands them a personal link or QR code: no account, no email. The link's id is
@@ -30,7 +31,7 @@ export async function addJudge(request: Request, env: Env, eventId: string): Pro
 }
 
 /** A judge whose link still works, or 404. */
-async function activeJudge(env: Env, judgeId: string): Promise<JudgeRow> {
+export async function activeJudge(env: Env, judgeId: string): Promise<JudgeRow> {
   const judge = await env.DB.prepare("SELECT id, event_id, name, revoked_at FROM judges WHERE id = ?")
     .bind(judgeId)
     .first<JudgeRow>();
@@ -50,12 +51,16 @@ export async function revokeJudge(request: Request, env: Env, judgeId: string): 
   return json({ ok: true });
 }
 
-/** GET /api/public/judges/:id — the judge's own page: who they are and which event. */
+/**
+ * GET /api/public/judges/:id — the judge's own page: who they are, which event,
+ * and their score sheet (the criteria, the dishes by ticket, their cards).
+ */
 export async function judgePage(_request: Request, env: Env, judgeId: string): Promise<Response> {
   const judge = await activeJudge(env, judgeId);
   const event = await loadEvent(env, judge.event_id);
   return json({
     judge: { name: judge.name },
     event: { id: event.id, name: event.name, date: event.event_date, status: event.status },
+    ...(await scoreSheet(env, event, judge.id)),
   });
 }

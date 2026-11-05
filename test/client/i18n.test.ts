@@ -251,3 +251,12 @@ describe("the Spanish help page", () => {
     for (const label of [es.manage.peek, es.manage.reopen, es.manage.undo, es.vote.closedSoon]) expect(text).toContain(label);
   });
 });
+
+
+it("says the scoring messages in Spanish, singular and plural (SW-25)", () => {
+  expect(es.manage.missing("Pat no ha calificado el boleto 214", 0)).not.toContain("más");
+  expect(es.manage.missing("x", 2)).toContain("; y 2 más.");
+  expect(es.manage.judgedRow("Boleto 214", "", "Ana", "8.75", 1)).toBe("Boleto 214 (Ana): 8.75 de 1 juez");
+  expect(es.manage.judgedRow("Boleto 214", "Verde", "Ana", "8.75", 3)).toBe("Boleto 214, Verde (Ana): 8.75 de 3 jueces");
+  expect(en.manage.missing("x", 0)).not.toContain("more");
+});

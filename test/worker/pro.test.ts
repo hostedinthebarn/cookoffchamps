@@ -11,6 +11,8 @@ async function makePro(cookie: string, name = "Judged Chili") {
   const res = await send("/api/events", "POST", { name, kind: "pro" }, cookie);
   expect(res.status).toBe(201);
   const { id } = await res.json<{ id: string }>();
+  // Judges need criteria before voting can open (rule 8).
+  expect((await send(`/api/events/${id}/criteria/preset`, "POST", { preset: "general" }, cookie)).status).toBe(200);
   const manage = await (await call(`/api/events/${id}`, { cookie })).json<{ categories: { id: string }[] }>();
   return { id, categoryId: manage.categories[0]!.id };
 }
@@ -157,9 +159,11 @@ describe("judges (rule 5)", () => {
 
     const page = await call(`/api/public/judges/${judge.id}`);
     expect(page.status).toBe(200);
-    expect(await page.json()).toEqual({
+    expect(await page.json()).toMatchObject({
       judge: { name: "Pat" },
       event: { id, name: "Fair Chili", date: null, status: "setup" },
+      dishes: [],
+      cards: [],
     });
   });
 
