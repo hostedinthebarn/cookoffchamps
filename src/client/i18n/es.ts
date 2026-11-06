@@ -204,6 +204,8 @@ export const es: Messages = {
     revokeTitle: (name) => `¿Quitarle el enlace a ${name}?`,
     revokeBody:
       "El enlace deja de funcionar en ese momento. ¿Y las calificaciones que ya dio? Consérvalas si tuvo que irse antes; descártalas si el enlace cayó en las manos equivocadas.",
+    revokeBodyFinal:
+      "El enlace deja de funcionar en ese momento. Los resultados ya se publicaron y son definitivos, así que sus calificaciones se quedan como están.",
     revokeKeep: "Quitar y conservar sus calificaciones",
     revokeDrop: "Quitar y descartar sus calificaciones",
     judging: "Evaluación",

@@ -518,6 +518,17 @@ describe("pro events (SW-25)", () => {
     expect(calls.filter((c) => c.method === "DELETE").at(-1)!.body).toEqual({ keepScores: false });
   });
 
+  it("offers only keeping scores when revoking a judge after a pro reveal", async () => {
+    const { ctx } = await open(pro({}, "revealed"), { "DELETE /api/judges/j1": { ok: true } });
+    byText(ctx.root, ".judge button", "Revoke").click();
+    await flush();
+    const dialog = document.querySelector("dialog.choose")!;
+    expect(dialog.textContent).toContain("final");
+    expect(dialog.textContent).not.toContain("Revoke, drop their scores");
+    await answerDialog("Revoke, keep their scores");
+    expect(calls.find((c) => c.method === "DELETE")!.body).toEqual({ keepScores: true });
+  });
+
   it("stops adding judges once voting has closed", async () => {
     const { ctx } = await open(pro({}, "closed"));
     expect(ctx.root.textContent).toContain("Pat");

@@ -204,6 +204,8 @@ export const en = {
     revokeTitle: (name: string) => `Revoke ${name}'s link?`,
     revokeBody:
       "The link stops working straight away. What about the scores they've already given? Keep them if they had to leave early; drop them if the link got into the wrong hands.",
+    revokeBodyFinal:
+      "The link stops working straight away. The results are out and final, so their scores stay as they are.",
     revokeKeep: "Revoke, keep their scores",
     revokeDrop: "Revoke, drop their scores",
     // Scoring (SW-25, part 2)
