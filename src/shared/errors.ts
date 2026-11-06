@@ -35,6 +35,19 @@ export const ERROR_CODES = [
   "badTicket",
   "ticketTaken",
   "judgeNotFound",
+  "noCriteria",
+  "criteriaFixed",
+  "criterionNotFound",
+  "tooManyCriteria",
+  "badWeight",
+  "badScore",
+  "scoreLocked",
+  "noScorecard",
+  "notADish",
+  "resultsFinal",
+  "noPeoplesChoice",
+  "commentsUnavailable",
+  "noSuchTicket",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

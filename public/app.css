@@ -436,6 +436,20 @@ label .hint { display: block; font-size: 0.9rem; font-weight: 400; margin-top: 4
 .judge p { margin: 4px 0; overflow-wrap: anywhere; }
 .judge .qr svg { display: block; width: min(220px, 100%); height: auto; aspect-ratio: 1; margin: 8px 0; }
 
+/* Scoring (SW-25, part 2): criteria, settings, progress and the judge's score sheet */
+.presets button { margin: 4px 4px 4px 0; }
+.criteria { list-style: none; padding: 0; margin: 0 0 14px; }
+.criteria li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+label.inline { display: inline-flex; align-items: center; gap: 6px; margin: 0; font-weight: 400; }
+label.inline select { width: auto; }
+label.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 10px 0; }
+label.check input { width: auto; min-height: 0; margin-top: 4px; flex: none; }
+.progress details { margin: 6px 0; }
+.progress ul { margin: 6px 0 0; }
+.dishes { list-style: none; padding: 0; margin: 0 0 14px; }
+.dishes .dish { display: flex; justify-content: space-between; align-items: center; width: 100%; margin: 0 0 8px; text-align: left; }
+.scorecard select { max-width: 12rem; }
+
 /* ---------- Help pages (SW-24): plain HTML written at build time ---------- */
 .help .lede { color: var(--muted); margin-top: -0.4rem; }
 .help-filter { margin: 0 0 20px; }
@@ -584,6 +598,18 @@ main:has(.toast:not(:empty)) { padding-bottom: 88px; }
 .results [data-place="1"] .place { font-size: 1.7rem; }
 .cook { font-weight: 650; }
 .votes { color: var(--muted); font-size: 0.95rem; }
+/* Pro results (SW-25): People's Choice beside the judged places, the per-criterion
+   breakdown folded under each score, and the cooks' comment lookup. */
+.results .peoples-choice { margin-bottom: 8px; }
+.results .peoples-choice .place::before { content: "★"; display: grid; place-items: center; font-size: 0.9rem; background: var(--line); }
+.results.grand .cook { font-size: 1.35rem; }
+.breakdown { font-size: 0.95rem; margin-top: 4px; }
+.breakdown summary { cursor: pointer; color: var(--muted); }
+.breakdown ul { margin: 4px 0 0; padding-left: 1.2em; }
+.comment-lookup { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.comment-lookup label { flex: 1 1 12em; }
+.comments ul, ul.comments { margin: 6px 0 0; padding-left: 1.2em; }
+dialog.confirm label.check { margin: 0 0 16px; }
 
 [data-place="1"], .reveal[data-place="1"] { --medal: var(--gold); --medal-deep: var(--gold-deep); --medal-ink: var(--gold-ink); }
 [data-place="2"], .reveal[data-place="2"] { --medal: var(--silver); --medal-deep: var(--silver-deep); --medal-ink: var(--silver-ink); }

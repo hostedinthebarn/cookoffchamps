@@ -1,10 +1,11 @@
 import { api } from "../api";
 import type { Ctx } from "../app";
-import { confirmDialog, type ConfirmOptions } from "../dialog";
+import { chooseDialog, confirmDialog, type ConfirmOptions } from "../dialog";
 import { h, mount, photoUrl } from "../dom";
 import { errorText, lang, m } from "../i18n";
 import { resizePhoto } from "../photo";
 import { renderQr } from "../qr";
+import { formatScore } from "../../shared/scoring";
 import type { ManageEntry, ManageView, Totals } from "../types";
 import { chosenKind, kindChoice } from "./home";
 
@@ -27,6 +28,12 @@ export async function entryForm(fields: {
 }
 
 const STEPS = ["setup", "open", "closed", "revealed"];
+
+/** The weights a criterion can have: ×0.5 to ×5, in halves (rule 8). */
+export const WEIGHTS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+
+/** At most this many "hasn't scored" lines in the close warning; the rest are counted. */
+export const MISSING_SHOWN = 5;
 
 /** Where the event is in its life: set up → voting → closed → results. */
 export function stepper(status: string): HTMLElement {
@@ -84,7 +91,11 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
   }
 
   async function startReveal(): Promise<void> {
-    const sure = await confirmDialog({ title: t.revealTitle, body: t.revealBody, confirm: t.revealConfirm });
+    // A pro reveal is final (rule 18), so it says so and needs a tick first.
+    const ask = isPro()
+      ? { title: t.finalTitle, body: t.finalBody, confirm: t.revealConfirm, acknowledge: t.finalAck }
+      : { title: t.revealTitle, body: t.revealBody, confirm: t.revealConfirm };
+    const sure = await confirmDialog(ask);
     if (sure) ctx.navigate(`/e/${eventId}/reveal`);
   }
 
@@ -96,7 +107,11 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
     if (s === "setup") {
       box.append(h("p", {}, t.setupHint), h("button", { onclick: () => setStatus("open") }, t.openVoting));
     } else if (s === "open") {
-      const close = () => setStatusIfSure("closed", { title: t.closeTitle, body: t.closeBody, confirm: t.closeVoting });
+      const missing = isPro() ? missingScores() : [];
+      const body = missing.length
+        ? `${t.closeBody} ${t.missing(missing.slice(0, MISSING_SHOWN).join("; "), Math.max(0, missing.length - MISSING_SHOWN))}`
+        : t.closeBody;
+      const close = () => setStatusIfSure("closed", { title: t.closeTitle, body, confirm: t.closeVoting });
       box.append(h("p", { class: "live" }, t.isOpen), h("button", { onclick: close }, t.closeVoting));
     } else if (s === "closed") {
       box.append(
@@ -104,6 +119,11 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
         h("button", { onclick: () => void startReveal() }, t.startReveal),
         h("button", { class: "secondary", onclick: () => setStatus("open") }, t.reopen),
         h("p", { class: "aside" }, t.reopenAside),
+      );
+    } else if (isPro()) {
+      box.append(
+        h("p", {}, t.resultsFinal),
+        h("a", { class: "button", href: `/v/${eventId}`, "data-link": true }, t.seeResults),
       );
     } else {
       const undo = () => setStatusIfSure("closed", { title: t.undoTitle, body: t.undoBody, confirm: t.undo });
@@ -155,9 +175,10 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
         button.textContent = t.peek;
         return;
       }
-      const { totals } = await api<Totals>(`/api/events/${eventId}/totals`);
+      const { totals, judged } = await api<Totals>(`/api/events/${eventId}/totals`);
       panel.replaceChildren(
         ...data.categories.map((c) => {
+          if (judged) return judgedPeek(c.id, c.name, judged);
           const rows = totals.filter((t) => t.categoryId === c.id).sort((a, b) => b.votes - a.votes);
           return h(
             "div",
@@ -179,6 +200,46 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       }, PEEK_MS);
     });
     return h("div", {}, button, panel);
+  }
+
+  /** A pro event's standings by judges' score (rules 11–13), for the peek. */
+  function judgedPeek(categoryId: string, name: string, judged: NonNullable<Totals["judged"]>): HTMLElement {
+    const rows = (judged.placings[categoryId] ?? []).flatMap((p) => p.entryIds);
+    return h(
+      "div",
+      {},
+      data.categories.length > 1 ? h("h3", {}, name) : null,
+      h("ol", {}, ...rows.map((entryId) => {
+        const entry = data.entries.find((e) => e.id === entryId)!;
+        const result = judged.scores.find((s) => s.entryId === entryId)!;
+        // Only organizers see who wrote each comment (rules 14 and 19).
+        const notes = judged.comments.filter((c) => c.entryId === entryId);
+        return h(
+          "li",
+          {},
+          result.score === null
+            ? t.notScored(label(entry), entry.cookName)
+            : t.judgedRow(label(entry), entry.dishName, entry.cookName, formatScore(result.score), result.counted),
+          notes.length ? h("ul", { class: "comments" }, ...notes.map((n) => h("li", {}, t.judgeComment(n.judge, n.comment)))) : null,
+        );
+      })),
+    );
+  }
+
+  /** The dishes judges can score: turned in, with a ticket. */
+  const scorable = () => data.entries.filter((e) => e.ticket !== null);
+
+  /** "Pat hasn't scored ticket 214", for every judge and dish without a submitted card (rule 13). */
+  function missingScores(): string[] {
+    const lines: string[] = [];
+    for (const judge of data.judges) {
+      for (const entry of scorable()) {
+        if (!data.judging.scored.some((s) => s.judgeId === judge.id && s.entryId === entry.id)) {
+          lines.push(t.hasntScored(judge.name, entry.ticket!));
+        }
+      }
+    }
+    return lines;
   }
 
   function entryRow(entry: ManageEntry, editable: boolean): HTMLElement {
@@ -335,8 +396,13 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
         details,
         h("button", {
           class: "link danger",
-          onclick: () => {
-            if (confirm(t.revokeConfirm(judge.name))) void act(() => api(`/api/judges/${judge.id}`, { method: "DELETE" }));
+          // Leaving early and a compromised link need different answers for the scores given so far.
+          onclick: async () => {
+            const keepScores = await chooseDialog(t.revokeTitle(judge.name), t.revokeBody, [
+              { label: t.revokeKeep, value: true },
+              { label: t.revokeDrop, value: false },
+            ]);
+            if (keepScores !== null) await act(() => api(`/api/judges/${judge.id}`, { method: "DELETE", body: { keepScores } }));
           },
         }, t.revoke),
       );
@@ -355,6 +421,128 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
             },
           }, h("label", {}, t.judgeName, name), h("button", { type: "submit" }, t.addJudge))
         : null,
+    );
+  }
+
+  /** A select of the allowed weights, set to `value`. */
+  function weightSelect(value: number, onchange?: (w: number) => void): HTMLSelectElement {
+    const select = h("select", { name: "weight" }, ...WEIGHTS.map((w) => h("option", { value: w, selected: w === value }, t.weight(w)))) as HTMLSelectElement;
+    if (onchange) select.addEventListener("change", () => onchange(Number(select.value)));
+    return select;
+  }
+
+  /** Scoring for a pro event (rules 6, 8, 10, 11 and 15): criteria, settings and progress. */
+  function judgingSection(): HTMLElement {
+    const setup = data.event.status === "setup";
+    const { criteria } = data.judging;
+    const section = h("section", { class: "card" }, h("h2", {}, t.judging), h("h3", {}, t.criteria), h("p", { class: "muted" }, t.criteriaHint));
+
+    if (setup) {
+      const presets = h("p", { class: "presets" }, t.presets);
+      for (const preset of ["chili", "bbq", "general"]) {
+        presets.append(
+          h("button", {
+            type: "button",
+            class: "secondary",
+            onclick: () => {
+              if (criteria.length && !confirm(t.replacePreset(t.preset[preset]!))) return;
+              void act(() => api(`/api/events/${eventId}/criteria/preset`, { method: "POST", body: { preset, lang: lang() } }));
+            },
+          }, t.preset[preset]!),
+          " ",
+        );
+      }
+      section.append(presets);
+    }
+
+    if (!criteria.length) section.append(h("p", { class: "muted" }, t.noCriteria));
+    else {
+      section.append(h("ul", { class: "criteria" }, ...criteria.map((c) => {
+        if (!setup) return h("li", {}, h("strong", {}, c.name), " ", t.weight(c.weight));
+        return h(
+          "li",
+          {},
+          h("strong", {}, c.name),
+          " ",
+          h("label", { class: "inline" }, t.weightLabel, weightSelect(c.weight, (weight) => void act(() => api(`/api/criteria/${c.id}`, { method: "PATCH", body: { weight } })))),
+          h("button", {
+            class: "link",
+            onclick: () => {
+              const name = prompt(t.renameCriterion, c.name);
+              if (name) void act(() => api(`/api/criteria/${c.id}`, { method: "PATCH", body: { name } }));
+            },
+          }, t.rename),
+          h("button", { class: "link danger", onclick: () => act(() => api(`/api/criteria/${c.id}`, { method: "DELETE" })) }, t.remove),
+        );
+      })));
+    }
+
+    if (setup) {
+      const name = h("input", { name: "criterionName", required: true, maxlength: 40 }) as HTMLInputElement;
+      const weight = weightSelect(1);
+      section.append(h("form", {
+        class: "criterion-form",
+        onsubmit: (e: Event) => {
+          e.preventDefault();
+          void act(() => api(`/api/events/${eventId}/criteria`, { method: "POST", body: { name: name.value, weight: Number(weight.value) } }));
+        },
+      }, h("label", {}, t.criterionName, name), h("label", {}, t.weightLabel, weight), h("button", { type: "submit" }, t.addCriterion)));
+    } else {
+      section.append(h("p", { class: "muted" }, t.criteriaFixed));
+    }
+
+    // The settings save as they're ticked; they're fixed once the results are out.
+    const revealed = data.event.status === "revealed";
+    const setting = (key: "dropOutliers" | "showDishNames" | "peoplesChoice" | "grandChampion" | "cookComments", text: string) => {
+      const box = h("input", { type: "checkbox", name: key, checked: data.judging[key], disabled: revealed }) as HTMLInputElement;
+      box.addEventListener("change", () => void act(() => api(`/api/events/${eventId}`, { method: "PATCH", body: { [key]: box.checked } })));
+      return h("label", { class: "check" }, box, ` ${text}`);
+    };
+    section.append(
+      setting("dropOutliers", t.dropOutliers),
+      setting("showDishNames", t.showDishNames),
+      setting("peoplesChoice", t.peoplesChoiceSetting),
+      setting("cookComments", t.cookCommentsSetting),
+    );
+    // The Grand Champion needs categories to add up across (rule 16).
+    if (data.categories.length > 1) section.append(setting("grandChampion", t.grandChampionSetting));
+
+    if (!setup && data.judges.length) section.append(progressPanel());
+    // The export (rule 19): every judge's scores and comments, for the organizer's records.
+    if (!setup) {
+      section.append(h("p", {}, h("a", { class: "button secondary", href: `/api/events/${eventId}/export.csv?lang=${lang()}`, download: "" }, t.exportCsv)));
+    }
+    return section;
+  }
+
+  /** "Pat: 3 of 5 scored", with each submitted card unlockable before the reveal (rules 10 and 15). */
+  function progressPanel(): HTMLElement {
+    const dishes = scorable();
+    const canUnlock = data.event.status !== "revealed";
+    return h(
+      "div",
+      { class: "progress" },
+      h("h3", {}, t.judgesProgress),
+      ...data.judges.map((judge) => {
+        const done = dishes.filter((e) => data.judging.scored.some((s) => s.judgeId === judge.id && s.entryId === e.id));
+        return h(
+          "details",
+          {},
+          h("summary", {}, t.judgeProgress(judge.name, done.length, dishes.length)),
+          h("ul", {}, ...done.map((entry) =>
+            h("li", {}, t.ticket(entry.ticket!), canUnlock
+              ? h("button", {
+                  class: "link",
+                  onclick: () => {
+                    if (confirm(t.unlockConfirm(judge.name, entry.ticket!))) {
+                      void act(() => api(`/api/judges/${judge.id}/unlock`, { method: "POST", body: { entryId: entry.id } }));
+                    }
+                  },
+                }, t.unlock)
+              : null),
+          )),
+        );
+      }),
     );
   }
 
@@ -433,6 +621,7 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       data.event.status === "open" ? votesCast() : null,
       categoriesSection(),
       isPro() ? judgesSection() : null,
+      isPro() ? judgingSection() : null,
       detailsSection(),
       organizersSection(),
     );

@@ -11,6 +11,8 @@ async function makePro(cookie: string, name = "Judged Chili") {
   const res = await send("/api/events", "POST", { name, kind: "pro" }, cookie);
   expect(res.status).toBe(201);
   const { id } = await res.json<{ id: string }>();
+  // Judges need criteria before voting can open (rule 8).
+  expect((await send(`/api/events/${id}/criteria/preset`, "POST", { preset: "general" }, cookie)).status).toBe(200);
   const manage = await (await call(`/api/events/${id}`, { cookie })).json<{ categories: { id: string }[] }>();
   return { id, categoryId: manage.categories[0]!.id };
 }
@@ -157,9 +159,11 @@ describe("judges (rule 5)", () => {
 
     const page = await call(`/api/public/judges/${judge.id}`);
     expect(page.status).toBe(200);
-    expect(await page.json()).toEqual({
+    expect(await page.json()).toMatchObject({
       judge: { name: "Pat" },
       event: { id, name: "Fair Chili", date: null, status: "setup" },
+      dishes: [],
+      cards: [],
     });
   });
 
@@ -170,7 +174,10 @@ describe("judges (rule 5)", () => {
     const stranger = await login("not-an-organizer@example.com");
     expect((await call(`/api/judges/${judgeId}`, { method: "DELETE", cookie: stranger })).status).toBe(403);
 
-    expect((await call(`/api/judges/${judgeId}`, { method: "DELETE", cookie })).status).toBe(200);
+    // Revoking says what happens to the judge's scores (part 2 counts them).
+    expect((await call(`/api/judges/${judgeId}`, { method: "DELETE", cookie })).status).toBe(400);
+    expect((await send(`/api/judges/${judgeId}`, "DELETE", { keepScores: "yes" }, cookie)).status).toBe(400);
+    expect((await send(`/api/judges/${judgeId}`, "DELETE", { keepScores: false }, cookie)).status).toBe(200);
     const gone = await call(`/api/public/judges/${judgeId}`);
     expect(gone.status).toBe(404);
     expect(await gone.json()).toMatchObject({ code: "judgeNotFound" });

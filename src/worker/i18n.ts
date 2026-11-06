@@ -47,3 +47,17 @@ export function loginEmail(lang: Lang, invite?: Invite): LoginEmailText {
     ? { subject: t.inviteSubject(invite), intro: t.inviteIntro(invite), footer: t.footer }
     : { subject: t.subject, intro: t.intro, footer: t.footer };
 }
+
+/** The organizer's results export (SW-25): its column headings. */
+export const EXPORT_HEADINGS: Record<Lang, { fixed: string[]; judgeScore: string; comment: string }> = {
+  en: {
+    fixed: ["Category", "Ticket", "Cook", "Dish", "Place", "Final score", "Judges counted", "People's Choice votes", "Judge"],
+    judgeScore: "Judge's score",
+    comment: "Comment",
+  },
+  es: {
+    fixed: ["Categoría", "Boleto", "Cocinero", "Platillo", "Lugar", "Calificación final", "Jueces contados", "Votos del público", "Juez"],
+    judgeScore: "Calificación del juez",
+    comment: "Comentario",
+  },
+};

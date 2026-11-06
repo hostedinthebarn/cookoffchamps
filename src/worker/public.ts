@@ -2,12 +2,13 @@
 // only key (decision 13), and a cookie stands in for "this device" (decision 5).
 
 import { rankTallies } from "../shared/ranking";
-import { loadEvent } from "./access";
+import { type EventRow, loadEvent } from "./access";
 import { clientIp, hashIp } from "./auth";
 import { cookie, readCookie } from "./cookies";
 import type { Env } from "./env";
 import { HttpError, json, readJson } from "./http";
 import { newId } from "./ids";
+import { proResults } from "./results";
 import { verifyTurnstile } from "./turnstile";
 
 export const DEVICE_COOKIE = "cc_device";
@@ -20,6 +21,7 @@ interface EntryRow {
   dishName: string;
   cookName: string;
   photoKey: string | null;
+  ticket: string | null;
   votes: number;
 }
 
@@ -68,7 +70,7 @@ export async function publicEvent(request: Request, env: Env, eventId: string): 
     env.DB.prepare("SELECT id, name FROM categories WHERE event_id = ? ORDER BY position").bind(eventId),
     env.DB.prepare(
       `SELECT e.id, e.category_id AS categoryId, e.number, e.dish_name AS dishName,
-              e.cook_name AS cookName, e.photo_key AS photoKey, COUNT(v.device_token) AS votes
+              e.cook_name AS cookName, e.photo_key AS photoKey, e.ticket, COUNT(v.device_token) AS votes
          FROM entries e
          JOIN categories c ON c.id = e.category_id
          LEFT JOIN votes v ON v.entry_id = e.id
@@ -82,14 +84,18 @@ export async function publicEvent(request: Request, env: Env, eventId: string): 
     ).bind(eventId, device ?? ""),
   ]);
 
-  const rows = entries!.results as unknown as EntryRow[];
   const myVotes = Object.fromEntries((mine!.results as { categoryId: string; entryId: string }[]).map((v) => [v.categoryId, v.entryId]));
+  const cats = categories!.results as { id: string; name: string }[];
+  const rows = entries!.results as unknown as EntryRow[];
+  const head = { id: event.id, code: event.code, name: event.name, date: event.event_date, status: event.status, kind: event.kind };
+
+  if (event.kind === "pro") return proView(env, event, head, myVotes, cats, rows);
 
   return json({
-    event: { id: event.id, code: event.code, name: event.name, date: event.event_date, status: event.status },
+    event: head,
     turnstileSiteKey: env.TURNSTILE_SITE_KEY,
     myVotes,
-    categories: (categories!.results as { id: string; name: string }[]).map((c) => {
+    categories: cats.map((c) => {
       const inCategory = rows.filter((e) => e.categoryId === c.id);
       return {
         id: c.id,
@@ -108,12 +114,63 @@ export async function publicEvent(request: Request, env: Env, eventId: string): 
 }
 
 /**
+ * A pro event's guest page (SW-25). Only dishes turned in with a ticket, named
+ * by it (rule 3). Before the reveal the dish name follows the judges' setting,
+ * since a judge can open this page too (rule 6). Once revealed: the judged
+ * placings with final scores and the per-criterion breakdown, People's Choice
+ * and the Grand Champion, never a judge's name (rule 19).
+ */
+async function proView(
+  env: Env,
+  event: EventRow,
+  head: Record<string, unknown>,
+  myVotes: Record<string, string>,
+  cats: { id: string; name: string }[],
+  rows: EntryRow[],
+): Promise<Response> {
+  const revealed = event.status === "revealed";
+  const showNames = revealed || event.show_dish_names === 1;
+  const results = revealed ? await proResults(env, event) : null;
+  return json({
+    event: { ...head, peoplesChoice: event.peoples_choice === 1, cookComments: revealed && event.cook_comments === 1 },
+    turnstileSiteKey: env.TURNSTILE_SITE_KEY,
+    myVotes,
+    ...(results ? { criteria: results.criteria, grandChampion: results.grandChampion } : {}),
+    categories: cats.map((c) => ({
+      id: c.id,
+      name: c.name,
+      entries: rows
+        .filter((e) => e.categoryId === c.id && e.ticket !== null)
+        .sort((a, b) => a.ticket!.localeCompare(b.ticket!, undefined, { numeric: true }))
+        .map((e) => {
+          const score = results?.scores.find((s) => s.entryId === e.id);
+          return {
+            id: e.id,
+            number: e.number,
+            ticket: e.ticket,
+            dishName: showNames ? e.dishName : "",
+            photoKey: e.photoKey,
+            ...(score ? { cookName: e.cookName, votes: e.votes, score: score.score, byCriterion: score.byCriterion } : {}),
+          };
+        }),
+      ...(results
+        ? { scorePlacings: results.placings[c.id] ?? [], peoplesChoice: results.peoplesChoice?.[c.id] ?? null }
+        : {}),
+    })),
+  });
+}
+
+/**
  * POST /api/public/events/:id/votes {categoryId, entryId, turnstileToken}.
  * One vote per category per device; voting again replaces it (decision 14).
  */
 export async function castVote(request: Request, env: Env, eventId: string): Promise<Response> {
   const event = await loadEvent(env, eventId);
   if (event.status !== "open") throw new HttpError(409, "Voting isn't open", "votingNotOpen");
+  // In a pro event the guests' vote is the People's Choice award (rule 2), if it's on.
+  if (event.kind === "pro" && event.peoples_choice !== 1) {
+    throw new HttpError(409, "Only the judges score this event", "noPeoplesChoice");
+  }
   const body = await readJson(request);
   if (typeof body.categoryId !== "string" || typeof body.entryId !== "string") {
     throw new HttpError(400, "That entry isn't in this category", "wrongCategory");
@@ -121,9 +178,9 @@ export async function castVote(request: Request, env: Env, eventId: string): Pro
 
   const entry = await env.DB.prepare(
     `SELECT e.id FROM entries e JOIN categories c ON c.id = e.category_id
-      WHERE e.id = ? AND e.category_id = ? AND c.event_id = ?`,
+      WHERE e.id = ? AND e.category_id = ? AND c.event_id = ? AND (? = 'family' OR e.ticket IS NOT NULL)`,
   )
-    .bind(body.entryId, body.categoryId, eventId)
+    .bind(body.entryId, body.categoryId, eventId, event.kind)
     .first();
   if (!entry) throw new HttpError(400, "That entry isn't in this category", "wrongCategory");
 
