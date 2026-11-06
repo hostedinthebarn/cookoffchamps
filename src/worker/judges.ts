@@ -47,9 +47,13 @@ export async function activeJudge(env: Env, judgeId: string): Promise<JudgeRow> 
 export async function revokeJudge(request: Request, env: Env, judgeId: string): Promise<Response> {
   const email = await requireSession(request, env);
   const judge = await activeJudge(env, judgeId);
-  await requireOrganizer(env, judge.event_id, email);
+  const { event } = await requireOrganizer(env, judge.event_id, email);
   const { keepScores } = await readJson(request);
   if (typeof keepScores !== "boolean") throw new HttpError(400, "Say whether to keep the judge's scores (keepScores)");
+  // Dropping scores would change published results; a pro reveal is final (rule 18).
+  if (event.kind === "pro" && event.status === "revealed" && !keepScores) {
+    throw new HttpError(409, "A judged event's results are final", "resultsFinal");
+  }
   await env.DB.prepare("UPDATE judges SET revoked_at = ?, keep_scores = ? WHERE id = ?")
     .bind(new Date().toISOString(), keepScores ? 1 : 0, judgeId)
     .run();

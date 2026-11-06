@@ -398,10 +398,18 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
           class: "link danger",
           // Leaving early and a compromised link need different answers for the scores given so far.
           onclick: async () => {
-            const keepScores = await chooseDialog(t.revokeTitle(judge.name), t.revokeBody, [
-              { label: t.revokeKeep, value: true },
-              { label: t.revokeDrop, value: false },
-            ]);
+            // After a pro reveal the results are final, so dropping scores isn't offered.
+            const final = data.event.status === "revealed";
+            const keepScores = await chooseDialog(
+              t.revokeTitle(judge.name),
+              final ? t.revokeBodyFinal : t.revokeBody,
+              final
+                ? [{ label: t.revokeKeep, value: true }]
+                : [
+                    { label: t.revokeKeep, value: true },
+                    { label: t.revokeDrop, value: false },
+                  ],
+            );
             if (keepScores !== null) await act(() => api(`/api/judges/${judge.id}`, { method: "DELETE", body: { keepScores } }));
           },
         }, t.revoke),

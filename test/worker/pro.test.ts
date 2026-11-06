@@ -188,6 +188,23 @@ describe("judges (rule 5)", () => {
     expect((await call("/api/public/judges/nope")).status).toBe(404);
   });
 
+  it("refuses to drop a judge's scores after the reveal, but allows keeping them", async () => {
+    const cookie = await login("revoke-final@example.com");
+    const { id } = await makePro(cookie);
+    const add = async (name: string) =>
+      (await (await send(`/api/events/${id}/judges`, "POST", { name }, cookie)).json<{ id: string }>()).id;
+    const lee = await add("Lee");
+    const pat = await add("Pat");
+    for (const status of ["open", "closed", "revealed"]) await send(`/api/events/${id}/status`, "POST", { status }, cookie);
+    const dropped = await send(`/api/judges/${lee}`, "DELETE", { keepScores: false }, cookie);
+    expect(dropped.status).toBe(409);
+    expect(await dropped.json()).toMatchObject({ code: "resultsFinal" });
+    // The refused revoke changed nothing: Lee's link still works.
+    expect((await call(`/api/public/judges/${lee}`)).status).toBe(200);
+    expect((await send(`/api/judges/${pat}`, "DELETE", { keepScores: true }, cookie)).status).toBe(200);
+    expect((await call(`/api/public/judges/${pat}`)).status).toBe(404);
+  });
+
   it("are for pro events only, organizers only, and not after voting closes", async () => {
     const cookie = await login("judge-rules@example.com");
     const family = await (await send("/api/events", "POST", { name: "Family" }, cookie)).json<{ id: string }>();
