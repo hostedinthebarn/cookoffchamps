@@ -366,6 +366,13 @@ export const es: HelpContent = {
           ],
         },
         {
+          id: "judge-data",
+          q: "¿Qué guardan de los jueces en un concurso profesional?",
+          a: [
+            "El nombre que quien organiza escribe para cada juez, y las calificaciones y los comentarios que da. Quien organiza puede descargarlos junto con los resultados. Quienes cocinaron pueden leer los comentarios sobre su propio platillo si quien organiza lo permite, sin el nombre del juez, y los resultados públicos nunca muestran los nombres de los jueces. Al borrar el concurso se borra todo.",
+          ],
+        },
+        {
           id: "other-handlers",
           q: "¿Quién más maneja los datos?",
           a: [

@@ -2,6 +2,7 @@
 // here, apart from the page template; the Spanish version is below, with the same
 // sections in the same order. Every fact was checked against the code, and the Q&A
 // in src/help/ must say the same things: change both together.
+// The Pro events section (BIZ-72) is Counsel's BIZ-45 second-pass draft; its Spanish needs native-speaker review (SW-29 style).
 // Until BIZ-1 forms the LLC the party is "Hosted in the Barn"; then name it here.
 // Not legal advice.
 
@@ -42,7 +43,7 @@ export const en: PrivacyContent = {
   linkText: "Privacy",
   description: "What Cookoff Champs keeps about organizers, cooks and guests, for how long, and who else handles it.",
   updatedLabel: "Last updated",
-  updated: "2026-11-03",
+  updated: "2026-11-06",
   appHref: "/",
   helpLink: "Help and questions",
   helpHref: "/help/#privacy",
@@ -62,6 +63,14 @@ export const en: PrivacyContent = {
         "Cooks: the name, dish and photo the organizer enters.",
         "Guests: a random ID in a cookie, kept with your vote. No guest names or emails.",
         "IP addresses: only in a scrambled form (a keyed hash), to limit login emails and code guesses. It can't be turned back into the address without a secret key that only the app holds.",
+      ],
+    },
+    {
+      id: "pro-events",
+      title: "Pro events",
+      body: [
+        "In a pro event, the organizer also enters each judge's name and each dish's raffle-ticket number. Judges' scores and comments are kept with the event.",
+        "The organizer can download the results, including judges' names, scores and comments, and can let cooks read the comments on their own dish (the comments, not who wrote them). Public results never show judges' names. All of it is deleted with the event.",
       ],
     },
     {
@@ -115,7 +124,7 @@ export const es: PrivacyContent = {
   linkText: "Privacidad",
   description: "Qué guarda Cookoff Champs de quien organiza, quien cocina y los invitados, por cuánto tiempo y quién más lo maneja.",
   updatedLabel: "Última actualización",
-  updated: "2026-11-03",
+  updated: "2026-11-06",
   appHref: "/?lang=es",
   helpLink: "Ayuda y preguntas",
   helpHref: "/es/ayuda/#privacy",
@@ -135,6 +144,14 @@ export const es: PrivacyContent = {
         "Quien cocina: el nombre, el platillo y la foto que escribe quien organiza.",
         "Invitados: un identificador al azar en una cookie, guardado con tu voto. Sin nombres ni correos de invitados.",
         "Direcciones IP: solo de forma codificada (un hash con clave), para limitar los correos de acceso y los intentos de código. No se puede convertir de nuevo en la dirección sin una clave secreta que solo tiene la app.",
+      ],
+    },
+    {
+      id: "pro-events",
+      title: "Concursos profesionales",
+      body: [
+        "En un concurso profesional, quien organiza también escribe el nombre de cada juez y el número de boleto de rifa de cada platillo. Las calificaciones y los comentarios de los jueces se guardan con el concurso.",
+        "Quien organiza puede descargar los resultados, con los nombres, las calificaciones y los comentarios de los jueces, y puede dejar que quienes cocinaron lean los comentarios sobre su propio platillo (los comentarios, no quién los escribió). Los resultados públicos nunca muestran los nombres de los jueces. Todo se borra junto con el concurso.",
       ],
     },
     {
