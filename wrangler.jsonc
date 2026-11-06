@@ -40,7 +40,8 @@
     // set with `wrangler secret put TURNSTILE_SECRET`, `RESEND_API_KEY` and
     // `IP_HASH_KEY` (the key for the IP-address hashes; the app fails without it).
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFktbyWGH6J6pHxl",
-    // Pro events (SW-25) stay off until they're finished; "on" opens the free preview.
-    "PRO_PREVIEW": "off"
+    // Pro events (SW-25): "on" is the free limited-time preview; "off" hides
+    // the Pro choice again (existing pro events keep working).
+    "PRO_PREVIEW": "on"
   }
 }
