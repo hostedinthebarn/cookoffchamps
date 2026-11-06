@@ -218,7 +218,7 @@ export const es: Messages = {
     criterionName: "Criterio ",
     renameCriterion: "Cambiar el nombre del criterio",
     addCriterion: "Agregar",
-    criteriaFixed: "Los criterios ya no se pueden cambiar porque la votación está abierta.",
+    criteriaFixed: "Los criterios ya no se pueden cambiar porque la votación ya se abrió.",
     dropOutliers: "Quitar la calificación más alta y la más baja de cada platillo cuando lo califiquen 5 jueces o más",
     showDishNames: "Mostrar al jurado el nombre de los platillos (si no, solo ven el número de boleto)",
     judgesProgress: "Avance del jurado",
