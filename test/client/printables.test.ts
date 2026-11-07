@@ -144,4 +144,11 @@ describe("the help pages' footer", () => {
       expect(doc.querySelector(`.site-footer a[href="${c.printablesHref}"]`)!.textContent).toBe(c.printablesLink);
     }
   });
+
+  it("links the third-party licence notices in the page's language (SW-89)", () => {
+    for (const c of [helpEn, helpEs]) {
+      const doc = parse(helpPage(c));
+      expect(doc.querySelector('.site-footer a[href="/third-party-notices.txt"]')!.textContent).toBe(c.noticesLink);
+    }
+  });
 });

@@ -25,6 +25,7 @@ export const es: HelpContent = {
     { text: "Guía del concurso de galletas", href: "/es/guias/concurso-de-galletas-de-navidad/" },
     { text: "Guía para juzgar chili", href: "/es/guias/como-juzgar-un-concurso-de-chili/" },
   ],
+  noticesLink: "Licencias de código abierto",
   partOf: "Parte de",
   privacyLink: "Privacidad",
   privacyHref: "/es/privacidad/",
