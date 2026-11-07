@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 import { insertEvent } from "../../src/worker/events";
-import { call, latestLink, login, makeEntry, makeEvent, jpeg, send } from "./helpers";
+import { call, latestLink, login, makeEntry, makeEvent, jpeg, send, stubTurnstile, vote } from "./helpers";
 
 describe("events", () => {
   it("needs a login to list or create", async () => {
@@ -131,6 +131,42 @@ describe("events", () => {
     expect(await env.PHOTOS.head(entry.photoKey!)).toBeNull();
     const left = await env.DB.prepare("SELECT COUNT(*) AS n FROM entries WHERE category_id = ?").bind(categoryId).first<{ n: number }>();
     expect(left!.n).toBe(0);
+  });
+
+  it("deletes a pro event's judges, criteria, score cards, scores and comments with it (BIZ-72)", async () => {
+    const host = await login("del-pro@example.com");
+    const { id } = await (await send("/api/events", "POST", { name: "Judged", kind: "pro" }, host)).json<{ id: string }>();
+    const { criteria } = await (await send(`/api/events/${id}/criteria/preset`, "POST", { preset: "general" }, host)).json<{ criteria: { id: string }[] }>();
+    const view = await (await call(`/api/events/${id}`, { cookie: host })).json<{ categories: { id: string }[] }>();
+    const categoryId = view.categories[0]!.id;
+    const form = new FormData();
+    form.set("cookName", "Pat");
+    form.set("dishName", "Chili");
+    form.set("ticket", "7");
+    const entry = await (await call(`/api/categories/${categoryId}/entries`, { method: "POST", cookie: host, body: form })).json<{ id: string }>();
+    const judge = (await (await send(`/api/events/${id}/judges`, "POST", { name: "Judge Judy" }, host)).json<{ id: string }>()).id;
+    expect((await send(`/api/events/${id}/status`, "POST", { status: "open" }, host)).status).toBe(200);
+    const scores = Object.fromEntries(criteria.map((c) => [c.id, 8]));
+    expect((await send(`/api/public/judges/${judge}/scores`, "POST", { entryId: entry.id, scores, comment: "Lovely heat" }, undefined)).status).toBe(201);
+    stubTurnstile();
+    expect((await vote(id, categoryId, entry.id)).status).toBe(200);
+
+    // Something to find: every table the pro migrations (0006–0008) added holds a row for this event.
+    const count = async (table: string, where: string, ...binds: string[]) =>
+      (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE ${where}`).bind(...binds).first<{ n: number }>())!.n;
+    expect(await count("judges", "event_id = ?", id)).toBe(1);
+    expect(await count("criteria", "event_id = ?", id)).toBe(criteria.length);
+    expect(await count("scorecards", "judge_id = ? AND comment = 'Lovely heat'", judge)).toBe(1);
+    expect(await count("scores", "judge_id = ?", judge)).toBe(criteria.length);
+
+    expect((await call(`/api/events/${id}`, { method: "DELETE", cookie: host })).status).toBe(200);
+
+    expect(await count("judges", "event_id = ?", id)).toBe(0);
+    expect(await count("criteria", "event_id = ?", id)).toBe(0);
+    expect(await count("scorecards", "judge_id = ? OR entry_id = ?", judge, entry.id)).toBe(0);
+    expect(await count("scores", "judge_id = ? OR entry_id = ?", judge, entry.id)).toBe(0);
+    expect(await count("votes", "entry_id = ?", entry.id)).toBe(0);
+    expect(await count("entries", "id = ?", entry.id)).toBe(0);
   });
 
   it("deletes an event that never had photos", async () => {

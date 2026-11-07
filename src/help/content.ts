@@ -404,6 +404,13 @@ export const en: HelpContent = {
           ],
         },
         {
+          id: "judge-data",
+          q: "What do you store about judges in a pro event?",
+          a: [
+            "The name the organizer types in for each judge, and the scores and comments that judge gives. The organizer can download them with the results. Cooks can read the comments on their own dish if the organizer allows it, without the judge's name, and public results never name judges. Deleting the event deletes all of it.",
+          ],
+        },
+        {
           id: "other-handlers",
           q: "Who else handles the data?",
           a: [
