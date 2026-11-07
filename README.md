@@ -42,4 +42,6 @@ Changes reach `main` only through a pull request, and CI must pass before it mer
 
 ## License
 
-MIT
+The code is MIT licensed. The Cookoff Champs name and logo aren't covered by the licence.
+
+The production bundle includes third-party packages under their own MIT and ISC licences. `npm run build` writes their notices to `public/third-party-notices.txt`, which the site serves at `/third-party-notices.txt` and links from the footer of the help pages. The build fails if a production package has no licence text to include.

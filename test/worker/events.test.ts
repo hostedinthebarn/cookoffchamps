@@ -181,7 +181,7 @@ describe("events", () => {
     for (let i = 0; i < 1005; i++) await env.PHOTOS.put(`events/${id}/x${i}`, "x");
     expect((await call(`/api/events/${id}`, { method: "DELETE", cookie: host })).status).toBe(200);
     expect((await env.PHOTOS.list({ prefix: `events/${id}/` })).objects).toHaveLength(0);
-  });
+  }, 30_000); // 1005 sequential R2 puts can overrun the 5s default
 
   it("retries the short code on a clash, and gives up after five", async () => {
     const host = await login("code@example.com");
