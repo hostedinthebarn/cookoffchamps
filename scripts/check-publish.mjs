@@ -11,6 +11,7 @@ import path from "node:path";
 const pub = path.join(import.meta.dirname, "..", "public");
 
 export const ALLOWED = new Set([".html", ".css", ".js", ".map", ".svg", ".png", ".webmanifest", ".xml", ".txt", ".pdf"]);
+// .txt covers robots.txt and, deliberately, third-party-notices.txt (SW-89).
 // .pdf added for the printables (SW-62); they are printed at build time from our own pages.
 
 export const SECRET_PATTERNS = [
