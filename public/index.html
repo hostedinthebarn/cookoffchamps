@@ -7,6 +7,9 @@
     <meta name="theme-color" content="#fffaf3" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1a1310" media="(prefers-color-scheme: dark)" />
     <title>Cookoff Champs</title>
+    <!-- SW-102: the app shell is served for every app route and unknown path (SPA fallback), so without
+         this Google sees many identical pages and reports "Duplicate without user-selected canonical". -->
+    <link rel="canonical" href="https://cookoffchamps.com/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
