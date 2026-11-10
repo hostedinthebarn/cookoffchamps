@@ -165,7 +165,7 @@ describe("the page around the app", () => {
     expect(document.getElementById("help-link")!.getAttribute("href")).toBe("/es/ayuda/");
     expect(document.getElementById("printables-link")!.textContent).toBe("Imprimibles gratis");
     expect(document.getElementById("printables-link")!.getAttribute("href")).toBe("/es/imprimibles/");
-    expect(document.getElementById("privacy-link")!.textContent).toBe("Privacidad");
+    expect(document.getElementById("privacy-link")!.textContent).toBe("Política de privacidad");
     expect(document.getElementById("privacy-link")!.getAttribute("href")).toBe("/es/privacidad/");
     expect(document.getElementById("part-of")!.textContent).toBe("Parte de");
   });
