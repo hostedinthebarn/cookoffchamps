@@ -30,7 +30,7 @@ export const en = {
     helpHref: "/help/",
     printablesLink: "Free printables",
     printablesHref: "/printables/",
-    privacyLink: "Privacy",
+    privacyLink: "Privacy Policy",
     privacyHref: "/privacy/",
     partOf: "Part of",
   },

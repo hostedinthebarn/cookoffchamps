@@ -17,7 +17,7 @@ describe("the privacy page", () => {
   it("is titled, canonical and linked to its other language", () => {
     const doc = parse(privacyPage(en, versions));
     expect(doc.documentElement.lang).toBe("en");
-    expect(doc.title).toBe("Privacy at Cookoff Champs · Cookoff Champs");
+    expect(doc.title).toBe("Privacy Policy · Cookoff Champs");
     expect(doc.querySelector('link[rel="canonical"]')!.getAttribute("href")).toBe(`${ORIGIN}/privacy/`);
     expect(doc.querySelector('link[hreflang="es"]')!.getAttribute("href")).toBe(`${ORIGIN}/es/privacidad/`);
     expect(doc.querySelector('link[hreflang="x-default"]')!.getAttribute("href")).toBe(`${ORIGIN}/privacy/`);
@@ -57,8 +57,8 @@ describe("the privacy page", () => {
     const xml = sitemap();
     expect(xml).toContain(`${ORIGIN}/privacy/`);
     expect(xml).toContain(`${ORIGIN}/es/privacidad/`);
-    expect(privacyFooterLink("en")).toBe('<a href="/privacy/">Privacy</a>');
-    expect(privacyFooterLink("es")).toBe('<a href="/es/privacidad/">Privacidad</a>');
+    expect(privacyFooterLink("en")).toBe('<a href="/privacy/">Privacy Policy</a>');
+    expect(privacyFooterLink("es")).toBe('<a href="/es/privacidad/">Política de privacidad</a>');
   });
 });
 

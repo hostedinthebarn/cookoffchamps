@@ -71,7 +71,7 @@ export const en: HelpContent = {
   ],
   noticesLink: "Open-source licences",
   partOf: "Part of",
-  privacyLink: "Privacy",
+  privacyLink: "Privacy Policy",
   privacyHref: "/privacy/",
   privacyNote: "The full privacy page:",
   sections: [

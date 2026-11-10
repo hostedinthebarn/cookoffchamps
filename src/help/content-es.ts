@@ -27,7 +27,7 @@ export const es: HelpContent = {
   ],
   noticesLink: "Licencias de código abierto",
   partOf: "Parte de",
-  privacyLink: "Privacidad",
+  privacyLink: "Política de privacidad",
   privacyHref: "/es/privacidad/",
   privacyNote: "La página completa de privacidad:",
   sections: [
