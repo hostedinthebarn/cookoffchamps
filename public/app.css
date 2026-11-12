@@ -862,7 +862,9 @@ main:has(.reveal) { max-width: none; padding-top: 0; padding-bottom: 0; }
   /* One sheet per printed page, filling it, with the QR foot at the bottom. */
   .printables .site-footer { display: none; }
   .sheets { display: block; margin: 0; }
-  .sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: none; height: 9.9in; break-after: page; overflow: hidden; }
+  .sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: none; height: 9.9in; break-after: page; }
+  /* Ballot pages are fixed-size slips to cut, so clip them; score and tally sheets may run onto a second page rather than lose rows at large font sizes. */
+  .sheet:has(.slips) { overflow: hidden; }
   .sheet:last-child { break-after: auto; }
   .slips { grid-template-rows: repeat(3, minmax(0, 1fr)) auto; }
 }
