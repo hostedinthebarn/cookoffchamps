@@ -159,7 +159,7 @@ describe("a pro event's guest page", () => {
     expect(a.querySelector("img")!.getAttribute("alt")).toBe("Ticket 21");
     expect(a.getAttribute("aria-label")).toBe("Ticket 21");
     expect(b.getAttribute("aria-label")).toBe("Ticket 22, Verde");
-    expect(ctx.root.textContent).toContain("Tap your favourite dish.");
+    expect(ctx.root.textContent).toContain("Tap your favorite dish.");
   });
 
   it("names an unnamed dish by its ticket alone in Spanish too", () => {

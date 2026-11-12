@@ -41,6 +41,10 @@ try {
     const out = `${dir}.pdf`;
     // The page's @page rule sets letter size and margins.
     await page.pdf({ path: out, preferCSSPageSize: true, printBackground: true });
+    // Each sheet section is one printed page: an overflow would add a blank or split page.
+    const pages = (fs.readFileSync(out).toString("latin1").match(/\/Type\s*\/Page[^s]/g) ?? []).length;
+    const expected = await page.locator("section.sheet").count();
+    if (pages !== expected) throw new Error(`${path.relative(pub, out)} has ${pages} pages, expected ${expected}`);
     console.log(`printed ${path.relative(pub, out)}`);
   }
 } finally {

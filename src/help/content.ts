@@ -83,14 +83,14 @@ export const en: HelpContent = {
           id: "how-to-vote",
           q: "How do I vote?",
           a: [
-            "Scan the QR code on the poster or on a dish's tent card. No app, no account. If your phone won't scan, go to cookoffchamps.com and type the 6-character code from the poster. Then tap your favourite dish in each category.",
+            "Scan the QR code on the poster or on a dish's tent card. No app, no account. If your phone won't scan, go to cookoffchamps.com and type the 6-character code from the poster. Then tap your favorite dish in each category.",
           ],
         },
         {
           id: "blind-voting",
           q: "Why can't I see who cooked each dish?",
           a: [
-            "Voting is blind. You see the entry number, the dish name and a photo, never the cook, so you vote for the food and not for your favourite aunt. Cooks' names appear for the first time at the reveal.",
+            "Voting is blind. You see the entry number, the dish name and a photo, never the cook, so you vote for the food and not for your favorite aunt. Cooks' names appear for the first time at the reveal.",
           ],
         },
         {
@@ -319,7 +319,7 @@ export const en: HelpContent = {
           id: "pro-peoples-choice",
           q: "Can guests still vote?",
           a: [
-            "Yes, for a People's Choice award, which is on unless you turn it off. Guests vote for their favourite as in a family cookoff, one vote per phone per category. It doesn't change the judges' placings. One open and close covers judging and guest voting together.",
+            "Yes, for a People's Choice award, which is on unless you turn it off. Guests vote for their favorite as in a family cookoff, one vote per phone per category. It doesn't change the judges' placings. One open and close covers judging and guest voting together.",
           ],
         },
         {

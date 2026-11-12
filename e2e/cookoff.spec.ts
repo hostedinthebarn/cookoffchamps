@@ -58,7 +58,7 @@ test("a whole cookoff: set up, print, vote blind, reveal 3-2-1, results", async 
     const phone = await browser.newContext();
     const guest = await phone.newPage();
     await guest.goto(`/v/${eventId}`);
-    await expect(guest.getByText("Tap your favourite dish.")).toBeVisible();
+    await expect(guest.getByText("Tap your favorite dish.")).toBeVisible();
     await expect(guest.locator("main")).not.toContainText("Grandma");
     if (i === 3) {
       // The last guest changes their mind (decision 14): still one vote.
@@ -352,7 +352,7 @@ test("pro results: People's Choice, a final reveal, scores with their breakdown,
   // A guest votes Ben's dish for People's Choice, by ticket; the dish names stay hidden.
   const guest = await (await browser.newContext()).newPage();
   await guest.goto(`/v/${eventId}`);
-  await expect(guest.getByText("Tap your favourite dish.")).toBeVisible();
+  await expect(guest.getByText("Tap your favorite dish.")).toBeVisible();
   await expect(guest.locator("main")).not.toContainText("Verde");
   await guest.locator(".dish", { hasText: "Ticket 8" }).click();
   await expect(guest.getByText("Vote saved. Thanks!")).toBeVisible();

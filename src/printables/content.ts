@@ -81,7 +81,7 @@ export const en: PrintablesContent = {
         "A free printable pie contest ballot for Thanksgiving, six to a page, with a tally sheet for counting the votes. Letter-size PDF.",
       intro: "Six ballots to a page, plus a tally sheet. Number each pie, hand out the ballots, and count up at the end.",
       tips: [
-        "Put a number card beside each pie instead of the baker's name, so people vote for the pie and not for their favourite aunt.",
+        "Put a number card beside each pie instead of the baker's name, so people vote for the pie and not for their favorite aunt.",
         "One ballot per guest. Print a few spares for late arrivals.",
         "Ties happen. Call them co-champions, or have the tied pies tasted again.",
       ],
@@ -114,7 +114,7 @@ export const en: PrintablesContent = {
           criteria: ["Taste", "Texture", "Looks", "Holiday spirit"],
           total: "Total",
         },
-        { kind: "slips", heading: "People's choice cookie", lines: ["My favourite cookie"] },
+        { kind: "slips", heading: "People's choice cookie", lines: ["My favorite cookie"] },
       ],
     },
     {
