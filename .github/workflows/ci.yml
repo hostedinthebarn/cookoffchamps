@@ -88,6 +88,13 @@ jobs:
             code=$(curl -s -o /dev/null -w '%{http_code}' -A "$UA" "$SITE$p")
             if [ "$code" = 200 ]; then echo "ok   $p -> 200"; else echo "FAIL $p -> $code (want 200)"; fail=1; fi
           done
+          # SW-116: the licence notices must be the real file, not the SPA shell (a plain 200 proves nothing here).
+          code=$(curl -s -o /tmp/notices -w '%{http_code}' -A "$UA" "$SITE/third-party-notices.txt")
+          if [ "$code" = 200 ] && [ "$(sha256sum < /tmp/notices)" != "$shell" ] && grep -q "MIT" /tmp/notices; then
+            echo "ok   /third-party-notices.txt -> 200, $(wc -c < /tmp/notices) bytes of notices"
+          else
+            echo "FAIL /third-party-notices.txt -> $code, missing or the app shell"; fail=1
+          fi
           for p in /package.json /wrangler.jsonc /src/worker/index.ts /.dev.vars /.git/config /README.md; do
             code=$(curl -s -o /tmp/body -w '%{http_code}' -A "$UA" "$SITE$p")
             if [ "$code" = 404 ] || [ "$code" = 403 ] || [ "$(sha256sum < /tmp/body)" = "$shell" ]; then
