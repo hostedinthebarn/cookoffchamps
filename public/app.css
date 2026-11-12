@@ -836,7 +836,8 @@ main:has(.reveal) { max-width: none; padding-top: 0; padding-bottom: 0; }
 .sheet-table td { border: 1px solid var(--sheet-line); height: 0.48in; }
 .sheet-table.tally td { height: 0.42in; }
 .slips { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-.slip { border: 1.5px dashed #888; padding: 0.22in; display: flex; flex-direction: column; }
+.slip { border-bottom: 1.5px dashed #888; padding: 0.22in 0.3in; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.slip:nth-child(odd) { border-right: 1.5px dashed #888; }
 .slip-url { margin: auto 0 0; font-size: 0.8rem; color: #555; text-align: right; }
 .slip-title { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; margin: 0 0 0.15in; }
 .slips .sheet-foot { grid-column: 1 / -1; }
@@ -861,7 +862,7 @@ main:has(.reveal) { max-width: none; padding-top: 0; padding-bottom: 0; }
   /* One sheet per printed page, filling it, with the QR foot at the bottom. */
   .printables .site-footer { display: none; }
   .sheets { display: block; margin: 0; }
-  .sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: none; height: 10in; break-after: page; }
+  .sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: none; height: 9.9in; break-after: page; overflow: hidden; }
   .sheet:last-child { break-after: auto; }
-  .slips { grid-template-rows: repeat(3, 1fr) auto; }
+  .slips { grid-template-rows: repeat(3, minmax(0, 1fr)) auto; }
 }
