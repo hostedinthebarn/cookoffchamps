@@ -154,9 +154,10 @@ async function respond(request: Request, env: Env, url: URL, isApi: boolean): Pr
 /**
  * The surfaces that link back to the home page with a ?ref=: the results page and
  * the reveal (SW-59), the QR codes on the printables (SW-62), the guides' closing links (SW-63)
- * and the social posts, one ref per platform: fb, ig, yt, pin (BIZ-57).
+ * the social posts, one ref per platform: fb, ig, yt, pin (BIZ-57), and links from our blog,
+ * hostedinthebarn.com: blog (BLOG-35).
  */
-const REFS = new Set(["results", "reveal", "pie", "cookie", "chili", "guide-pie", "guide-cookie", "guide-chili", "fb", "ig", "yt", "pin"]);
+const REFS = new Set(["results", "reveal", "pie", "cookie", "chili", "guide-pie", "guide-cookie", "guide-chili", "fb", "ig", "yt", "pin", "blog"]);
 
 /**
  * Link-preview fetchers, crawlers and scripts. They open every link a profile or
