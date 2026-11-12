@@ -397,7 +397,7 @@ export const en: HelpContent = {
         {
           id: "tracking",
           q: "Are there ads or tracking?",
-          a: ["No ads, and no tracking that follows you. We use Cloudflare Web Analytics to count page visits. It doesn't set cookies or build a profile of you."],
+          a: ["No ads, and no tracking that follows you. We use Cloudflare Web Analytics to count page visits. It doesn't set cookies or build a profile of you. If you'd rather not be counted, blocking static.cloudflareinsights.com in your browser or a content blocker stops it, and the app works the same."],
         },
         {
           id: "cook-data",

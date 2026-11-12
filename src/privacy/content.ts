@@ -90,7 +90,7 @@ export const en: PrivacyContent = {
       title: "Cookies",
       body: [
         "Two, both needed for the app to work: one keeps you logged in, one remembers your vote. Your language choice is kept in your browser (localStorage). No advertising cookies, so there is no cookie banner.",
-        "We count page visits with Cloudflare Web Analytics, which sets no cookies and builds no profile of you.",
+        "We count page visits with Cloudflare Web Analytics, which sets no cookies and builds no profile of you. If you'd rather not be counted, blocking static.cloudflareinsights.com in your browser or a content blocker stops it, and the app works the same.",
       ],
     },
     {
@@ -171,7 +171,7 @@ export const es: PrivacyContent = {
       title: "Cookies",
       body: [
         "Dos, y las dos son necesarias para que la app funcione: una mantiene tu sesión abierta y otra recuerda tu voto. Tu elección de idioma se guarda en tu navegador (localStorage). No hay cookies de publicidad, así que no hay aviso de cookies.",
-        "Contamos las visitas con Cloudflare Web Analytics, que no usa cookies ni crea un perfil tuyo.",
+        "Contamos las visitas con Cloudflare Web Analytics, que no usa cookies ni crea un perfil tuyo. Si prefieres que no te contemos, bloquea static.cloudflareinsights.com en tu navegador o con un bloqueador de contenido; la app funciona igual.",
       ],
     },
     {

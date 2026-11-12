@@ -357,7 +357,7 @@ export const es: HelpContent = {
         {
           id: "tracking",
           q: "¿Hay anuncios o rastreo?",
-          a: ["No hay anuncios ni rastreo que te siga. Usamos Cloudflare Web Analytics para contar las visitas a las páginas. No usa cookies ni crea un perfil tuyo."],
+          a: ["No hay anuncios ni rastreo que te siga. Usamos Cloudflare Web Analytics para contar las visitas a las páginas. No usa cookies ni crea un perfil tuyo. Si prefieres que no te contemos, bloquea static.cloudflareinsights.com en tu navegador o con un bloqueador de contenido; la app funciona igual."],
         },
         {
           id: "cook-data",
