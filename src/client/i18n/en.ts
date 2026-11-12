@@ -84,7 +84,7 @@ export const en = {
     create: "Create",
     kind: "Kind of cookoff",
     family: "Family",
-    familyHint: "Guests vote for their favourite dish.",
+    familyHint: "Guests vote for their favorite dish.",
     pro: "Pro",
     proHint: "Judges score every dish blind.",
     comingSoon: "(coming soon)",
@@ -101,7 +101,7 @@ export const en = {
 
   vote: {
     notOpenYet: "Voting hasn't opened yet. Have a look at the dishes, and come back when the organizer opens it.",
-    tapFavourite: "Tap your favourite dish. You can change your mind until voting closes.",
+    tapFavourite: "Tap your favorite dish. You can change your mind until voting closes.",
     closedSoon: "Voting is closed. The results are coming soon!",
     voting: "Voting…",
     saved: "Vote saved. Thanks!",
@@ -236,7 +236,7 @@ export const en = {
       `${label}${dish ? `, ${dish}` : ""} (${cook}): ${score} from ${plural(judges, "judge", "judges")}`,
     notScored: (label: string, cook: string) => `${label} (${cook}): not scored yet`,
     // Results (SW-25, part 3)
-    peoplesChoiceSetting: "People's Choice: guests vote for their favourite, as a separate award",
+    peoplesChoiceSetting: "People's Choice: guests vote for their favorite, as a separate award",
     grandChampionSetting: "Grand Champion: the best total across every category, for cooks who entered them all",
     cookCommentsSetting: "Let cooks read the judges' comments on their own dish after the reveal, by typing their ticket number",
     finalTitle: "Reveal the final results?",
@@ -291,7 +291,7 @@ export const en = {
     back: "← Back",
     print: "Print",
     letter: "Sized for US Letter paper",
-    voteFavourite: "Vote for your favourite dish!",
+    voteFavourite: "Vote for your favorite dish!",
     scanOrGo: "Scan with your phone's camera, or go to",
     enterCode: "and enter the code ",
     scanToVote: "Scan to vote",

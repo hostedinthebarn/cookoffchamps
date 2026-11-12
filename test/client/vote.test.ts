@@ -50,7 +50,7 @@ describe("voting page", () => {
     const calls = fakeApi({ "GET /api/public/events/e1": view("open"), "POST /api/public/events/e1/votes": { ok: true } });
     const ctx = makeCtx("/v/e1");
     await voteView(ctx, "e1");
-    expect(ctx.root.textContent).toContain("Tap your favourite dish.");
+    expect(ctx.root.textContent).toContain("Tap your favorite dish.");
 
     const before = ctx.root.querySelector<HTMLElement>('[data-entry="n2"]')!;
     expect(before.getAttribute("aria-pressed")).toBe("false");

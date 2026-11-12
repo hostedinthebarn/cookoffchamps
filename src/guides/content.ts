@@ -150,7 +150,7 @@ export const en: GuidesContent = {
         { name: "Set the rules", text: "Decide how many cookies each baker brings, whether they must be homemade, and whether the recipe has to be a secret." },
         { name: "Choose how to judge", text: "Either guests vote, or a few judges score. Many contests do both: a judges' prize and a people's choice." },
         { name: "Plate and number", text: "Put a few of each cookie on a plain plate with a number. Hide the baker list." },
-        { name: "Score or vote", text: "Judges score each plate before moving on. Guests mark their favourite on a ballot." },
+        { name: "Score or vote", text: "Judges score each plate before moving on. Guests mark their favorite on a ballot." },
         { name: "Add it up and break ties", text: "Total each row on the score sheet. If two cookies tie, use the tie-break you agreed on beforehand." },
         { name: "Announce and share", text: "Announce the winners, then let everyone eat what is left." },
       ],
@@ -175,7 +175,7 @@ export const en: GuidesContent = {
           heading: "Blind judging and a score sheet",
           body: [
             "Judges should not know who baked what. Number the plates and keep the list with the organizer.",
-            "A simple score sheet works well. Score each cookie from 1 to 5 on taste, texture, looks and holiday spirit, then add the row. Taste can count double if you want flavour to matter most.",
+            "A simple score sheet works well. Score each cookie from 1 to 5 on taste, texture, looks and holiday spirit, then add the row. Taste can count double if you want flavor to matter most.",
             "Ask judges to score each plate before talking about it. Once one person says \"wow\", everyone's score drifts up.",
           ],
         },
@@ -198,7 +198,7 @@ export const en: GuidesContent = {
       ],
       faq: [
         { q: "How many cookies does each baker need to bring?", a: "A dozen is enough for most contests. Judges need one each, and guests need a taste for the people's choice vote." },
-        { q: "Should we have judges or let guests vote?", a: "Both works well. A small group of judges with score sheets picks the best cookie, and a guests' vote picks the favourite." },
+        { q: "Should we have judges or let guests vote?", a: "Both works well. A small group of judges with score sheets picks the best cookie, and a guests' vote picks the favorite." },
         { q: "What should the judges score?", a: "Taste, texture, looks and holiday spirit, each from 1 to 5, is a simple set that is easy to explain. The printable score sheet uses it." },
         { q: "How do we keep it fair for allergies?", a: "Ask bakers to label nuts, dairy and gluten, and put the label on the plate. Judges with allergies can skip a plate and score the rest." },
       ],
