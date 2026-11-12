@@ -43,6 +43,8 @@ describe("worker routing", () => {
     await visit("/printables/pie-contest-ballot/?ref=pin");
     await visit("/es/imprimibles/boleta-concurso-de-pays/?ref=pin");
     await visit("/guides/thanksgiving-pie-contest/?ref=pin");
+    // Links from our blog posts (BLOG-35).
+    await visit("/guides/thanksgiving-pie-contest/?ref=blog");
     // Unknown refs, files that aren't pages and other methods aren't counted.
     await visit("/?ref=spam");
     await visit("/app.js?ref=fb");
@@ -67,6 +69,7 @@ describe("worker routing", () => {
     // A browser that mentions WhatsApp later on is a person opening the link, so it counts.
     await visit("/?ref=yt", { headers: { "user-agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36 WhatsApp/2.24.1" } });
     expect(await hits()).toEqual([
+      { ref: "blog", hits: 1 },
       { ref: "chili", hits: 1 },
       { ref: "fb", hits: 1 },
       { ref: "guide-pie", hits: 1 },
