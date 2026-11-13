@@ -1,5 +1,7 @@
 # Cookoff Champs
 
+[![CI](https://github.com/hostedinthebarn/cookoffchamps/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hostedinthebarn/cookoffchamps/actions/workflows/ci.yml)
+
 A small web app for friendly family cookoffs, at cookoffchamps.com.
 
 An organizer creates an event, photographs each dish and prints a QR poster. Guests scan the code and vote for their favourite dish without knowing who cooked it. When voting closes, a reveal screen shows 3rd, 2nd and then 1st place, one click at a time.
