@@ -79,11 +79,13 @@ describe("the Q&A and the privacy page agree", () => {
     const en = Object.fromEntries(answers(helpEn));
     expect(en["tracking"]).toContain("Cloudflare Web Analytics");
     expect(en["tracking"]).not.toMatch(/no analytics/i);
+    expect(en["tracking"]).toContain("static.cloudflareinsights.com"); // PECR objection route (BIZ-71)
     expect(en["ip-addresses"]).toContain("without a secret key that only the app holds");
     expect(en["cook-data"]).toContain(PRIVACY_EMAIL);
     expect(en["other-handlers"]).toContain("Resend");
     const es = Object.fromEntries(answers(helpEs));
     expect(es["tracking"]).toContain("Cloudflare Web Analytics");
+    expect(es["tracking"]).toContain("static.cloudflareinsights.com");
     expect(es["ip-addresses"]).toContain("clave secreta que solo tiene la app");
     expect(es["cook-data"]).toContain(PRIVACY_EMAIL);
     expect(es["other-handlers"]).toContain("Resend");
