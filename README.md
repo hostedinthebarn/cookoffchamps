@@ -57,6 +57,11 @@ npx wrangler r2 bucket create cookoffchamps-photos
 
 If you rename the database or bucket, change their names here and in the commands below.
 
+**2b. Change what's fixed at build time.** These pages are built into static files, so `APP_ORIGIN` doesn't reach them:
+
+- `ORIGIN` in `src/help/render.ts`: the canonical links, the sitemap and the printable QR codes use it. Set it to your `https://` origin, or the QR codes send your guests to cookoffchamps.com;
+- the operator and contact details in `src/privacy/content.ts`, `src/help/content.ts` and `src/help/content-es.ts`: they name Hosted in the Barn and `privacy@cookoffchamps.com`. A public copy must name you and an address you read, because privacy requests have to reach whoever runs it.
+
 **3. Create the tables**
 
 ```sh
@@ -75,6 +80,7 @@ npx wrangler secret put RESEND_API_KEY     # a Resend API key with sending acces
 
 ```sh
 npm install
+npx playwright install --with-deps chromium   # the build prints the printable PDFs with a headless Chromium
 npm run deploy
 ```
 
