@@ -126,11 +126,11 @@ function createForm(ctx: Ctx, proPreview: boolean): HTMLElement {
   );
 }
 
-/** The brand, small once logged in. */
-function hero(compact: boolean): HTMLElement {
+/** The brand, small, once logged in. (Logged out, the landing hero below takes its place.) */
+function hero(): HTMLElement {
   return h(
     "header",
-    { class: compact ? "hero compact" : "hero" },
+    { class: "hero compact" },
     logo(),
     h("h1", {}, "Cookoff Champs"),
     h("p", { class: "tagline" }, m().home.tagline),
@@ -188,7 +188,7 @@ export async function homeView(ctx: Ctx): Promise<void> {
 
   mount(
     ctx.root,
-    hero(true),
+    hero(),
     h("p", { class: "muted" }, t.home.loggedInAs(email), logout),
     createForm(ctx, proPreview),
     h("h2", {}, t.home.yourCookoffs),
