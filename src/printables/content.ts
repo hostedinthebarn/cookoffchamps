@@ -138,21 +138,21 @@ export const en: PrintablesContent = {
       title: "Free Chili Cook-Off Ballot and Judging Sheet (PDF)",
       h1: "Free printable chili cook-off ballot and judging sheet",
       description:
-        "Print a free chili cook-off ballot and a judging sheet as PDFs, or let guests vote on their phones. Free from Cookoff Champs.",
+        "Print a free chili cook-off ballot and judging sheet, both in one PDF, or let guests vote on their phones. Free from Cookoff Champs.",
       intro:
-        "Two free printables for a chili cook-off: a ballot for guests and a judging sheet for the judges. Both are in one PDF, with a tally sheet to count the votes.",
+        "One free PDF for a chili cook-off: ballots for the guests, a judging sheet for the judges and a tally sheet to count the votes.",
       sections: [
         {
-          heading: "Chili cook-off ballot (PDF)",
-          text: "Six guest ballots to a page, cut apart. Each guest writes the number of the best chili and the best heat.",
+          heading: "Chili cook-off ballot",
+          text: "Six guest ballots to a page, cut apart. Each guest writes the number of the best chili and the best heat. They're in the PDF.",
           to: "pdf",
-          linkText: "Download the ballot PDF",
+          linkText: "Download the PDF",
         },
         {
-          heading: "Printable chili judging sheet (PDF)",
-          text: "One row per chili, scored from 1 to 10 on aroma, colour, consistency, taste and aftertaste.",
+          heading: "Printable chili judging sheet",
+          text: "One row per chili, scored from 1 to 10 on aroma, colour, consistency, taste and aftertaste. It's in the same PDF as the ballots.",
           to: "pdf",
-          linkText: "Download the judging sheet PDF",
+          linkText: "Download the PDF",
         },
         {
           heading: "Rather vote on phones? Run it free on Cookoff Champs",
