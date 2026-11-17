@@ -67,6 +67,12 @@ export const en = {
 
   home: {
     tagline: "Blind tasting, honest votes, and winners revealed 3rd to 1st.",
+    headline: "Run your cookoff with voting on your guests' phones",
+    lede: "Pie, chili, cookie or BBQ: guests scan a QR code and pick their favorite dish. They need no app and no account. Voting is blind, so people vote for the food, and you reveal the winners when you're ready.",
+    costLine: "Backyard and family cookoffs are free, with no limit on events. Judged events with scored categories are a paid option.",
+    startCookoff: "Start a cookoff",
+    howVotingWorks: "How voting works",
+    logIn: "Log in",
     hereToVote: "Here to vote?",
     typeCode: "Type the code from the poster ",
     codePlaceholder: "e.g. K7QM2X",

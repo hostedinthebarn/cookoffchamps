@@ -68,6 +68,12 @@ export const es: Messages = {
 
   home: {
     tagline: "Cata a ciegas, votos honestos y ganadores anunciados del 3.º al 1.º.",
+    headline: "Organiza tu concurso con votación desde los teléfonos de tus invitados",
+    lede: "Pay, chili, galletas o barbacoa: tus invitados escanean un código QR y eligen su platillo favorito. No necesitan app ni cuenta. La votación es a ciegas, así que votan por la comida, y tú anuncias a los ganadores cuando quieras.",
+    costLine: "Los concursos familiares y de patio son gratis, sin límite de eventos. Los eventos con jueces y categorías calificadas son una opción de pago.",
+    startCookoff: "Organizar un concurso",
+    howVotingWorks: "Cómo funciona la votación",
+    logIn: "Entrar",
     hereToVote: "¿Vienes a votar?",
     typeCode: "Escribe el código del cartel ",
     codePlaceholder: "p. ej. K7QM2X",
