@@ -29,6 +29,67 @@ Copy `.dev.vars.example` to `.dev.vars` first. In production, the IP-address has
 
 In development, magic-link emails are kept in a dev outbox instead of sent (`EMAIL_MODE=log`): open http://localhost:8787/api/dev/outbox to see them.
 
+## Run your own
+
+You can run your own copy on your own Cloudflare account. Everything fits Cloudflare's free plan apart from the domain.
+
+**You need:**
+
+- a Cloudflare account, with a domain on it (the app serves one origin, and login emails come from that domain);
+- a free [Resend](https://resend.com) account with that domain verified. Hosts sign in with a link sent by email, so a deployed copy can't work without it. The dev outbox only works on `localhost`;
+- Node.js 22, and Wrangler logged in to your account (`npx wrangler login`).
+
+**1. Create the database and the photo bucket**
+
+```sh
+npx wrangler d1 create cookoffchamps            # prints a database_id
+npx wrangler r2 bucket create cookoffchamps-photos
+```
+
+**2. Point `wrangler.jsonc` at your own account and domain**
+
+- `d1_databases[0].database_id`: the id printed above;
+- `routes`: your domain (and its `www.`, which the app redirects to the bare domain);
+- `vars.APP_ORIGIN`: `https://` plus your domain. Login links point here, and the Turnstile check compares against its hostname;
+- `vars.EMAIL_FROM`: an address on your Resend-verified domain;
+- `vars.TURNSTILE_SITE_KEY`: the site key of a [Turnstile](https://developers.cloudflare.com/turnstile/) widget you create for your domain;
+- `vars.PRO_PREVIEW`: `"off"` hides the judged "Pro" events, which are still a preview.
+
+If you rename the database or bucket, change their names here and in the commands below.
+
+**2b. Change what's fixed at build time.** These pages are built into static files, so `APP_ORIGIN` doesn't reach them:
+
+- `ORIGIN` in `src/help/render.ts`: the canonical links, the sitemap and the printable QR codes use it. Set it to your `https://` origin, or the QR codes send your guests to cookoffchamps.com;
+- the operator and contact details in `src/privacy/content.ts`, `src/help/content.ts` and `src/help/content-es.ts`: they name Hosted in the Barn and `privacy@cookoffchamps.com`. A public copy must name you and an address you read, because privacy requests have to reach whoever runs it.
+
+**3. Create the tables**
+
+```sh
+npx wrangler d1 migrations apply cookoffchamps --remote
+```
+
+**4. Set the three secrets.** Wrangler prompts for each value, so none is typed into a file or your shell history:
+
+```sh
+npx wrangler secret put IP_HASH_KEY        # any long random string; the app refuses logins without it
+npx wrangler secret put TURNSTILE_SECRET   # your Turnstile widget's secret key
+npx wrangler secret put RESEND_API_KEY     # a Resend API key with sending access
+```
+
+**5. Deploy**
+
+```sh
+npm install
+npx playwright install --with-deps chromium   # the build prints the printable PDFs with a headless Chromium
+npm run deploy
+```
+
+`npm run deploy` builds the site, runs `scripts/check-publish.mjs` (only web file types are published, and nothing that looks like a secret), then runs `wrangler deploy`, which attaches your domain. Open `https://<your domain>/api/health` to check it's up, then create a test event.
+
+**Running costs:** on Cloudflare's free plan, the limits that matter are R2 storage (10 GB, which is a lot of dish photos) and D1's daily row reads and writes, far above what a family cookoff uses. A cron runs every 10 minutes to delete scrambled IP addresses after the times the privacy page states. Resend's free plan covers the login emails. ⚠️ Check Cloudflare's and Resend's current pricing pages, as free-tier limits change.
+
+**Branding:** the code is MIT, but the Cookoff Champs name and logo aren't covered by the licence (see below). If you run a public copy, give it your own name.
+
 ## Tests
 
 ```sh
