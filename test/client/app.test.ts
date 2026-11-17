@@ -71,7 +71,7 @@ describe("start", () => {
     root.querySelector<HTMLAnchorElement>("a[data-link]")!.click();
     await flush();
     expect(location.pathname).toBe("/");
-    expect(root.querySelector("h1")!.textContent).toBe("Cookoff Champs");
+    expect(root.querySelector("h1")!.textContent).toBe("Run your cookoff with voting on your guests' phones");
 
     history.replaceState(null, "", "/elsewhere");
     window.dispatchEvent(new PopStateEvent("popstate"));
@@ -134,6 +134,6 @@ describe("main", () => {
     document.body.innerHTML = '<main id="app"></main>';
     await import("../../src/client/main");
     await flush();
-    expect(document.querySelector("#app h1")!.textContent).toBe("Cookoff Champs");
+    expect(document.querySelector("#app h1")!.textContent).toBe("Run your cookoff with voting on your guests' phones");
   });
 });

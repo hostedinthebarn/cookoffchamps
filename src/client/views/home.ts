@@ -39,6 +39,7 @@ function loginForm(ctx: Ctx): HTMLElement {
     "form",
     {
       class: "card",
+      id: "login",
       onsubmit: async (e: Event) => {
         e.preventDefault();
         status.textContent = t.sending;
@@ -125,7 +126,7 @@ function createForm(ctx: Ctx, proPreview: boolean): HTMLElement {
   );
 }
 
-/** The brand, big on the guest's landing page and smaller once logged in. */
+/** The brand, small once logged in. */
 function hero(compact: boolean): HTMLElement {
   return h(
     "header",
@@ -133,6 +134,31 @@ function hero(compact: boolean): HTMLElement {
     logo(),
     h("h1", {}, "Cookoff Champs"),
     h("p", { class: "tagline" }, m().home.tagline),
+  );
+}
+
+/**
+ * The logged-out landing hero (MKT-82, approved 2026-11-16): who it's for and what it does, the cost,
+ * and one next step. Log in stays visible without scrolling (rule from 2026-11-13): a link at the top of
+ * the hero, and "Start a cookoff" goes to the same login form.
+ */
+function landingHero(): HTMLElement {
+  const t = m().home;
+  return h(
+    "header",
+    { class: "hero landing" },
+    h("a", { class: "hero-login", href: "#login" }, t.logIn),
+    logo(),
+    h("p", { class: "wordmark" }, "Cookoff Champs"),
+    h("h1", {}, t.headline),
+    h("p", { class: "lede" }, t.lede),
+    h("p", { class: "lede muted" }, t.costLine),
+    h(
+      "p",
+      { class: "hero-actions" },
+      h("a", { class: "button", href: "#login" }, t.startCookoff),
+      h("a", { class: "button secondary", href: "/help/#how-to-vote" }, t.howVotingWorks),
+    ),
   );
 }
 
@@ -146,7 +172,7 @@ export async function homeView(ctx: Ctx): Promise<void> {
   }
 
   if (!email) {
-    mount(ctx.root, hero(false), codeForm(ctx), loginForm(ctx));
+    mount(ctx.root, landingHero(), codeForm(ctx), loginForm(ctx));
     return;
   }
 
