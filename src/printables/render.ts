@@ -1,6 +1,6 @@
 import { escapeHtml, ORIGIN } from "../help/render";
 import { privacyFooterLink } from "../privacy/render";
-import type { Part, PrintablesContent, Sheet } from "./content";
+import type { Part, PrintablesContent, Section, Sheet } from "./content";
 
 // The printables (SW-62) are plain HTML written at build time, like the help
 // pages, so search engines can read them. Each sheet's page shows the printed
@@ -112,6 +112,13 @@ ${s.main}
 `;
 }
 
+function section(x: Section, sheet: Sheet, content: PrintablesContent): string {
+  const href = x.to === "pdf" ? pdfPath(sheet) : content.appHref;
+  return `        <h2>${escapeHtml(x.heading)}</h2>
+        <p>${escapeHtml(x.text)}</p>
+        <p><a href="${escapeHtml(href)}"${x.to === "pdf" ? " download" : ""}>${escapeHtml(x.linkText)}</a></p>`;
+}
+
 function sheetIn(c: PrintablesContent, id: string): Sheet {
   const sheet = c.sheets.find((s) => s.id === id);
   if (!sheet) throw new Error(`no printable "${id}" in ${c.lang}`);
@@ -126,10 +133,11 @@ export function sheetPage(content: PrintablesContent, versions: PrintablesConten
   const sheet = sheetIn(content, id);
   const foot = sheetFoot(content, qrSvg);
   const main = `      <div class="no-print">
-        <h1>${escapeHtml(sheet.title)}</h1>
+        <h1>${escapeHtml(sheet.h1 ?? sheet.title)}</h1>
         <p class="lede">${escapeHtml(sheet.intro)}</p>
         <p><a class="button" href="${escapeHtml(pdfPath(sheet))}" download>${escapeHtml(content.downloadPdf)}</a></p>
         <p class="muted">${escapeHtml(content.orPrint)}</p>
+${(sheet.sections ?? []).map((x) => section(x, sheet, content)).join("\n")}
         <h2>${escapeHtml(content.tipsTitle)}</h2>
         <ul>${sheet.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>
         <p><a class="guide-link" href="${escapeHtml(sheet.guidePath)}">${escapeHtml(content.guideLink)}</a></p>

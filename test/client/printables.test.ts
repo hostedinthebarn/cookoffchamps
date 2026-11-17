@@ -81,6 +81,29 @@ describe("a printable's page", () => {
     expect(doc.querySelector("a.guide-link")!.textContent).toBe("Lee la guía");
   });
 
+  it("gives the chili page its search headings, with the download first", () => {
+    const doc = sheetDoc(en, "chili");
+    expect(doc.title).toBe("Free Chili Cook-Off Ballot and Judging Sheet (PDF) · Cookoff Champs");
+    expect(doc.querySelector("h1")!.textContent).toBe("Free printable chili cook-off ballot and judging sheet");
+    const nodes = [...doc.querySelectorAll(".no-print > *")];
+    expect(nodes[1]!.className).toBe("lede");
+    expect(nodes[2]!.querySelector("a.button[download]")!.getAttribute("href")).toBe("/printables/chili-cookoff-ballot.pdf");
+    const h2s = [...doc.querySelectorAll(".no-print h2")].map((h) => h.textContent);
+    expect(h2s).toEqual([
+      "Chili cook-off ballot (PDF)",
+      "Printable chili judging sheet (PDF)",
+      "Rather vote on phones? Run it free on Cookoff Champs",
+      "Tips for the day",
+    ]);
+    const links = [...doc.querySelectorAll(".no-print p a:not(.button)")].map((a) => [a.textContent, a.getAttribute("href")]);
+    expect(links.slice(0, 3)).toEqual([
+      ["Download the ballot PDF", "/printables/chili-cookoff-ballot.pdf"],
+      ["Download the judging sheet PDF", "/printables/chili-cookoff-ballot.pdf"],
+      ["Go to Cookoff Champs", "/"],
+    ]);
+    expect(doc.body.textContent).not.toMatch(/\bPro\b|\$/);
+  });
+
   it("draws ballot slips, a score sheet and a tally sheet, each with the QR foot", () => {
     const doc = sheetDoc(en, "chili");
     const sheets = doc.querySelectorAll(".sheet");
