@@ -13,6 +13,15 @@ export type Part =
   /** The organizer's tally: entries down the side, votes counted with tally marks. */
   | { kind: "tally"; heading: string; columns: string[] };
 
+/** An extra headed block on a sheet's page, under the download button: what is in the PDF, or where else to go. */
+export interface Section {
+  heading: string;
+  text: string;
+  /** Where the link goes: this sheet's PDF, or the app. */
+  to: "pdf" | "app";
+  linkText: string;
+}
+
 export interface Sheet {
   id: string;
   /** Where the page is published; the PDF is the same path with .pdf instead of the trailing slash. */
@@ -22,8 +31,12 @@ export interface Sheet {
   /** The guide (SW-63) that goes with this sheet, in this language. */
   guidePath: string;
   title: string;
+  /** The page's H1, when it differs from the title. */
+  h1?: string;
   description: string;
   intro: string;
+  /** Headed blocks between the download button and the tips. */
+  sections?: Section[];
   tips: string[];
   parts: Part[];
 }
@@ -122,10 +135,32 @@ export const en: PrintablesContent = {
       path: "/printables/chili-cookoff-ballot/",
       ref: "chili",
       guidePath: "/guides/judge-a-chili-cookoff/",
-      title: "Chili cookoff ballot and judging sheet",
+      title: "Free Chili Cook-Off Ballot and Judging Sheet (PDF)",
+      h1: "Free printable chili cook-off ballot and judging sheet",
       description:
-        "A free printable chili cookoff ballot, a judging sheet for aroma, colour, consistency, taste and aftertaste, and a tally sheet. Letter-size PDF.",
-      intro: "Guest ballots, a judge's sheet scored on the five things chili judges look for, and a tally sheet.",
+        "Print a free chili cook-off ballot and judging sheet, both in one PDF, or let guests vote on their phones. Free from Cookoff Champs.",
+      intro:
+        "One free PDF for a chili cook-off: ballots for the guests, a judging sheet for the judges and a tally sheet to count the votes.",
+      sections: [
+        {
+          heading: "Chili cook-off ballot",
+          text: "Six guest ballots to a page, cut apart. Each guest writes the number of the best chili and the best heat. They're in the PDF.",
+          to: "pdf",
+          linkText: "Download the PDF",
+        },
+        {
+          heading: "Printable chili judging sheet",
+          text: "One row per chili, scored from 1 to 10 on aroma, colour, consistency, taste and aftertaste. It's in the same PDF as the ballots.",
+          to: "pdf",
+          linkText: "Download the PDF",
+        },
+        {
+          heading: "Rather vote on phones? Run it free on Cookoff Champs",
+          text: "Skip the paper: guests vote on their phones and the app counts.",
+          to: "app",
+          linkText: "Go to Cookoff Champs",
+        },
+      ],
       tips: [
         "Serve every chili in identical numbered cups, so nobody can tell whose is whose.",
         "Have water, plain crackers or bread out for between tastes.",
