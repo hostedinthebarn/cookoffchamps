@@ -48,6 +48,10 @@ export const ERROR_CODES = [
   "noPeoplesChoice",
   "commentsUnavailable",
   "noSuchTicket",
+  // Paper ballots (SW-92)
+  "paperLocked",
+  "paperFamilyOnly",
+  "badCount",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

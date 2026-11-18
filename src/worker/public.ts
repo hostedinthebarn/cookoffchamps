@@ -8,6 +8,7 @@ import { cookie, readCookie } from "./cookies";
 import type { Env } from "./env";
 import { HttpError, json, readJson } from "./http";
 import { newId } from "./ids";
+import { PAPER_COUNT_SQL, totalVotes } from "./paper";
 import { proResults } from "./results";
 import { verifyTurnstile } from "./turnstile";
 
@@ -22,7 +23,8 @@ interface EntryRow {
   cookName: string;
   photoKey: string | null;
   ticket: string | null;
-  votes: number;
+  phone: number;
+  paper: number;
 }
 
 // Wrong codes allowed per client in the window before lookups are refused. A
@@ -70,7 +72,8 @@ export async function publicEvent(request: Request, env: Env, eventId: string): 
     env.DB.prepare("SELECT id, name FROM categories WHERE event_id = ? ORDER BY position").bind(eventId),
     env.DB.prepare(
       `SELECT e.id, e.category_id AS categoryId, e.number, e.dish_name AS dishName,
-              e.cook_name AS cookName, e.photo_key AS photoKey, e.ticket, COUNT(v.device_token) AS votes
+              e.cook_name AS cookName, e.photo_key AS photoKey, e.ticket, COUNT(v.device_token) AS phone,
+              ${PAPER_COUNT_SQL} AS paper
          FROM entries e
          JOIN categories c ON c.id = e.category_id
          LEFT JOIN votes v ON v.entry_id = e.id
@@ -86,7 +89,7 @@ export async function publicEvent(request: Request, env: Env, eventId: string): 
 
   const myVotes = Object.fromEntries((mine!.results as { categoryId: string; entryId: string }[]).map((v) => [v.categoryId, v.entryId]));
   const cats = categories!.results as { id: string; name: string }[];
-  const rows = entries!.results as unknown as EntryRow[];
+  const rows = (entries!.results as unknown as EntryRow[]).map((r) => ({ ...r, votes: totalVotes(r) }));
   const head = { id: event.id, code: event.code, name: event.name, date: event.event_date, status: event.status, kind: event.kind };
 
   if (event.kind === "pro") return proView(env, event, head, myVotes, cats, rows);
@@ -105,7 +108,8 @@ export async function publicEvent(request: Request, env: Env, eventId: string): 
           number: e.number,
           dishName: e.dishName,
           photoKey: e.photoKey,
-          ...(revealed ? { cookName: e.cookName, votes: e.votes } : {}),
+          // The split shows on the results page (SW-92); the reveal shows the total.
+          ...(revealed ? { cookName: e.cookName, votes: e.votes, phoneVotes: e.phone, paperVotes: e.paper } : {}),
         })),
         ...(revealed ? { placings: rankTallies(inCategory.map((e) => ({ entryId: e.id, votes: e.votes }))) } : {}),
       };
@@ -126,7 +130,7 @@ async function proView(
   head: Record<string, unknown>,
   myVotes: Record<string, string>,
   cats: { id: string; name: string }[],
-  rows: EntryRow[],
+  rows: (EntryRow & { votes: number })[],
 ): Promise<Response> {
   const revealed = event.status === "revealed";
   const showNames = revealed || event.show_dish_names === 1;

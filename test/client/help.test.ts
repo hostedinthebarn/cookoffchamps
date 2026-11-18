@@ -149,7 +149,7 @@ describe("the question filter", () => {
     input.value = "undo reveal";
     input.dispatchEvent(new Event("input"));
     // co-organizers can "run the reveal and undo it"; a judged reveal says why it can't be undone
-    expect(visible()).toEqual(["co-organizers", "undo-reveal", "pro-final"]);
+    expect(visible()).toEqual(["co-organizers", "paper-ballots", "undo-reveal", "pro-final"]);
     expect(document.querySelector<HTMLDetailsElement>("#undo-reveal")!.open).toBe(true);
     expect(document.getElementById("guests")!.hidden).toBe(true); // empty sections go too
     expect(document.querySelector<HTMLElement>(".help-filter .status")!.hidden).toBe(true);

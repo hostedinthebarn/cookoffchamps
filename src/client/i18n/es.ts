@@ -44,6 +44,7 @@ export const es: Messages = {
     entry: (n) => `Platillo ${n}`,
     by: (cook) => `de ${cook}`,
     votes: (n) => plural(n, "voto", "votos"),
+    voteSplit: (phone, paper) => `${phone} por celular + ${paper} en papel`,
     place: (n, tied) => `${lugar(n)}${tied ? " (empate)" : ""}`,
     coChampions: "¡Empate en primer lugar!",
     noDishes: "Todavía no hay platillos.",
@@ -141,7 +142,7 @@ export const es: Messages = {
     startReveal: "Anunciar a los ganadores",
     revealTitle: "¿Anunciar a los ganadores?",
     revealBody:
-      "El anuncio muestra a los ganadores, empezando por el tercer lugar. Cuando aparece el primer lugar, los resultados se publican en el enlace de los invitados.",
+      "El anuncio muestra a los ganadores, empezando por el tercer lugar. Cuando aparece el primer lugar, los resultados se publican en el enlace de los invitados. Los votos en papel se bloquean al anunciar.",
     revealConfirm: "Anunciar a los ganadores",
     reopen: "Reabrir la votación",
     reopenAside: "¿La cerraste muy pronto? Reábrela: se conservan todos los votos.",
@@ -150,11 +151,24 @@ export const es: Messages = {
     undo: "Deshacer el anuncio",
     undoTitle: "¿Deshacer el anuncio?",
     undoBody:
-      "La página de resultados vuelve a decir que pronto vienen los resultados. Si después reabres la votación, las posiciones que la gente ya vio podrían cambiar.",
+      "La página de resultados vuelve a decir que pronto vienen los resultados, y los votos en papel se pueden editar de nuevo. Si después reabres la votación o cambias los votos en papel, las posiciones que la gente ya vio podrían cambiar.",
     votesCast: "Votos emitidos",
     peek: "Echar un vistazo a las posiciones",
     hidePeek: "Ocultar las posiciones",
-    peekRow: (n, dish, cook, votes) => `Platillo ${n}, ${dish} (${cook}): ${votes}`,
+    peekRow: (n, dish, cook, votes, split = "") => `Platillo ${n}, ${dish} (${cook}): ${votes}${split}`,
+    // Boletas en papel (SW-92)
+    paperTitle: "Votos en papel",
+    paperHint:
+      "¿Algunos invitados votaron en papel? Cuenta las boletas (la hoja de conteo ayuda) y escribe aquí el total de cada platillo. Se suman a los votos por celular. Cada persona vota de una sola forma: escanea el código o toma una boleta en papel, no las dos.",
+    paperLocked: "Los votos en papel están bloqueados porque ya se publicaron los resultados. Deshaz el anuncio para cambiarlos.",
+    paperEntry: (n, dish) => `Platillo ${n}, ${dish}`,
+    paperCount: (n) => `Votos en papel para el platillo ${n}`,
+    paperHandedOut: "Boletas en papel repartidas (opcional) ",
+    paperCategory: (name, phone, paper) => `${name}: ${phone} por celular + ${paper} en papel`,
+    paperWarn: (name, paper, handedOut) =>
+      `${name}: ${paper} votos en papel, pero solo se repartieron ${handedOut} boletas. Revisa los conteos.`,
+    paperSave: "Guardar votos en papel",
+    paperSaved: "Votos en papel guardados.",
     noPhoto: "Sin foto",
     edit: "Editar",
     delete: "Borrar",
@@ -350,4 +364,7 @@ export const esErrors: Record<ErrorCode, string> = {
   noPeoplesChoice: "En este concurso solo califican los jueces; no hay voto del público.",
   commentsUnavailable: "Los comentarios de los jueces no están disponibles para este concurso.",
   noSuchTicket: "No hay ningún platillo con ese número de boleto.",
+  paperLocked: "Los votos en papel se pueden agregar solo después de cerrar la votación y antes del anuncio de ganadores.",
+  paperFamilyOnly: "Los votos en papel son solo para eventos familiares.",
+  badCount: "Los conteos en papel son números enteros de 0 a 9999.",
 };

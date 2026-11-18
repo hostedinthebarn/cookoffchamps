@@ -186,7 +186,9 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
             data.categories.length > 1 ? h("h3", {}, c.name) : null,
             h("ol", {}, ...rows.map((row) => {
               const entry = data.entries.find((e) => e.id === row.entryId)!;
-              return h("li", {}, t.peekRow(entry.number, entry.dishName, entry.cookName, row.votes));
+              // With paper votes in, the peek shows where the total came from (SW-92).
+              const split = row.paper ? ` (${common.voteSplit(row.phone, row.paper)})` : "";
+              return h("li", {}, t.peekRow(entry.number, entry.dishName, entry.cookName, row.votes, split));
             })),
           );
         }),
@@ -200,6 +202,83 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       }, PEEK_MS);
     });
     return h("div", {}, button, panel);
+  }
+
+  /**
+   * Paper votes (SW-92): one number per dish, typed from the tally sheet, between
+   * the close and the reveal. Locked (read-only) once the results are out. A
+   * category with more paper votes than ballots handed out gets a warning, which
+   * never blocks saving: it's a sanity check, not a de-duplication.
+   */
+  function paperSection(): HTMLElement {
+    const locked = data.event.status !== "closed";
+    const inputs = new Map<string, HTMLInputElement>();
+    const saved = new Map(data.paperVotes.map((p) => [p.entryId, p.count]));
+    const handedOut = h("input", {
+      type: "number", min: "0", max: "9999", step: "1", inputmode: "numeric",
+      value: data.paperBallots === null ? "" : String(data.paperBallots), disabled: locked, "data-testid": "paper-handed-out",
+    }) as HTMLInputElement;
+    const summary = h("ul", { class: "per-category", "data-testid": "paper-summary" });
+    const warnings = h("ul", { class: "paper-warnings", role: "status", "data-testid": "paper-warnings" });
+    const countOf = (id: string) => Number(inputs.get(id)!.value || 0);
+
+    function check(): void {
+      const limit = handedOut.value === "" ? null : Number(handedOut.value);
+      const rows = data.categories.map((c) => ({
+        name: c.name,
+        phone: data.votesCast.find((v) => v.categoryId === c.id)?.votes ?? 0,
+        paper: data.entries.filter((e) => e.categoryId === c.id).reduce((n, e) => n + countOf(e.id), 0),
+      }));
+      summary.replaceChildren(...rows.map((r) => h("li", {}, t.paperCategory(r.name, r.phone, r.paper))));
+      warnings.replaceChildren(
+        ...rows.filter((r) => limit !== null && r.paper > limit).map((r) => h("li", { class: "warn" }, t.paperWarn(r.name, r.paper, limit!))),
+      );
+    }
+
+    const lists = data.categories.map((c) =>
+      h(
+        "div",
+        {},
+        data.categories.length > 1 ? h("h3", {}, c.name) : null,
+        h("ul", { class: "paper-entries" }, ...data.entries.filter((e) => e.categoryId === c.id).map((e) => {
+          const input = h("input", {
+            type: "number", min: "0", max: "9999", step: "1", inputmode: "numeric",
+            value: String(saved.get(e.id) ?? 0), disabled: locked, "aria-label": t.paperCount(e.number),
+            "data-testid": `paper-${e.id}`, oninput: check,
+          }) as HTMLInputElement;
+          inputs.set(e.id, input);
+          return h("li", {}, h("label", {}, t.paperEntry(e.number, e.dishName), " ", input));
+        })),
+      ),
+    );
+    handedOut.addEventListener("input", check);
+    check();
+
+    async function save(e: Event): Promise<void> {
+      e.preventDefault();
+      try {
+        const counts = [...inputs].map(([entryId, input]) => ({ entryId, count: Number(input.value || 0) }));
+        const body = { counts, handedOut: handedOut.value === "" ? null : Number(handedOut.value) };
+        await api(`/api/events/${eventId}/paper`, { method: "PUT", body });
+        await reload();
+        notice.textContent = t.paperSaved;
+      } catch (err) {
+        notice.textContent = errorText(err);
+      }
+    }
+
+    return h(
+      "section",
+      { class: "card", "data-testid": "paper-votes" },
+      h("h2", {}, t.paperTitle),
+      h("p", {}, locked ? t.paperLocked : t.paperHint),
+      h("form", { onsubmit: save },
+        ...lists,
+        h("label", {}, t.paperHandedOut, handedOut),
+        summary,
+        warnings,
+        locked ? null : h("button", { type: "submit" }, t.paperSave)),
+    );
   }
 
   /** A pro event's standings by judges' score (rules 11–13), for the peek. */
@@ -627,6 +706,7 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
       notice,
       statusControls(),
       data.event.status === "open" ? votesCast() : null,
+      !isPro() && (data.event.status === "closed" || (data.event.status === "revealed" && data.paperVotes.length > 0)) ? paperSection() : null,
       categoriesSection(),
       isPro() ? judgesSection() : null,
       isPro() ? judgingSection() : null,

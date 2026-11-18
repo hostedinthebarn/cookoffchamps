@@ -19,6 +19,8 @@ function view(overrides: Partial<ManageView> = {}, status: ManageView["event"]["
       { email: "kiana@example.com", role: "co" },
     ],
     votesCast: [{ categoryId: "c1", votes: 7 }],
+    paperVotes: [],
+    paperBallots: null,
     proPreview: true,
     judges: [],
     judging: { criteria: [], dropOutliers: true, showDishNames: false, peoplesChoice: true, grandChampion: false, cookComments: false, scored: [] },
@@ -790,5 +792,101 @@ describe("pro results (SW-25, part 3)", () => {
     const link = byText(multi.root, "a", "Download the results (CSV)");
     expect(link.getAttribute("href")).toBe("/api/events/e1/export.csv?lang=en");
     expect(link.hasAttribute("download")).toBe(true);
+  });
+});
+
+describe("paper votes (SW-92)", () => {
+  const two = { categories: [{ id: "c1", name: "Chili", position: 1 }, { id: "c2", name: "Dessert", position: 2 }] };
+  const n3 = { id: "n3", categoryId: "c2", number: 1, cookName: "Gary", dishName: "Pie", photoKey: null, ticket: null };
+  const input = (root: ParentNode, id: string) => root.querySelector<HTMLInputElement>(`[data-testid="paper-${id}"]`)!;
+  const type = (el: HTMLInputElement, value: string) => {
+    el.value = value;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+
+  it("is offered once voting has closed, not before, and not for a pro event", async () => {
+    expect((await open(view({}, "open"))).ctx.root.querySelector('[data-testid="paper-votes"]')).toBeNull();
+    const { ctx } = await open(view({}, "closed"));
+    expect(ctx.root.querySelector('[data-testid="paper-votes"]')!.textContent).toContain("One way per guest");
+    expect(input(ctx.root, "n1").value).toBe("0");
+    const pro = await open(view({ event: { id: "e1", code: "K7QM2X", name: "J", date: null, status: "closed", kind: "pro" } }, "closed"));
+    expect(pro.ctx.root.querySelector('[data-testid="paper-votes"]')).toBeNull();
+  });
+
+  it("saves a count per dish and the optional handed-out figure, then confirms", async () => {
+    const { ctx } = await open(view({}, "closed"), { "PUT /api/events/e1/paper": { ok: true } });
+    type(input(ctx.root, "n1"), "6");
+    type(input(ctx.root, "n2"), "");
+    type(ctx.root.querySelector<HTMLInputElement>('[data-testid="paper-handed-out"]')!, "8");
+    expect(ctx.root.querySelector('[data-testid="paper-summary"]')!.textContent).toBe("Main: 7 phone + 6 paper");
+    expect(ctx.root.querySelector('[data-testid="paper-warnings"]')!.children).toHaveLength(0);
+    submit(ctx.root.querySelector('[data-testid="paper-votes"] form')!);
+    await flush();
+    expect(calls.find((c) => c.method === "PUT")!.body).toEqual({
+      counts: [{ entryId: "n1", count: 6 }, { entryId: "n2", count: 0 }],
+      handedOut: 8,
+    });
+    expect(ctx.root.querySelector(".status")!.textContent).toBe("Paper votes saved.");
+  });
+
+  it("sends no handed-out figure when the field is empty", async () => {
+    const { ctx } = await open(view({}, "closed"), { "PUT /api/events/e1/paper": { ok: true } });
+    submit(ctx.root.querySelector('[data-testid="paper-votes"] form')!);
+    await flush();
+    expect((calls.find((c) => c.method === "PUT")!.body as { handedOut: null }).handedOut).toBeNull();
+  });
+
+  it("warns, without blocking, when a category's paper total is more than the ballots handed out", async () => {
+    const { ctx } = await open(view({ ...two, entries: [...view().entries, n3], paperVotes: [{ entryId: "n1", count: 3 }], paperBallots: 4 }, "closed"));
+    const handed = ctx.root.querySelector<HTMLInputElement>('[data-testid="paper-handed-out"]')!;
+    expect(handed.value).toBe("4");
+    expect([...ctx.root.querySelectorAll('[data-testid="paper-summary"] li')].map((li) => li.textContent)).toEqual([
+      "Chili: 7 phone + 3 paper",
+      "Dessert: 0 phone + 0 paper",
+    ]);
+    expect(ctx.root.querySelectorAll(".paper-entries")).toHaveLength(2);
+    expect(ctx.root.querySelector('[data-testid="paper-votes"] h3')!.textContent).toBe("Chili");
+    type(input(ctx.root, "n2"), "2");
+    expect(ctx.root.querySelector('[data-testid="paper-warnings"]')!.textContent).toBe(
+      "Chili: 5 paper votes, but only 4 ballots were handed out. Check the counts.",
+    );
+    type(handed, "");
+    expect(ctx.root.querySelector('[data-testid="paper-warnings"]')!.children).toHaveLength(0);
+    expect(byText(ctx.root, "button", "Save paper votes")).toBeTruthy();
+  });
+
+  it("shows a refused save in the notice line", async () => {
+    const { ctx } = await open(view({}, "closed"), { "PUT /api/events/e1/paper": [409, { error: "Paper votes can be added only after voting closes", code: "paperLocked" }] });
+    submit(ctx.root.querySelector('[data-testid="paper-votes"] form')!);
+    await flush();
+    expect(ctx.root.querySelector(".status")!.textContent).toContain("only after voting closes");
+  });
+
+  it("is read-only once the results are out, and only if there were paper votes", async () => {
+    expect((await open(view({}, "revealed"))).ctx.root.querySelector('[data-testid="paper-votes"]')).toBeNull();
+    const { ctx } = await open(view({ paperVotes: [{ entryId: "n1", count: 2 }] }, "revealed"));
+    expect(input(ctx.root, "n1").disabled).toBe(true);
+    expect(input(ctx.root, "n1").value).toBe("2");
+    expect(ctx.root.querySelector('[data-testid="paper-votes"]')!.textContent).toContain("locked");
+    expect(ctx.root.querySelector('[data-testid="paper-votes"] button')).toBeNull();
+  });
+
+  it("tells the organizer about the lock before the reveal and the unlock on undo", async () => {
+    const { ctx } = await open(view({}, "closed"));
+    byText(ctx.root, "button", "Start the reveal").click();
+    await flush();
+    expect(document.querySelector("dialog.confirm")!.textContent).toContain("Paper votes lock at the reveal");
+    await answerDialog("Cancel");
+  });
+
+  it("shows the split in the peek, only for dishes with paper votes", async () => {
+    const split = { totals: [{ entryId: "n1", categoryId: "c1", votes: 5, phone: 2, paper: 3 }, { entryId: "n2", categoryId: "c1", votes: 1, phone: 1, paper: 0 }] };
+    const { ctx } = await open(view({}, "open"), { "GET /api/events/e1/totals": split });
+    byText(ctx.root, "button", "Peek").click();
+    await vi.waitFor(() => expect(ctx.root.querySelector<HTMLElement>(".peek")!.hidden).toBe(false));
+    expect([...ctx.root.querySelectorAll(".peek li")].map((li) => li.textContent)).toEqual([
+      "Entry 1, Red chili (Grandma): 5 (2 phone + 3 paper)",
+      "Entry 2, White chili (Kiana): 1",
+    ]);
   });
 });
