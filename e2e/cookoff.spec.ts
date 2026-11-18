@@ -59,6 +59,13 @@ test("a whole cookoff: set up, print, vote blind, reveal 3-2-1, results", async 
     const guest = await phone.newPage();
     await guest.goto(`/v/${eventId}`);
     await expect(guest.getByText("Tap your favorite dish.")).toBeVisible();
+    if (i === 0) {
+      // The card stacks photo, tag and name: the name gets the card's width, not a sliver of it (broken 11-05 to 11-17
+      // when the judge list's `.dishes .dish { display: flex }` also matched the vote grid).
+      const card = guest.locator(".dish").first();
+      const [cardW, nameW] = await Promise.all([card, card.locator(".dish-name")].map(async (l) => (await l.boundingBox())!.width));
+      expect(nameW).toBeGreaterThan(cardW * 0.7);
+    }
     await expect(guest.locator("main")).not.toContainText("Grandma");
     if (i === 3) {
       // The last guest changes their mind (decision 14): still one vote.
