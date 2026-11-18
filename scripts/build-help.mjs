@@ -22,6 +22,8 @@ await build({
       `export { en as printEn } from "./src/printables/content.ts"; export { es as printEs } from "./src/printables/content-es.ts";`,
       `export { guidePage, guidePaths } from "./src/guides/render.ts";`,
       `export { en as guidesEn } from "./src/guides/content.ts"; export { es as guidesEs } from "./src/guides/content-es.ts";`,
+      `export { storyPage, storiesIndexPage, storyPaths } from "./src/stories/render.ts";`,
+      `export { en as storiesEn } from "./src/stories/content.ts";`,
       `export { qrSvg } from "./src/client/qr.ts";`,
       `export { privacyPage } from "./src/privacy/render.ts";`,
       `export { en as privacyEn, es as privacyEs } from "./src/privacy/content.ts";`,
@@ -37,7 +39,7 @@ await build({
   outfile: tmp,
   logLevel: "warning",
 });
-const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, qrSvg, qrTarget, privacyPage, privacyEn, privacyEs } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
+const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, storyPage, storiesIndexPage, storyPaths, storiesEn, qrSvg, qrTarget, privacyPage, privacyEn, privacyEs } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
 
 const versions = [en, es]; // English first: it's the x-default for search engines
 for (const content of versions) {
@@ -66,11 +68,15 @@ for (const content of guideVersions) {
   for (const guide of content.guides) write(guide.path, guidePage(content, guideVersions, printVersions, guide.id));
 }
 
+// The stories (SW-124): an index and a page per story, English only.
+write(storiesEn.indexPath, storiesIndexPage(storiesEn));
+for (const story of storiesEn.stories) write(story.path, storyPage(storiesEn, story.id));
+
 // The privacy page (BIZ-38). /privacy/ and /es/privacidad/ are already in the sitemap (PUBLIC_PATHS).
 const privacyVersions = [privacyEn, privacyEs];
 for (const content of privacyVersions) write(content.path, privacyPage(content, privacyVersions));
 
-fs.writeFileSync(path.join(pub, "sitemap.xml"), sitemap([...printablePaths(printVersions), ...guidePaths(guideVersions)]));
+fs.writeFileSync(path.join(pub, "sitemap.xml"), sitemap([...printablePaths(printVersions), ...guidePaths(guideVersions), ...storyPaths(storiesEn)]));
 fs.writeFileSync(path.join(pub, "robots.txt"), robots());
 
 await build({
@@ -82,4 +88,4 @@ await build({
   outfile: path.join(pub, "help", "filter.js"),
   logLevel: "warning",
 });
-console.log("help, printables and guides pages written");
+console.log("help, printables, guides and stories pages written");
