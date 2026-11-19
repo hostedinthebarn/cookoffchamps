@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { totalVotes } from "../../src/worker/paper";
 import { call, login, makeEntry, makeEvent, send, stubTurnstile, vote } from "./helpers";
@@ -90,6 +91,37 @@ describe("who can add them, and when", () => {
 
     await send(`/api/events/${id}/status`, "POST", { status: "closed" }, host);
     expect((await put(id, { counts: [{ entryId: a.id, count: 2 }] }, host)).status).toBe(200);
+  });
+
+  it("writes nothing if the reveal lands while the save is in flight", async () => {
+    const { host, id, a } = await closedEvent();
+    await put(id, { counts: [{ entryId: a.id, count: 1 }], handedOut: 4 }, host);
+    // The handler checks the status, then reads the body and the entries. Reveal
+    // the event during that entries read, after the early check has passed.
+    const prepare = env.DB.prepare.bind(env.DB);
+    vi.spyOn(env.DB, "prepare").mockImplementation((sql: string) => {
+      const stmt = prepare(sql);
+      if (!sql.includes("FROM entries e JOIN categories")) return stmt;
+      const bind = stmt.bind.bind(stmt);
+      stmt.bind = (...args: unknown[]) => {
+        const bound = bind(...args);
+        const all = bound.all.bind(bound);
+        bound.all = (async () => {
+          await prepare("UPDATE events SET status = 'revealed' WHERE id = ?").bind(id).run();
+          return all();
+        }) as typeof bound.all;
+        return bound;
+      };
+      return stmt;
+    });
+    const res = await put(id, { counts: [{ entryId: a.id, count: 9 }], handedOut: 20 }, host);
+    vi.restoreAllMocks();
+    expect(res.status).toBe(409);
+    expect((await res.json<{ code: string }>()).code).toBe("paperLocked");
+    const row = await env.DB.prepare("SELECT count FROM paper_votes WHERE entry_id = ?").bind(a.id).first<{ count: number }>();
+    expect(row?.count).toBe(1);
+    const ev = await env.DB.prepare("SELECT paper_ballots FROM events WHERE id = ?").bind(id).first<{ paper_ballots: number }>();
+    expect(ev?.paper_ballots).toBe(4);
   });
 
   it("is refused while voting is open", async () => {

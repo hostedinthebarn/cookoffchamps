@@ -57,18 +57,27 @@ export async function savePaper(request: Request, env: Env, eventId: string): Pr
     throw new HttpError(400, "That entry isn't in this event", "entryNotFound");
   }
 
+  // The status check above ran before two awaits, so a reveal could land in
+  // between. Every write repeats it inside the batch (one D1 transaction), so a
+  // revealed event's paper counts can't change: either all of it applies while
+  // the event is still closed, or none of it does.
+  const stillClosed = "EXISTS (SELECT 1 FROM events WHERE id = ? AND status = 'closed')";
   const now = new Date().toISOString();
-  await env.DB.batch([
-    env.DB.prepare("UPDATE events SET paper_ballots = ? WHERE id = ?").bind(handedOut, eventId),
+  const [ballots] = await env.DB.batch([
+    env.DB.prepare("UPDATE events SET paper_ballots = ? WHERE id = ? AND status = 'closed'").bind(handedOut, eventId),
     ...counts.map((c) =>
       c.count === 0
-        ? env.DB.prepare("DELETE FROM paper_votes WHERE entry_id = ?").bind(c.entryId)
+        ? env.DB.prepare(`DELETE FROM paper_votes WHERE entry_id = ? AND ${stillClosed}`).bind(c.entryId, eventId)
         : env.DB.prepare(
-            `INSERT INTO paper_votes (category_id, entry_id, count, updated_at) VALUES (?, ?, ?, ?)
+            `INSERT INTO paper_votes (category_id, entry_id, count, updated_at)
+             SELECT ?, ?, ?, ? WHERE ${stillClosed}
              ON CONFLICT (category_id, entry_id) DO UPDATE SET count = excluded.count, updated_at = excluded.updated_at`,
-          ).bind(categoryOf.get(c.entryId)!, c.entryId, c.count, now),
+          ).bind(categoryOf.get(c.entryId)!, c.entryId, c.count, now, eventId),
     ),
   ]);
+  if (!ballots?.meta.changes) {
+    throw new HttpError(409, "Paper votes can be added only after voting closes and before the reveal", "paperLocked");
+  }
   return json({ ok: true });
 }
 

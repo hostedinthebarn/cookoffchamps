@@ -829,6 +829,24 @@ describe("paper votes (SW-92)", () => {
     expect(ctx.root.querySelector(".status")!.textContent).toBe("Paper votes saved.");
   });
 
+  it("locks the form while saving, and unlocks it if the save fails", async () => {
+    const { ctx } = await open(view({}, "closed"), { "PUT /api/events/e1/paper": [500, { error: "Something went wrong" }] });
+    const controls = () => [
+      input(ctx.root, "n1"),
+      ctx.root.querySelector<HTMLInputElement>('[data-testid="paper-handed-out"]')!,
+      ctx.root.querySelector<HTMLButtonElement>('[data-testid="paper-save"]')!,
+    ];
+    type(input(ctx.root, "n1"), "5");
+    submit(ctx.root.querySelector('[data-testid="paper-votes"] form')!);
+    // The save is in flight: a later edit can't be typed, and a second save can't be sent.
+    expect(controls().map((c) => c.disabled)).toEqual([true, true, true]);
+    submit(ctx.root.querySelector('[data-testid="paper-votes"] form')!);
+    await flush();
+    expect(calls.filter((c) => c.method === "PUT")).toHaveLength(1);
+    expect(controls().map((c) => c.disabled)).toEqual([false, false, false]);
+    expect(input(ctx.root, "n1").value).toBe("5");
+  });
+
   it("sends no handed-out figure when the field is empty", async () => {
     const { ctx } = await open(view({}, "closed"), { "PUT /api/events/e1/paper": { ok: true } });
     submit(ctx.root.querySelector('[data-testid="paper-votes"] form')!);
