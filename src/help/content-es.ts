@@ -377,7 +377,7 @@ export const es: HelpContent = {
           id: "other-handlers",
           q: "¿Quién más maneja los datos?",
           a: [
-            "Cloudflare hace funcionar la app, guarda los concursos y las fotos, y hace la verificación contra robots. Resend entrega los correos de acceso y de invitación. No vendemos los datos ni los compartimos con nadie más.",
+            "Cloudflare hace funcionar la app, guarda los concursos y las fotos, y hace la verificación contra robots. Resend entrega los correos de acceso y de invitación. No vendemos los datos ni compartimos los datos de la app con nadie más. Anthropic hace funcionar la IA que lee los mensajes y comentarios de nuestras cuentas en redes sociales y escribe las respuestas de Cindy.",
           ],
         },
         {

@@ -39,6 +39,9 @@ describe("the privacy page", () => {
       expect(text).toContain("Cloudflare");
       expect(text).toContain("secret");
       expect(text).toContain("Pinterest"); // our own social accounts' analytics (BIZ-61)
+      expect(text).toContain("Anthropic"); // Cindy's replies to comments and DMs (BIZ-112)
+      expect(text).toContain("Cindy");
+      expect(text).toMatch(/30 (days|días)/);
     }
   });
 
