@@ -417,7 +417,7 @@ export const en: HelpContent = {
           id: "other-handlers",
           q: "Who else handles the data?",
           a: [
-            "Cloudflare runs the app, stores events and photos, and runs the anti-bot check. Resend delivers login and invite emails. We don't sell data or share it with anyone else.",
+            "Cloudflare runs the app, stores events and photos, and runs the anti-bot check. Resend delivers login and invite emails. We don't sell data or share app data with anyone else. Anthropic runs the AI that reads messages and comments on our social media accounts and writes Cindy's replies.",
           ],
         },
         {
