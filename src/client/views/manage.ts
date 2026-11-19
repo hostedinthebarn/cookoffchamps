@@ -254,17 +254,17 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
     handedOut.addEventListener("input", check);
     check();
 
-    const saveButton = locked ? null : (h("button", { type: "submit", "data-testid": "paper-save" }, t.paperSave) as HTMLButtonElement);
+    const saveButton = h("button", { type: "submit", "data-testid": "paper-save" }, t.paperSave) as HTMLButtonElement;
     // While a save and the reload after it are running, nothing can be typed or
     // sent again: the reload would overwrite a later edit with the saved count.
     function busy(on: boolean): void {
       for (const input of [...inputs.values(), handedOut]) input.disabled = on;
-      if (saveButton) saveButton.disabled = on;
+      saveButton.disabled = on;
     }
 
     async function save(e: Event): Promise<void> {
       e.preventDefault();
-      if (saveButton?.disabled) return;
+      if (saveButton.disabled) return;
       busy(true);
       try {
         const counts = [...inputs].map(([entryId, input]) => ({ entryId, count: Number(input.value || 0) }));
@@ -288,7 +288,7 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
         h("label", {}, t.paperHandedOut, handedOut),
         summary,
         warnings,
-        saveButton),
+        locked ? null : saveButton),
     );
   }
 
