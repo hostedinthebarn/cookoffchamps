@@ -15,6 +15,7 @@ import { langOf, loginEmail } from "./i18n";
 import { listCriteria, progress } from "./judging";
 import { comments, proResults } from "./results";
 import { newCode, newId } from "./ids";
+import { PAPER_COUNT_SQL, totalVotes } from "./paper";
 import { deletePhotoPrefix } from "./photos";
 
 // --- Events -----------------------------------------------------------------
@@ -80,7 +81,7 @@ export async function manageEvent(request: Request, env: Env, eventId: string): 
   const email = await requireSession(request, env);
   const { event, role } = await requireOrganizer(env, eventId, email);
 
-  const [categories, entries, organizers, counts, judges] = await env.DB.batch([
+  const [categories, entries, organizers, counts, judges, paper] = await env.DB.batch([
     env.DB.prepare("SELECT id, name, position FROM categories WHERE event_id = ? ORDER BY position").bind(eventId),
     env.DB.prepare(
       `SELECT e.id, e.category_id AS categoryId, e.number, e.cook_name AS cookName,
@@ -100,6 +101,10 @@ export async function manageEvent(request: Request, env: Env, eventId: string): 
     env.DB.prepare(
       "SELECT id, name FROM judges WHERE event_id = ? AND revoked_at IS NULL ORDER BY created_at, rowid",
     ).bind(eventId),
+    // Paper counts (SW-92), typed in between the close and the reveal.
+    env.DB.prepare(
+      "SELECT p.entry_id AS entryId, p.count FROM paper_votes p JOIN categories c ON c.id = p.category_id WHERE c.event_id = ?",
+    ).bind(eventId),
   ]);
 
   return json({
@@ -111,6 +116,8 @@ export async function manageEvent(request: Request, env: Env, eventId: string): 
     organizers: organizers!.results,
     votesCast: counts!.results,
     judges: judges!.results,
+    paperVotes: paper!.results,
+    paperBallots: event.paper_ballots,
     // Scoring (SW-25): the criteria and settings, and who has scored what (rule 15).
     judging: {
       criteria: await listCriteria(env, eventId),
@@ -213,7 +220,8 @@ export async function totals(request: Request, env: Env, eventId: string): Promi
   const email = await requireSession(request, env);
   const { event } = await requireOrganizer(env, eventId, email);
   const { results } = await env.DB.prepare(
-    `SELECT e.id AS entryId, e.category_id AS categoryId, COUNT(v.device_token) AS votes
+    `SELECT e.id AS entryId, e.category_id AS categoryId, COUNT(v.device_token) AS phone,
+            ${PAPER_COUNT_SQL} AS paper
        FROM entries e
        JOIN categories c ON c.id = e.category_id
        LEFT JOIN votes v ON v.entry_id = e.id
@@ -221,11 +229,12 @@ export async function totals(request: Request, env: Env, eventId: string): Promi
       GROUP BY e.id ORDER BY c.position, e.number`,
   )
     .bind(eventId)
-    .all();
+    .all<{ entryId: string; categoryId: string; phone: number; paper: number }>();
+  const tallies = results.map((r) => ({ ...r, votes: totalVotes(r) }));
   // A pro event's judged standings come too (SW-25), with the awards and the
   // judges' comments, which only organizers see by name (rules 14 and 19).
-  if (event.kind !== "pro") return json({ totals: results });
-  return json({ totals: results, judged: { ...(await proResults(env, event)), comments: await comments(env, eventId) } });
+  if (event.kind !== "pro") return json({ totals: tallies });
+  return json({ totals: tallies, judged: { ...(await proResults(env, event)), comments: await comments(env, eventId) } });
 }
 
 // --- Categories (decision 12) ------------------------------------------------

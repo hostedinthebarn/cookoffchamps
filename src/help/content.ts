@@ -202,6 +202,14 @@ export const en: HelpContent = {
           ],
         },
         {
+          id: "paper-ballots",
+          q: "Can some guests vote on paper and others on their phones?",
+          a: [
+            "Yes, on a family event. After you close voting, an \"Add paper votes\" step appears: count the paper ballots (the tally sheet helps) and type one number for each dish. The app adds them to the phone votes, and the results page shows the split, such as \"14 phone + 6 paper\". You can edit the counts until the reveal, which locks them. Undoing the reveal unlocks them.",
+            "A paper ballot has no name on it, so the app can't tell whether a guest voted twice. Give each guest one way to vote: scan the code or take a paper ballot, and hand paper only to people who aren't scanning. If you type how many paper ballots you handed out, the app warns you when a category's paper total is more than that. Judged events don't take paper votes.",
+          ],
+        },
+        {
           id: "change-dishes",
           q: "Can I change the dishes after voting closes?",
           a: [

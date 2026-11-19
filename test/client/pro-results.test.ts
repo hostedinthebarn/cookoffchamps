@@ -37,6 +37,8 @@ function manage(status: ManageView["event"]["status"], overrides: Partial<Manage
     ],
     organizers: [],
     votesCast: [],
+    paperVotes: [],
+    paperBallots: null,
     judges: [],
     judging,
     ...overrides,

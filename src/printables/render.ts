@@ -45,7 +45,8 @@ function part(p: Part, foot: string): string {
   }
   const head = p.columns.map((c) => `<th scope="col">${escapeHtml(c)}</th>`).join("");
   return `<section class="sheet">${h}
-<table class="sheet-table tally"><thead><tr>${head}</tr></thead><tbody>${blanks(TALLY_ROWS, p.columns.length)}</tbody></table>${foot}</section>`;
+<table class="sheet-table tally"><thead><tr>${head}</tr></thead><tbody>${blanks(TALLY_ROWS, p.columns.length)}</tbody></table>
+<p class="sheet-note">${escapeHtml(p.note)}</p>${foot}</section>`;
 }
 
 /** The foot of every printed page: the mark, the QR code and the way to the app. */

@@ -57,6 +57,9 @@ export interface ManageView {
   entries: ManageEntry[];
   organizers: { email: string; role: "creator" | "co" }[];
   votesCast: { categoryId: string; votes: number }[];
+  /** Paper counts per dish (SW-92), and how many ballots were handed out, if entered. */
+  paperVotes: { entryId: string; count: number }[];
+  paperBallots: number | null;
   judges: Judge[];
   judging: Judging;
 }
@@ -100,7 +103,8 @@ export interface JudgeComment {
 }
 
 export interface Totals {
-  totals: { entryId: string; categoryId: string; votes: number }[];
+  /** `votes` is phone plus paper (SW-92). */
+  totals: { entryId: string; categoryId: string; votes: number; phone: number; paper: number }[];
   /** Pro events only (SW-25): the judged standings, the awards and the comments. */
   judged?: {
     scores: JudgedScore[];
@@ -119,6 +123,9 @@ export interface PublicEntry {
   photoKey: string | null;
   cookName?: string;
   votes?: number;
+  /** Family results (SW-92): the split of `votes`. */
+  phoneVotes?: number;
+  paperVotes?: number;
   /** Pro events (SW-25): the raffle ticket, and once revealed the judged result. */
   ticket?: string;
   score?: number | null;

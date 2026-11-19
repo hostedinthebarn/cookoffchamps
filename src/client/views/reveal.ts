@@ -18,7 +18,7 @@ export interface Slide {
 }
 
 /** Every click of the reveal, category by category, 3rd → 1st within each (decisions 7, 8, 12). */
-export function buildSlides(data: ManageView, totals: Totals["totals"]): Slide[] {
+export function buildSlides(data: ManageView, totals: Pick<Totals["totals"][number], "entryId" | "categoryId" | "votes">[]): Slide[] {
   const multi = data.categories.length > 1;
   return data.categories.flatMap((c) =>
     revealSequence(totals.filter((t) => t.categoryId === c.id)).map((step) => ({ category: multi ? c.name : null, step })),
