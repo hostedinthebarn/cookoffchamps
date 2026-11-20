@@ -101,7 +101,39 @@ export function storiesIndexPage(content: StoriesContent): string {
 ${foot(content)}`;
 }
 
-/** The index and every story, for the sitemap. */
+/** The index and every story, for the sitemap. With no story live yet, nothing. */
 export function storyPaths(content: StoriesContent): string[] {
-  return [content.indexPath, ...content.stories.map((s) => s.path)];
+  return content.stories.length ? [content.indexPath, ...content.stories.map((s) => s.path)] : [];
+}
+
+// Gary, 2026-11-20: a page waiting for its date is held back here, in the code, never by leaving
+// its PR open (open PRs get left behind or merged by accident). The build leaves out every story
+// whose datePublished is still ahead, and the daily scheduled deploy (ci.yml) publishes it on the day.
+
+/** Today's date in Texas (America/Chicago) as YYYY-MM-DD, the day each datePublished is compared with. */
+export function todayInTexas(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Chicago",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+/** The same content with only the stories whose datePublished has arrived. */
+export function publishedStories(content: StoriesContent, today: string): StoriesContent {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) throw new Error(`not a YYYY-MM-DD date: "${today}"`);
+  return { ...content, stories: content.stories.filter((s) => s.datePublished <= today) };
+}
+
+/** Guide content with its links to stories that aren't live yet left out, so no page links to a held-back story. */
+export function withLiveStoryLinks<G extends { guides: { stories?: { href: string }[] }[] }>(
+  guides: G,
+  live: StoriesContent,
+): G {
+  const paths = new Set(live.stories.map((s) => s.path));
+  return {
+    ...guides,
+    guides: guides.guides.map((g) => (g.stories ? { ...g, stories: g.stories.filter((l) => paths.has(l.href)) } : g)),
+  };
 }

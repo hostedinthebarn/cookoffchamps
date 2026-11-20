@@ -6,7 +6,15 @@ import { en as printEn } from "../../src/printables/content";
 import { es as printEs } from "../../src/printables/content-es";
 import { es as guidesEs } from "../../src/guides/content-es";
 import { en, type StoriesContent } from "../../src/stories/content";
-import { storiesIndexPage, storyJsonLd, storyPage, storyPaths } from "../../src/stories/render";
+import {
+  publishedStories,
+  storiesIndexPage,
+  storyJsonLd,
+  storyPage,
+  storyPaths,
+  todayInTexas,
+  withLiveStoryLinks,
+} from "../../src/stories/render";
 
 const parse = (html: string) => new DOMParser().parseFromString(html, "text/html");
 const story = en.stories[0]!;
@@ -84,5 +92,43 @@ describe("the cookie guide's link to its story", () => {
     expect(a.getAttribute("href")).toBe(story.path);
     expect(d.querySelector(".guide-story")!.textContent).toContain("The story behind the cookie");
     expect(parse(guidePage(guidesEn, [guidesEn, guidesEs], [printEn, printEs], "pie")).querySelector(".guide-story")).toBeNull();
+  });
+});
+
+describe("stories go live on their date, not when the PR merges (Gary, 2026-11-20)", () => {
+  const day = (iso: string, delta: number) => {
+    const d = new Date(`${iso}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + delta);
+    return d.toISOString().slice(0, 10);
+  };
+
+  it("leaves a story out the day before its date and puts it in on the day", () => {
+    expect(publishedStories(en, day(story.datePublished, -1)).stories).not.toContainEqual(story);
+    expect(publishedStories(en, story.datePublished).stories).toContainEqual(story);
+    expect(publishedStories(en, day(story.datePublished, 1)).stories).toContainEqual(story);
+  });
+
+  it("refuses a date that isn't YYYY-MM-DD, so a typo can't publish everything", () => {
+    expect(() => publishedStories(en, "12/07/2026")).toThrow(/YYYY-MM-DD/);
+  });
+
+  it("lists nothing in the sitemap until a story is live, not even the index", () => {
+    expect(storyPaths(publishedStories(en, "2000-01-01"))).toEqual([]);
+    expect(storyPaths(publishedStories(en, story.datePublished))).toContain(story.path);
+  });
+
+  it("drops the guide's link to a story that isn't live, and keeps it once it is", () => {
+    const linked = (g: typeof guidesEn) => g.guides.flatMap((x) => x.stories ?? []).map((l) => l.href);
+    expect(linked(withLiveStoryLinks(guidesEn, publishedStories(en, "2000-01-01")))).toEqual([]);
+    expect(linked(withLiveStoryLinks(guidesEn, publishedStories(en, story.datePublished)))).toContain(story.path);
+    const cookie = withLiveStoryLinks(guidesEn, publishedStories(en, "2000-01-01")).guides.find((g) => g.stories);
+    expect(parse(guidePage({ ...guidesEn, guides: [cookie!] }, [guidesEn, guidesEs], [printEn, printEs], cookie!.id))
+      .querySelector(".guide-story")).toBeNull();
+  });
+
+  it("counts the day in Texas, not UTC", () => {
+    expect(todayInTexas(new Date("2026-12-07T03:00:00Z"))).toBe("2026-12-06"); // 9pm on the 6th in Texas
+    expect(todayInTexas(new Date("2026-12-07T07:00:00Z"))).toBe("2026-12-07");
+    expect(todayInTexas()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

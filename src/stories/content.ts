@@ -75,7 +75,7 @@ export const en: StoriesContent = {
       heading: "Where do Christmas cookies come from?",
       description:
         'Christmas cookies go back to medieval spice baking. Where "cookie" comes from, how German cutters shaped American Christmas, and when swaps began.',
-      // ⚠️ Planned go-live (Gary, 2026-11-20: use the go-live date). Change it if the merge moves off 12-07.
+      // The go-live date: the build holds the page back until this day, Texas time, and the daily deploy publishes it.
       datePublished: "2026-12-07",
       paragraphs: [
         ["Christmas cookies start in medieval Europe, in recipes made once spices like cinnamon and ginger reached the bakers' kitchens. The rest of the story crosses an ocean and takes a few centuries."],

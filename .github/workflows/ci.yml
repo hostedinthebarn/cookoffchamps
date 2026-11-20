@@ -3,6 +3,11 @@ name: CI
 on:
   push:
   pull_request:
+  # Daily at 06:15 Texas time (11:15 UTC in winter): rebuild and deploy main, so a story held back by
+  # its datePublished goes live on its day with nobody merging anything (SW-124, Gary 2026-11-20).
+  schedule:
+    - cron: "15 11 * * *"
+  workflow_dispatch:
 
 # Read-only by default (code scanning: actions/missing-workflow-permissions); deploy sets its own.
 permissions:
@@ -53,7 +58,7 @@ jobs:
   # Remote D1 migrations stay manual: apply them before merging code that needs them.
   deploy:
     needs: [test, e2e]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -95,6 +100,18 @@ jobs:
           else
             echo "FAIL /third-party-notices.txt -> $code, missing or the app shell"; fail=1
           fi
+          # SW-137: every story this build published must be the real page (its own <title>), not the app shell.
+          for f in public/stories/index.html public/stories/*/index.html; do
+            [ -e "$f" ] || continue
+            p="/${f#public/}"; p="${p%index.html}"
+            title=$(grep -o '<title>[^<]*' "$f" | head -1 | cut -c8-)
+            code=$(curl -s -o /tmp/story -w '%{http_code}' -A "$UA" "$SITE$p")
+            if [ "$code" = 200 ] && [ "$(sha256sum < /tmp/story)" != "$shell" ] && grep -qF "$title" /tmp/story; then
+              echo "ok   $p -> 200, the story page"
+            else
+              echo "FAIL $p -> $code, missing or the app shell"; fail=1
+            fi
+          done
           for p in /package.json /wrangler.jsonc /src/worker/index.ts /.dev.vars /.git/config /README.md; do
             code=$(curl -s -o /tmp/body -w '%{http_code}' -A "$UA" "$SITE$p")
             if [ "$code" = 404 ] || [ "$code" = 403 ] || [ "$(sha256sum < /tmp/body)" = "$shell" ]; then
