@@ -25,6 +25,12 @@ function dishCard(entry: PublicEntry, extra: Node[]): HTMLElement {
   );
 }
 
+/** "14 votes", and when paper votes were added, "14 votes (9 phone + 5 paper)" (SW-92). */
+function votesLine(e: PublicEntry): string {
+  const t = m().common;
+  return e.paperVotes ? `${t.votes(e.votes!)} (${t.voteSplit(e.phoneVotes!, e.paperVotes)})` : t.votes(e.votes!);
+}
+
 /** Results, once revealed (decision 13): placings with cooks, counts and photos. */
 function results(view: PublicView): Node[] {
   const t = m().common;
@@ -41,7 +47,7 @@ function results(view: PublicView): Node[] {
           h("p", { class: "place" }, p.place === 1 && p.entryIds.length > 1 ? t.coChampions : t.place(p.place, p.entryIds.length > 1)),
           ...p.entryIds.map((id) => {
             const e = c.entries.find((x) => x.id === id)!;
-            return dishCard(e, [h("p", { class: "cook" }, t.by(e.cookName!)), h("p", { class: "votes" }, t.votes(e.votes!))]);
+            return dishCard(e, [h("p", { class: "cook" }, t.by(e.cookName!)), h("p", { class: "votes" }, votesLine(e))]);
           }),
         ),
       )),

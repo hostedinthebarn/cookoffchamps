@@ -16,6 +16,7 @@ export interface EventRow {
   peoples_choice: number;
   grand_champion: number;
   cook_comments: number;
+  paper_ballots: number | null;
   created_by: string;
   created_at: string;
 }

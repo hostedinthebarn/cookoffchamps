@@ -43,7 +43,7 @@ export const en: PrivacyContent = {
   linkText: "Privacy Policy",
   description: "What Cookoff Champs keeps about organizers, cooks and guests, for how long, and who else handles it.",
   updatedLabel: "Last updated",
-  updated: "2026-11-12",
+  updated: "2026-11-18",
   appHref: "/",
   helpLink: "Help and questions",
   helpHref: "/help/#privacy",
@@ -79,6 +79,13 @@ export const en: PrivacyContent = {
       body: ["We remove location, time and phone details from every photo before storing it. Anyone with the event link can see them."],
     },
     {
+      id: "social",
+      title: "Our social media accounts",
+      body: [
+        "When you comment on or message our Facebook, Instagram or YouTube accounts, we keep your username, what you wrote and our reply, so we can answer you and check our replies. Cindy, our AI assistant, writes some replies and tells you she's an AI. We delete our copy after 30 days. Those platforms keep their own copies under their own policies. We never sell these messages or use them for advertising.",
+      ],
+    },
+    {
       id: "how-long",
       title: "How long",
       body: [
@@ -98,6 +105,7 @@ export const en: PrivacyContent = {
       title: "Who else handles it",
       body: [
         "Cloudflare (hosting, storage, anti-bot check, visit counts) and Resend (email). They process it for us, not for themselves. We don't sell data.",
+        "Anthropic runs the AI that reads messages and comments on our social media accounts and writes Cindy's replies.",
         "We also read the analytics for our own social media accounts (Facebook, Instagram, YouTube and Pinterest) to see how our posts do. That's about our posts and holds nothing about the people who use the app.",
       ],
     },
@@ -124,7 +132,7 @@ export const es: PrivacyContent = {
   linkText: "Política de privacidad",
   description: "Qué guarda Cookoff Champs de quien organiza, quien cocina y los invitados, por cuánto tiempo y quién más lo maneja.",
   updatedLabel: "Última actualización",
-  updated: "2026-11-12",
+  updated: "2026-11-18",
   appHref: "/?lang=es",
   helpLink: "Ayuda y preguntas",
   helpHref: "/es/ayuda/#privacy",
@@ -160,6 +168,13 @@ export const es: PrivacyContent = {
       body: ["Quitamos los datos de ubicación, hora y teléfono de cada foto antes de guardarla. Cualquiera que tenga el enlace del concurso puede verlas."],
     },
     {
+      id: "social",
+      title: "Nuestras cuentas en redes sociales",
+      body: [
+        "Cuando comentas o nos escribes en nuestras cuentas de Facebook, Instagram o YouTube, guardamos tu nombre de usuario, lo que escribiste y nuestra respuesta, para poder contestarte y revisar nuestras respuestas. Cindy, nuestra asistente de IA, escribe algunas respuestas y te dice que es una IA. Borramos nuestra copia después de 30 días. Esas plataformas guardan sus propias copias según sus propias políticas. Nunca vendemos estos mensajes ni los usamos para publicidad.",
+      ],
+    },
+    {
       id: "how-long",
       title: "Por cuánto tiempo",
       body: [
@@ -179,6 +194,7 @@ export const es: PrivacyContent = {
       title: "Quién más lo maneja",
       body: [
         "Cloudflare (alojamiento, almacenamiento, verificación contra robots y conteo de visitas) y Resend (correo). Lo procesan por nosotros, no para sí mismos. No vendemos datos.",
+        "Anthropic hace funcionar la IA que lee los mensajes y comentarios de nuestras cuentas en redes sociales y escribe las respuestas de Cindy.",
         "También leemos las estadísticas de nuestras propias cuentas en redes sociales (Facebook, Instagram, YouTube y Pinterest) para ver cómo les va a nuestras publicaciones. Son datos sobre nuestras publicaciones y no incluyen nada sobre las personas que usan la app.",
       ],
     },

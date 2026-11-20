@@ -41,6 +41,8 @@ export const en = {
     entry: (n: number) => `Entry ${n}`,
     by: (cook: string) => `by ${cook}`,
     votes: (n: number) => plural(n, "vote", "votes"),
+    // SW-92: the phone/paper split on results, shown only when paper votes were added.
+    voteSplit: (phone: number, paper: number) => `${phone} phone + ${paper} paper`,
     place: (n: number, tied: boolean) => `${ordinal(n)} place${tied ? " (tied)" : ""}`,
     coChampions: "Co-champions!",
     noDishes: "No dishes yet.",
@@ -140,7 +142,8 @@ export const en = {
     closedHint: "Voting is closed. Totals stay hidden from guests until the reveal.",
     startReveal: "Start the reveal",
     revealTitle: "Reveal the winners?",
-    revealBody: "The reveal shows the winners, 3rd place first. When the champion appears, the results go public on the guests' link.",
+    revealBody:
+      "The reveal shows the winners, 3rd place first. When the champion appears, the results go public on the guests' link. Paper votes lock at the reveal.",
     revealConfirm: "Reveal the winners",
     reopen: "Reopen voting",
     reopenAside: "Closed too soon? Reopen voting: every vote so far is kept.",
@@ -149,11 +152,24 @@ export const en = {
     undo: "Undo the reveal",
     undoTitle: "Undo the reveal?",
     undoBody:
-      "The results page goes back to \"results coming soon\". If you then reopen voting, the standings people have already seen could change.",
+      "The results page goes back to \"results coming soon\", and paper votes can be edited again. If you then reopen voting or change paper votes, the standings people have already seen could change.",
     votesCast: "Votes cast",
     peek: "Peek at the standings",
     hidePeek: "Hide the standings",
-    peekRow: (n: number, dish: string, cook: string, votes: number) => `Entry ${n}, ${dish} (${cook}): ${votes}`,
+    peekRow: (n: number, dish: string, cook: string, votes: number, split = "") => `Entry ${n}, ${dish} (${cook}): ${votes}${split}`,
+    // Paper ballots (SW-92)
+    paperTitle: "Paper votes",
+    paperHint:
+      "Did some guests vote on paper? Count the ballots (the tally sheet helps) and type each dish's total here. They're added to the phone votes. One way per guest: scan the code or take a paper ballot, not both.",
+    paperLocked: "Paper votes are locked now that the results are out. Undo the reveal to change them.",
+    paperEntry: (n: number, dish: string) => `Entry ${n}, ${dish}`,
+    paperCount: (n: number) => `Paper votes for entry ${n}`,
+    paperHandedOut: "Paper ballots handed out (optional) ",
+    paperCategory: (name: string, phone: number, paper: number) => `${name}: ${phone} phone + ${paper} paper`,
+    paperWarn: (name: string, paper: number, handedOut: number) =>
+      `${name}: ${paper} paper votes, but only ${handedOut} ballots were handed out. Check the counts.`,
+    paperSave: "Save paper votes",
+    paperSaved: "Paper votes saved.",
     noPhoto: "No photo",
     edit: "Edit",
     delete: "Delete",

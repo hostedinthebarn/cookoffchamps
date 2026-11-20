@@ -455,8 +455,9 @@ label.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 40
 label.check input { width: auto; min-height: 0; margin-top: 4px; flex: none; }
 .progress details { margin: 6px 0; }
 .progress ul { margin: 6px 0 0; }
-.dishes { list-style: none; padding: 0; margin: 0 0 14px; }
-.dishes .dish { display: flex; justify-content: space-between; align-items: center; width: 100%; margin: 0 0 8px; text-align: left; }
+/* The judge's list only (a <ul>): the guest vote grid is a <div class="dishes"> and must keep its stacked cards. */
+ul.dishes { list-style: none; padding: 0; margin: 0 0 14px; }
+ul.dishes .dish { display: flex; justify-content: space-between; align-items: center; width: 100%; margin: 0 0 8px; text-align: left; }
 .scorecard select { max-width: 12rem; }
 
 /* ---------- Help pages (SW-24): plain HTML written at build time ---------- */

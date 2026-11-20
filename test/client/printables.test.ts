@@ -129,6 +129,7 @@ describe("a printable's page", () => {
     const tally = sheets[2]!;
     expect(tally.querySelectorAll("tbody tr")).toHaveLength(TALLY_ROWS);
     expect(tally.querySelectorAll("tbody tr:first-child td")).toHaveLength(5);
+    expect(tally.querySelector(".sheet-note")!.textContent).toContain("add them in the app under Paper votes");
 
     for (const sheet of sheets) {
       expect(sheet.querySelector(".sheet-foot .qr [data-test=qr]")).not.toBeNull();
@@ -139,12 +140,13 @@ describe("a printable's page", () => {
   it("escapes the words it prints", () => {
     const sneaky: PrintablesContent = {
       ...en,
-      sheets: [{ ...en.sheets[0]!, title: "<b>Pies</b>", parts: [{ kind: "tally", heading: "A & B", columns: ['"x"'] }] }],
+      sheets: [{ ...en.sheets[0]!, title: "<b>Pies</b>", parts: [{ kind: "tally", heading: "A & B", columns: ['"x"'], note: "Tally <i>note</i>" }] }],
     };
     const html = sheetPage(sneaky, [sneaky], "pie", QR);
     expect(html).toContain("&lt;b&gt;Pies&lt;/b&gt;");
     expect(html).toContain("A &amp; B");
     expect(html).toContain("&quot;x&quot;");
+    expect(html).toContain("Tally &lt;i&gt;note&lt;/i&gt;");
   });
 
   it("refuses a sheet that doesn't exist in a language", () => {

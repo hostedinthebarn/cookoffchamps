@@ -204,7 +204,7 @@ describe("live totals", () => {
     const stranger = await login("nosy@example.com");
     expect((await call(`/api/events/${id}/totals`, { cookie: stranger })).status).toBe(403);
     const { totals } = await (await call(`/api/events/${id}/totals`, { cookie: host })).json<{ totals: unknown[] }>();
-    expect(totals).toEqual([{ entryId: a.id, categoryId, votes: 0 }]);
+    expect(totals).toEqual([{ entryId: a.id, categoryId, votes: 0, phone: 0, paper: 0 }]);
   });
 });
 

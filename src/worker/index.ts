@@ -19,6 +19,7 @@ import {
 import { error, HttpError, json } from "./http";
 import { addJudge, judgePage, revokeJudge } from "./judges";
 import { addCriterion, applyPreset, deleteCriterion, submitScores, unlockScores, updateCriterion } from "./judging";
+import { savePaper } from "./paper";
 import { getPhoto } from "./photos";
 import { castVote, lookupCode, publicEvent } from "./public";
 import { cookComments, exportResults } from "./results";
@@ -46,6 +47,7 @@ const ROUTES: [string, string, Handler][] = [
   ["DELETE", "/api/events/:id", deleteEvent],
   ["POST", "/api/events/:id/status", setStatus],
   ["GET", "/api/events/:id/totals", totals],
+  ["PUT", "/api/events/:id/paper", savePaper],
   ["GET", "/api/events/:id/export.csv", exportResults],
   ["POST", "/api/events/:id/categories", addCategory],
   ["POST", "/api/events/:id/organizers", addOrganizer],

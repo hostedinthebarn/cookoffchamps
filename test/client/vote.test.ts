@@ -186,6 +186,17 @@ describe("results page (decision 13)", () => {
     expect(link.textContent).toBe("Run your own cookoff, free");
   });
 
+  it("shows the phone and paper split when paper votes were added (SW-92)", async () => {
+    const v = revealed([{ place: 1, entryIds: ["n2"], votes: 4 }, { place: 2, entryIds: ["n1"], votes: 1 }]);
+    Object.assign(v.categories[0]!.entries[1]!, { phoneVotes: 1, paperVotes: 3 });
+    Object.assign(v.categories[0]!.entries[0]!, { phoneVotes: 1, paperVotes: 0 });
+    fakeApi({ "GET /api/public/events/e1": v });
+    const ctx = makeCtx("/v/e1");
+    await voteView(ctx, "e1");
+    const lines = [...ctx.root.querySelectorAll(".votes")].map((p) => p.textContent);
+    expect(lines).toEqual(["4 votes (1 phone + 3 paper)", "1 vote"]);
+  });
+
   it("marks a shared lower place as tied, and heads each category", async () => {
     fakeApi({ "GET /api/public/events/e1": revealed([{ place: 1, entryIds: ["n1"], votes: 5 }, { place: 2, entryIds: ["n2", "n3"], votes: 4 }], true) });
     const ctx = makeCtx("/v/e1");

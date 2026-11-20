@@ -4,6 +4,10 @@ import type { PrintablesContent } from "./content";
 // site and covered by the native-speaker review (SW-29). Same sheet ids and refs
 // as content.ts.
 
+/** Debajo de cada hoja de conteo (SW-92): los votos en papel se suman a los del celular en la app. */
+const TALLY_NOTE =
+  "¿También dejas votar por celular en la app? Cuenta aquí y suma el total en la app, en Votos en papel. Cada persona vota de una sola forma: escanea el código o toma una boleta en papel.";
+
 export const es: PrintablesContent = {
   lang: "es",
   langName: "Español",
@@ -39,7 +43,7 @@ export const es: PrintablesContent = {
       ],
       parts: [
         { kind: "slips", heading: "Boleta del concurso de pays", lines: ["Mejor pay", "Mejor masa", "Más original"] },
-        { kind: "tally", heading: "Conteo del concurso de pays", columns: ["Pay #", "Pay", "Repostero", "Votos", "Total"] },
+        { kind: "tally", heading: "Conteo del concurso de pays", columns: ["Pay #", "Pay", "Repostero", "Votos", "Total"], note: TALLY_NOTE },
       ],
     },
     {
@@ -94,7 +98,7 @@ export const es: PrintablesContent = {
           criteria: ["Aroma", "Color", "Consistencia", "Sabor", "Regusto"],
           total: "Total",
         },
-        { kind: "tally", heading: "Conteo del concurso de chili", columns: ["Chili #", "Chili", "Cocinero", "Votos", "Total"] },
+        { kind: "tally", heading: "Conteo del concurso de chili", columns: ["Chili #", "Chili", "Cocinero", "Votos", "Total"], note: TALLY_NOTE },
       ],
     },
   ],

@@ -160,6 +160,14 @@ export const es: HelpContent = {
           ],
         },
         {
+          id: "paper-ballots",
+          q: "¿Algunos invitados pueden votar en papel y otros en el celular?",
+          a: [
+            "Sí, en un evento familiar. Después de cerrar la votación aparece el paso \"Votos en papel\": cuenta las boletas en papel (la hoja de conteo ayuda) y escribe un número por cada platillo. La app los suma a los votos por celular, y la página de resultados muestra el desglose, por ejemplo \"14 por celular + 6 en papel\". Puedes editar los conteos hasta el anuncio de ganadores, que los bloquea. Al deshacer el anuncio se desbloquean.",
+            "Una boleta en papel no lleva nombre, así que la app no puede saber si un invitado votó dos veces. Da a cada invitado una sola forma de votar: escanear el código o tomar una boleta en papel, y reparte papel solo a quienes no estén escaneando. Si escribes cuántas boletas en papel repartiste, la app te avisa cuando el total en papel de una categoría sea mayor. Los concursos con jueces no aceptan votos en papel.",
+          ],
+        },
+        {
           id: "change-dishes",
           q: "¿Puedo cambiar los platillos después de cerrar la votación?",
           a: [
@@ -377,7 +385,7 @@ export const es: HelpContent = {
           id: "other-handlers",
           q: "¿Quién más maneja los datos?",
           a: [
-            "Cloudflare hace funcionar la app, guarda los concursos y las fotos, y hace la verificación contra robots. Resend entrega los correos de acceso y de invitación. No vendemos los datos ni los compartimos con nadie más.",
+            "Cloudflare hace funcionar la app, guarda los concursos y las fotos, y hace la verificación contra robots. Resend entrega los correos de acceso y de invitación. No vendemos los datos ni compartimos los datos de la app con nadie más. Anthropic hace funcionar la IA que lee los mensajes y comentarios de nuestras cuentas en redes sociales y escribe las respuestas de Cindy.",
           ],
         },
         {

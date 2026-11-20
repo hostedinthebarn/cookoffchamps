@@ -7,6 +7,9 @@ export default defineConfig({
   testDir: "e2e",
   timeout: 60_000,
   retries: process.env.CI ? 1 : 0,
+  // Agent containers set CI and cap processes; they set PW_WORKERS=1 so Chrome
+  // doesn't start a worker per core and hit the cap (GEN-240). Unset elsewhere.
+  workers: process.env.PW_WORKERS ? Number(process.env.PW_WORKERS) : undefined,
   use: { baseURL: "http://localhost:8787", trace: "retain-on-failure" },
   projects: [{ name: "mobile", use: { ...devices["Pixel 7"] } }],
   webServer: {

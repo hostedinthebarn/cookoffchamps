@@ -59,6 +59,13 @@ test("a whole cookoff: set up, print, vote blind, reveal 3-2-1, results", async 
     const guest = await phone.newPage();
     await guest.goto(`/v/${eventId}`);
     await expect(guest.getByText("Tap your favorite dish.")).toBeVisible();
+    if (i === 0) {
+      // The card stacks photo, tag and name: the name gets the card's width, not a sliver of it (broken 11-05 to 11-17
+      // when the judge list's `.dishes .dish { display: flex }` also matched the vote grid).
+      const card = guest.locator(".dish").first();
+      const [cardW, nameW] = await Promise.all([card, card.locator(".dish-name")].map(async (l) => (await l.boundingBox())!.width));
+      expect(nameW).toBeGreaterThan(cardW * 0.7);
+    }
     await expect(guest.locator("main")).not.toContainText("Grandma");
     if (i === 3) {
       // The last guest changes their mind (decision 14): still one vote.
@@ -133,6 +140,80 @@ test("a whole cookoff: set up, print, vote blind, reveal 3-2-1, results", async 
   // ...and reveal again.
   await reveal();
   await resultsShown();
+});
+
+test("phone and paper votes make one result (SW-92)", async ({ page, browser, request }) => {
+  await login(page, request, `paper-${Date.now()}@example.com`);
+  await page.getByLabel("Name").fill("Church Pie Night");
+  await page.getByRole("button", { name: "Create" }).click();
+  await expect(page.getByRole("heading", { name: "Church Pie Night" })).toBeVisible();
+  const eventId = page.url().split("/e/")[1]!;
+  await addDish(page, "Grandma", "Pecan pie");
+  await addDish(page, "Kiana", "Pumpkin pie");
+
+  // No paper step while voting is open.
+  await page.getByRole("button", { name: "Open voting" }).click();
+  await expect(page.getByText("Voting is open.")).toBeVisible();
+  await expect(page.getByTestId("paper-votes")).toHaveCount(0);
+
+  // Two guests vote on their phones, both for the pecan pie.
+  for (let i = 0; i < 2; i++) {
+    const phone = await browser.newContext();
+    const guest = await phone.newPage();
+    await guest.goto(`/v/${eventId}`);
+    await guest.locator(".dish", { hasText: "Pecan pie" }).click();
+    await expect(guest.locator(".dish.chosen")).toContainText("Pecan pie");
+    await phone.close();
+  }
+  await expect(page.getByTestId("votes-cast")).toHaveText("2", { timeout: 15_000 });
+
+  const confirmDialog = page.locator("dialog.confirm");
+  await page.getByRole("button", { name: "Close voting" }).click();
+  await confirmDialog.getByRole("button", { name: "Close voting" }).click();
+  await expect(page.getByText("Voting is closed.")).toBeVisible();
+
+  // Paper: the pumpkin pie has five paper votes, so it moves ahead of the pecan's two phone votes.
+  const paper = page.getByTestId("paper-votes");
+  await expect(paper).toContainText("One way per guest");
+  await paper.getByLabel("Paper votes for entry 2").fill("5");
+  await paper.getByTestId("paper-handed-out").fill("4");
+  await expect(page.getByTestId("paper-warnings")).toContainText("5 paper votes, but only 4 ballots were handed out");
+  await paper.getByTestId("paper-handed-out").fill("6");
+  await expect(page.getByTestId("paper-warnings")).toHaveText("");
+  await paper.getByRole("button", { name: "Save paper votes" }).click();
+  await expect(page.getByText("Paper votes saved.")).toBeVisible();
+  await expect(page.getByTestId("paper-votes").getByLabel("Paper votes for entry 2")).toHaveValue("5");
+
+  // The reveal shows the combined winner, with the total only; then the paper votes lock.
+  await page.getByRole("button", { name: "Start the reveal" }).click();
+  await expect(confirmDialog).toContainText("Paper votes lock");
+  await confirmDialog.getByRole("button", { name: "Reveal the winners" }).click();
+  const stage = page.locator(".reveal");
+  await stage.click();
+  await expect(stage.locator(".place")).toHaveText("2nd place");
+  await expect(stage.locator(".votes")).toHaveText("2 votes");
+  await stage.click();
+  await expect(stage.locator(".place")).toHaveText("Champion!");
+  await expect(stage.locator(".cook")).toHaveText("Kiana");
+  await expect(stage.locator(".votes")).toHaveText("5 votes");
+
+  // The results page shows the split where there is paper, in English and in Spanish.
+  const results = await (await browser.newContext()).newPage();
+  await results.goto(`/v/${eventId}`);
+  await expect(results.locator(".place").first()).toHaveText("1st place");
+  await expect(results.locator(".results")).toContainText("5 votes (0 phone + 5 paper)");
+  await expect(results.locator(".results")).toContainText("by Grandma2 votes");
+  await results.goto(`/v/${eventId}?lang=es`);
+  await expect(results.locator(".results")).toContainText("5 votos (0 por celular + 5 en papel)");
+
+  // Locked now. Undoing the reveal unlocks it (SW-23).
+  await page.getByRole("link", { name: "← Back to the event" }).click();
+  await expect(page.getByTestId("paper-votes")).toContainText("locked");
+  await expect(page.getByTestId("paper-votes").getByLabel("Paper votes for entry 2")).toBeDisabled();
+  await page.getByRole("button", { name: "Undo the reveal" }).click();
+  await confirmDialog.getByRole("button", { name: "Undo the reveal" }).click();
+  await expect(page.getByText("Voting is closed.")).toBeVisible();
+  await expect(page.getByTestId("paper-votes").getByLabel("Paper votes for entry 2")).toBeEnabled();
 });
 
 test("the typed code finds the event", async ({ page, request }) => {

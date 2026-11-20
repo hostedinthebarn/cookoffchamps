@@ -4,6 +4,9 @@
 // tagged ?ref= so the Worker can count it. Words live here, apart from the
 // template; content-es.ts is the Spanish version, with the same sheet ids.
 
+/** Under every tally sheet (SW-92): paper counts join the phone votes in the app. */
+const TALLY_NOTE = "Also letting guests vote on phones in the app? Count these up and add them in the app under Paper votes. One way per guest: scan or take a paper ballot.";
+
 /** One printed page of a sheet. */
 export type Part =
   /** Ballot slips for guests, six to a page, cut apart. Each line ends in a blank for an entry number. */
@@ -11,7 +14,7 @@ export type Part =
   /** A judge's score sheet: one row per entry, a column per criterion. */
   | { kind: "scores"; heading: string; scale: string; judge: string; entry: string; criteria: string[]; total: string }
   /** The organizer's tally: entries down the side, votes counted with tally marks. */
-  | { kind: "tally"; heading: string; columns: string[] };
+  | { kind: "tally"; heading: string; columns: string[]; note: string };
 
 /** An extra headed block on a sheet's page, under the download button: what is in the PDF, or where else to go. */
 export interface Section {
@@ -100,7 +103,7 @@ export const en: PrintablesContent = {
       ],
       parts: [
         { kind: "slips", heading: "Pie contest ballot", lines: ["Best pie overall", "Best crust", "Most creative"] },
-        { kind: "tally", heading: "Pie contest tally", columns: ["Pie #", "Pie", "Baker", "Votes", "Total"] },
+        { kind: "tally", heading: "Pie contest tally", columns: ["Pie #", "Pie", "Baker", "Votes", "Total"], note: TALLY_NOTE },
       ],
     },
     {
@@ -177,7 +180,7 @@ export const en: PrintablesContent = {
           criteria: ["Aroma", "Colour", "Consistency", "Taste", "Aftertaste"],
           total: "Total",
         },
-        { kind: "tally", heading: "Chili cookoff tally", columns: ["Chili #", "Chili", "Cook", "Votes", "Total"] },
+        { kind: "tally", heading: "Chili cookoff tally", columns: ["Chili #", "Chili", "Cook", "Votes", "Total"], note: TALLY_NOTE },
       ],
     },
   ],

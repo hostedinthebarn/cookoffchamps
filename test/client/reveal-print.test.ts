@@ -19,6 +19,8 @@ function view(status: ManageView["event"]["status"], twoCategories = false): Man
     ],
     organizers: [],
     votesCast: [],
+    paperVotes: [],
+    paperBallots: null,
     proPreview: true,
     judges: [],
     judging: { criteria: [], dropOutliers: true, showDishNames: false, peoplesChoice: true, grandChampion: false, cookComments: false, scored: [] },

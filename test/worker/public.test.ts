@@ -117,8 +117,8 @@ describe("voting", () => {
     expect(manage.votesCast).toEqual([{ categoryId, votes: 3 }]);
     const { totals } = await (await call(`/api/events/${id}/totals`, { cookie: host })).json<{ totals: unknown }>();
     expect(totals).toEqual([
-      { entryId: a.id, categoryId, votes: 1 },
-      { entryId: b.id, categoryId, votes: 2 },
+      { entryId: a.id, categoryId, votes: 1, phone: 1, paper: 0 },
+      { entryId: b.id, categoryId, votes: 2, phone: 2, paper: 0 },
     ]);
   });
 });
@@ -143,8 +143,8 @@ describe("results", () => {
       { place: 2, entryIds: [a.id], votes: 1 },
     ]);
     expect(view.categories[0]!.entries).toEqual([
-      { id: a.id, number: 1, dishName: "Red chili", photoKey: null, cookName: "Grandma", votes: 1 },
-      { id: b.id, number: 2, dishName: "White chili", photoKey: null, cookName: "Kiana", votes: 2 },
+      { id: a.id, number: 1, dishName: "Red chili", photoKey: null, cookName: "Grandma", votes: 1, phoneVotes: 1, paperVotes: 0 },
+      { id: b.id, number: 2, dishName: "White chili", photoKey: null, cookName: "Kiana", votes: 2, phoneVotes: 2, paperVotes: 0 },
     ]);
   });
 });
