@@ -32,6 +32,8 @@ export interface Guide {
   steps: Step[];
   sections: GuideSection[];
   faq: { q: string; a: string }[];
+  /** Links to story pages (SW-124) about this guide's subject, shown under the guide. */
+  stories?: { lead: string; text: string; href: string }[];
 }
 
 export interface GuidesContent {
@@ -140,6 +142,7 @@ export const en: GuidesContent = {
       id: "cookie",
       path: "/guides/christmas-cookie-contest/",
       printableId: "cookie",
+      stories: [{ lead: "The story behind the cookie", text: "Where do Christmas cookies come from?", href: "/stories/christmas-cookie-history/" }],
       title: "How to run a Christmas cookie contest",
       description:
         "How to run a Christmas cookie contest: set the rules, score taste, texture and looks, break ties and include the kids. Free printable score sheet.",

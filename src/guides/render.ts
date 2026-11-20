@@ -120,7 +120,7 @@ ${guide.sections
 ${guide.faq.map((f) => `        <h3>${escapeHtml(f.q)}</h3>\n        <p>${escapeHtml(f.a)}</p>`).join("\n")}
       </section>
       <p class="muted">${escapeHtml(content.moreGuides)}: ${others.map((g) => `<a href="${escapeHtml(g.path)}">${escapeHtml(g.title)}</a>`).join(" · ")}</p>
-      <section class="card guide-cta" id="run-it" aria-labelledby="run-it-title">
+${(guide.stories ?? []).map((s) => `      <p class="muted guide-story">${escapeHtml(s.lead)}: <a href="${escapeHtml(s.href)}">${escapeHtml(s.text)}</a></p>\n`).join("")}      <section class="card guide-cta" id="run-it" aria-labelledby="run-it-title">
         <h2 id="run-it-title">${escapeHtml(content.runItTitle)}</h2>
         <p>${escapeHtml(content.runItText)}</p>
         <p><a class="button" href="${escapeHtml(runItHref(content, guide))}">${escapeHtml(content.runItButton)}</a></p>

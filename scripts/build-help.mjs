@@ -22,6 +22,8 @@ await build({
       `export { en as printEn } from "./src/printables/content.ts"; export { es as printEs } from "./src/printables/content-es.ts";`,
       `export { guidePage, guidePaths } from "./src/guides/render.ts";`,
       `export { en as guidesEn } from "./src/guides/content.ts"; export { es as guidesEs } from "./src/guides/content-es.ts";`,
+      `export { storyPage, storiesIndexPage, storyPaths, todayInTexas, publishedStories, withLiveStoryLinks } from "./src/stories/render.ts";`,
+      `export { en as storiesEn } from "./src/stories/content.ts";`,
       `export { qrSvg } from "./src/client/qr.ts";`,
       `export { privacyPage } from "./src/privacy/render.ts";`,
       `export { en as privacyEn, es as privacyEs } from "./src/privacy/content.ts";`,
@@ -37,7 +39,7 @@ await build({
   outfile: tmp,
   logLevel: "warning",
 });
-const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, qrSvg, qrTarget, privacyPage, privacyEn, privacyEs } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
+const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, storyPage, storiesIndexPage, storyPaths, todayInTexas, publishedStories, withLiveStoryLinks, storiesEn, qrSvg, qrTarget, privacyPage, privacyEn, privacyEs } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
 
 const versions = [en, es]; // English first: it's the x-default for search engines
 for (const content of versions) {
@@ -60,17 +62,29 @@ for (const content of printVersions) {
   }
 }
 
-// The holiday guides (SW-63): a page per search intent, in each language.
-const guideVersions = [guidesEn, guidesEs];
+// Stories go live on their datePublished, Texas time (SW-124). BUILD_DATE=YYYY-MM-DD previews another day.
+const today = process.env.BUILD_DATE || todayInTexas();
+const liveStories = publishedStories(storiesEn, today);
+const heldBack = storiesEn.stories.filter((s) => !liveStories.stories.includes(s));
+for (const s of heldBack) console.log(`story ${s.id} held back until ${s.datePublished} (today is ${today})`);
+
+// The holiday guides (SW-63): a page per search intent, in each language. Links to held-back stories are left out.
+const guideVersions = [guidesEn, guidesEs].map((g) => withLiveStoryLinks(g, liveStories));
 for (const content of guideVersions) {
   for (const guide of content.guides) write(guide.path, guidePage(content, guideVersions, printVersions, guide.id));
 }
+
+// The stories (SW-124): an index and a page per live story, English only. No index until one is live.
+// Start clean, so a held-back story left in public/ by an earlier build can never ship.
+fs.rmSync(path.join(pub, "stories"), { recursive: true, force: true });
+if (liveStories.stories.length) write(liveStories.indexPath, storiesIndexPage(liveStories));
+for (const story of liveStories.stories) write(story.path, storyPage(liveStories, story.id));
 
 // The privacy page (BIZ-38). /privacy/ and /es/privacidad/ are already in the sitemap (PUBLIC_PATHS).
 const privacyVersions = [privacyEn, privacyEs];
 for (const content of privacyVersions) write(content.path, privacyPage(content, privacyVersions));
 
-fs.writeFileSync(path.join(pub, "sitemap.xml"), sitemap([...printablePaths(printVersions), ...guidePaths(guideVersions)]));
+fs.writeFileSync(path.join(pub, "sitemap.xml"), sitemap([...printablePaths(printVersions), ...guidePaths(guideVersions), ...storyPaths(liveStories)]));
 fs.writeFileSync(path.join(pub, "robots.txt"), robots());
 
 await build({
@@ -82,4 +96,4 @@ await build({
   outfile: path.join(pub, "help", "filter.js"),
   logLevel: "warning",
 });
-console.log("help, printables and guides pages written");
+console.log("help, printables, guides and stories pages written");
