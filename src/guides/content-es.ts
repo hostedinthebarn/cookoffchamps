@@ -143,6 +143,7 @@ export const es: GuidesContent = {
           body: [
             "Es el concurso donde los niños sí compiten de verdad, y a menudo ganan en aspecto.",
             { list: ["Dales su propia categoría, con su propio premio.", "Déjalos decorar: una galleta lisa con betún y chispas es una entrada.", "Si hay suficientes niños mayores, forma un jurado infantil para esa categoría.", "Da un listón o una calcomanía a cada niño participante, gane o no."] },
+            { parts: ["¿Decoran con niños? ", { text: "Galletas de azúcar para un concurso de decoración infantil", href: "/es/guias/galletas-de-azucar-para-decorar/" }, " trae una galleta, un glaseado y una forma de organizar la mesa."] },
           ],
         },
       ],
@@ -152,6 +153,90 @@ export const es: GuidesContent = {
         { q: "¿Qué deben calificar los jueces?", a: "Sabor, textura, aspecto y espíritu navideño, cada uno del 1 al 5, es un conjunto sencillo y fácil de explicar. La hoja de puntos imprimible lo usa." },
         { q: "¿Cómo lo hacemos justo con las alergias?", a: "Pide que rotulen nueces, lácteos y gluten, y pon la nota en el plato. Los jueces con alergias pueden saltarse un plato y calificar el resto." },
       ],
+    },
+    {
+      id: "sugar-cookies",
+      path: "/es/guias/galletas-de-azucar-para-decorar/",
+      printableId: "cookie",
+      title: "Galletas de azúcar para un concurso de decoración infantil",
+      description:
+        "Una galleta sencilla para extender con rodillo que conserva su forma al cortarla, un glaseado fácil y cómo organizar un concurso de decoración para niños con un listón para cada niño.",
+      intro:
+        "Un concurso de decoración necesita una galleta que conserve la forma con que se cortó. Una estrella que se derrite hasta volverse una mancha no le deja nada que decorar a un niño de siete años. La base es la galleta de mantequilla navideña de King Arthur Baking, una masa sencilla sin polvo de hornear que, según la página de la receta, casi no se extiende en el horno. La receta es de King Arthur y hemos copiado los ingredientes tal como los publican. Más abajo hay un glaseado sencillo de la misma página, y después cómo organizaríamos el concurso: una categoría propia para los niños y un listón para cada uno.",
+      stepsTitle: "La versión corta",
+      steps: [
+        { name: "Prepara la masa", text: "Bate el azúcar, la mantequilla, la yema, la sal y el sabor hasta que quede suave, y luego incorpora la harina." },
+        { name: "Refrigérala", text: "Divide la masa en dos, aplana cada mitad en forma de disco y refrigérala 2 horas o toda la noche." },
+        { name: "Extiende y corta", text: "Calienta el horno a 350 °F. Deja un disco fuera de 20 a 30 minutos, extiéndelo a un grosor de entre 1/8 y 3/16 de pulgada y corta las formas." },
+        { name: "Hornea y enfría", text: "Hornea de 12 a 14 minutos, hasta que estén firmes y apenas doradas en los bordes, y déjalas enfriar en la bandeja." },
+        { name: "Prepara el glaseado", text: "Mezcla azúcar glas, leche y jarabe de maíz claro, divídelo en tazones y tiñe cada uno." },
+        { name: "Deja que los niños decoren", text: "Da a cada niño unas galletas frías, el glaseado y los azúcares, y califica los platos con la hoja de puntuación." },
+      ],
+      sections: [
+        {
+          id: "cookies",
+          heading: "Prepara las galletas",
+          body: [
+            { parts: ["Fuente: King Arthur Baking, ", { text: "Holiday butter cookies", href: "https://www.kingarthurbaking.com/recipes/holiday-butter-cookies-recipe" }, " (en inglés). Rinde unas 5 docenas de galletas de 2 pulgadas, suficientes para una mesa de niños. Cuenta con unas 2 horas y 42 minutos en total, la mayor parte en el refrigerador."] },
+            "Ingredientes de las galletas, como los enumera King Arthur:",
+            {
+              list: [
+                "1 1/4 tazas (142 g) de azúcar glas",
+                "18 cucharadas (255 g) de mantequilla con sal, a temperatura ambiente",
+                "1 yema de huevo grande",
+                "1/2 cucharadita de sal de mesa",
+                "1/4 cucharadita de King Arthur Fiori di Sicilia, o el sabor que prefieras",
+                "2 3/4 tazas (330 g) de harina de trigo todo uso King Arthur sin blanquear",
+              ],
+            },
+            "Notas de King Arthur: si usas mantequilla sin sal, pon 1 cucharadita de sal. En lugar del Fiori di Sicilia puedes usar 2 cucharaditas de extracto de vainilla, 1 cucharadita de extracto de almendra, o ambos. El extracto de almendra agrega almendras a la lista de alérgenos de abajo.",
+            "Bate el azúcar, la mantequilla, la yema, la sal y el sabor hasta que quede suave. Incorpora la harina. Si la masa no se une, agrega una cucharada de agua. Divídela en dos, aplana cada mitad en forma de disco y refrigérala 2 horas o toda la noche.",
+            "Calienta el horno a 350 °F. Deja un disco fuera de 20 a 30 minutos, hasta que se pueda extender pero siga frío. Extiéndelo a un grosor de entre 1/8 y 3/16 de pulgada, corta las formas y junta los recortes para extenderlos otra vez. Hornea en bandejas sin engrasar o forradas con papel pergamino de 12 a 14 minutos, hasta que las galletas estén firmes y apenas doradas en los bordes. Déjalas enfriar en la bandeja. Espera a que estén completamente frías antes de que alguien las glasee.",
+            "Por favor, no dejes que los niños coman la masa cruda. Lleva yema de huevo cruda y harina cruda, y ambas son un buen motivo para esperar al horno.",
+          ],
+        },
+        {
+          id: "icing",
+          heading: "Prepara el glaseado",
+          body: [
+            "Fuente: el glaseado impreso en la misma página de King Arthur.",
+            "Ingredientes del glaseado:",
+            {
+              list: [
+                "2 1/4 tazas (255 g) de azúcar glas",
+                "de 2 1/2 a 3 cucharadas (de 35 g a 43 g) de leche",
+                "2 cucharadas (39 g) de jarabe de maíz claro",
+                "Colorante alimentario natural, opcional",
+                "1 taza (227 g) de azúcar granulada gruesa o de colores, para decorar, opcional",
+              ],
+            },
+            "Mezcla el azúcar, 2 1/2 cucharadas de leche y el jarabe de maíz. Si queda espeso, agrega leche una cucharadita a la vez. Pruébalo primero en una galleta y agrega leche o azúcar hasta que se extienda como quieras. Divídelo en tazones pequeños y tiñe cada uno. Espolvorea el azúcar mientras el glaseado aún está húmedo, porque no se pega una vez que se seca.",
+          ],
+        },
+        {
+          id: "contest",
+          heading: "Organiza el concurso de decoración",
+          body: [
+            "Dale a los niños su propia categoría con su propio premio, aparte de los reposteros adultos. Una galleta sencilla con glaseado y chispas es una participación completa, así que un niño no necesita hornear nada. Pon las galletas frías, los tazones de glaseado y los azúcares en una mesa, y dale a cada niño 3 o 4 galletas para trabajar.",
+            "Si hay suficientes niños mayores, deja que ellos sean el jurado de la categoría infantil. Todo niño que participa recibe un listón o una calcomanía, gane o no. Eso es lo que recuerdan. El premio es para una galleta, y el listón es para todos.",
+            { parts: ["Numera los platos terminados y califícalos con la hoja de puntos para imprimir, igual que juzgarías las galletas de los adultos. Las reglas completas, las categorías, cómo desempatar y cómo juzgar a ciegas están en nuestra guía gratuita, ", { text: "Cómo organizar un concurso de galletas de Navidad", href: "/es/guias/concurso-de-galletas-de-navidad/" }, ", y la hoja es la ", { text: "hoja de puntos para concurso de galletas", href: "/es/imprimibles/hoja-de-puntos-concurso-de-galletas/" }, "."] },
+          ],
+        },
+        {
+          id: "labels",
+          heading: "Etiqueta los platos",
+          body: [
+            "Pide a todos que indiquen si hay nueces, lácteos y gluten, y que pongan la etiqueta en el plato. Esta receta tiene trigo (harina), lácteos (mantequilla, y leche en el glaseado) y huevo (la yema), y también frutos secos si usas el extracto de almendra. La página de King Arthur no trae declaración de alérgenos, así que esta lista sale de los ingredientes de arriba.",
+          ],
+        },
+      ],
+      faq: [
+        { q: "¿Pueden los niños comer la masa?", a: "No. Lleva yema de huevo cruda y harina cruda. Esperen a la galleta horneada." },
+        { q: "¿Tiene que ser esta receta?", a: "No. Una galleta sencilla con glaseado y chispas es una participación válida, así que la masa comprada en la tienda también sirve. Esta es una receta que, según King Arthur, conserva su forma." },
+        { q: "¿Cuántas galletas salen?", a: "King Arthur dice que unas 5 docenas de 2 pulgadas." },
+      ],
+      credit: "Receta: King Arthur Baking, Holiday butter cookies. No tenemos ninguna relación con King Arthur Baking.",
+      runItText: "Organiza todo el concurso en la app Cookoff Champs: los invitados votan desde el teléfono, gratis y sin saber quién hizo cada galleta.",
     },
     {
       id: "chili",

@@ -23,6 +23,7 @@ export const es: HelpContent = {
   guides: [
     { text: "Guía del concurso de pays", href: "/es/guias/concurso-de-pays-de-accion-de-gracias/" },
     { text: "Guía del concurso de galletas", href: "/es/guias/concurso-de-galletas-de-navidad/" },
+    { text: "Guía de galletas de azúcar para decorar", href: "/es/guias/galletas-de-azucar-para-decorar/" },
     { text: "Guía para juzgar chili", href: "/es/guias/como-juzgar-un-concurso-de-chili/" },
   ],
   noticesLink: "Licencias de código abierto",

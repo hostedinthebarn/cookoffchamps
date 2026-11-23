@@ -8,8 +8,16 @@ import type { Block, Guide, GuidesContent } from "./content";
 // pages, so search engines can read them. Each guide's HowTo and FAQ structured
 // data is made from the same words as the page, so the two can't drift apart.
 
+/** A piece of a paragraph: plain words, or a link (external ones get rel="noopener"). */
+function part(p: string | { text: string; href: string }): string {
+  if (typeof p === "string") return escapeHtml(p);
+  const rel = /^https?:/.test(p.href) ? ' rel="noopener"' : "";
+  return `<a href="${escapeHtml(p.href)}"${rel}>${escapeHtml(p.text)}</a>`;
+}
+
 function block(b: Block): string {
   if (typeof b === "string") return `<p>${escapeHtml(b)}</p>`;
+  if ("parts" in b) return `<p>${b.parts.map(part).join("")}</p>`;
   return `<ul>${b.list.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
 }
 
@@ -119,10 +127,10 @@ ${guide.sections
         <h2 id="faq-title">${escapeHtml(content.faqTitle)}</h2>
 ${guide.faq.map((f) => `        <h3>${escapeHtml(f.q)}</h3>\n        <p>${escapeHtml(f.a)}</p>`).join("\n")}
       </section>
-      <p class="muted">${escapeHtml(content.moreGuides)}: ${others.map((g) => `<a href="${escapeHtml(g.path)}">${escapeHtml(g.title)}</a>`).join(" · ")}</p>
+${guide.credit ? `      <p class="muted guide-credit">${escapeHtml(guide.credit)}</p>\n` : ""}      <p class="muted">${escapeHtml(content.moreGuides)}: ${others.map((g) => `<a href="${escapeHtml(g.path)}">${escapeHtml(g.title)}</a>`).join(" · ")}</p>
 ${(guide.stories ?? []).map((s) => `      <p class="muted guide-story">${escapeHtml(s.lead)}: <a href="${escapeHtml(s.href)}">${escapeHtml(s.text)}</a></p>\n`).join("")}      <section class="card guide-cta" id="run-it" aria-labelledby="run-it-title">
         <h2 id="run-it-title">${escapeHtml(content.runItTitle)}</h2>
-        <p>${escapeHtml(content.runItText)}</p>
+        <p>${escapeHtml(guide.runItText ?? content.runItText)}</p>
         <p><a class="button" href="${escapeHtml(runItHref(content, guide))}">${escapeHtml(content.runItButton)}</a></p>
       </section>
     </main>
