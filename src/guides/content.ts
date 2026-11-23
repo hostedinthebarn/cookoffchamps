@@ -5,7 +5,7 @@
 // before deploy.
 
 /** A paragraph, or a bulleted list. */
-export type Block = string | { list: string[] };
+export type Block = string | { list: string[] } | { parts: (string | { text: string; href: string })[] };
 
 export interface Step {
   name: string;
@@ -32,6 +32,10 @@ export interface Guide {
   steps: Step[];
   sections: GuideSection[];
   faq: { q: string; a: string }[];
+  /** A credit line shown under the questions, for a guide built on someone else's recipe. */
+  credit?: string;
+  /** Replaces the shared closing text, when this guide has its own. */
+  runItText?: string;
   /** Links to story pages (SW-124) about this guide's subject, shown under the guide. */
   stories?: { lead: string; text: string; href: string }[];
 }
@@ -196,6 +200,7 @@ export const en: GuidesContent = {
           body: [
             "Cookie baking is the one contest where children can truly compete, and often win on looks.",
             { list: ["Give the kids their own category, with its own prize.", "Let them decorate: a plain cookie with icing and sprinkles is an entry.", "Make a children's panel of judges for the kids' category, if you have enough older children.", "Give every child entrant a ribbon or a sticker, win or not."] },
+            { parts: ["Decorating with children? ", { text: "Sugar cookies for a kids' decorating contest", href: "/guides/sugar-cookies-for-decorating/" }, " has a cookie, an icing and a way to run the table."] },
           ],
         },
       ],
@@ -205,6 +210,90 @@ export const en: GuidesContent = {
         { q: "What should the judges score?", a: "Taste, texture, looks and holiday spirit, each from 1 to 5, is a simple set that is easy to explain. The printable score sheet uses it." },
         { q: "How do we keep it fair for allergies?", a: "Ask bakers to label nuts, dairy and gluten, and put the label on the plate. Judges with allergies can skip a plate and score the rest." },
       ],
+    },
+    {
+      id: "sugar-cookies",
+      path: "/guides/sugar-cookies-for-decorating/",
+      printableId: "cookie",
+      title: "Sugar cookies for a kids' decorating contest",
+      description:
+        "A plain roll-out cookie that holds its shape when cut, a simple icing, and how to run a kids' decorating contest with a ribbon for every child.",
+      intro:
+        "A decorating contest needs a cookie that stays the shape it was cut. A star that melts into a blob gives a seven-year-old nothing to work with. The base here is King Arthur Baking's holiday butter cookie, a plain dough with no baking powder, which the recipe page says barely spreads in the oven. The recipe is King Arthur's, and we have copied the ingredients as they print them. Below it is a simple icing from the same page, then how we would run the contest: a category of its own for the kids, and a ribbon for every child.",
+      stepsTitle: "The short version",
+      steps: [
+        { name: "Mix the dough", text: "Beat the sugar, butter, egg yolk, salt and flavoring until smooth, then stir in the flour." },
+        { name: "Chill it", text: "Split the dough in two, flatten each half into a disk and chill for 2 hours or overnight." },
+        { name: "Roll and cut", text: "Heat the oven to 350°F. Let a disk soften for 20 to 30 minutes, roll it between 1/8 and 3/16 inch thick and cut your shapes." },
+        { name: "Bake and cool", text: "Bake for 12 to 14 minutes, until set and barely brown at the edges, then cool on the pan." },
+        { name: "Make the icing", text: "Stir confectioners' sugar, milk and light corn syrup together, divide it into bowls and tint each one." },
+        { name: "Let the kids decorate", text: "Give each child a few cooled cookies, the icing and the sugars, then judge the plates with the score sheet." },
+      ],
+      sections: [
+        {
+          id: "cookies",
+          heading: "Make the cookies",
+          body: [
+            { parts: ["Source: King Arthur Baking, ", { text: "Holiday butter cookies", href: "https://www.kingarthurbaking.com/recipes/holiday-butter-cookies-recipe" }, ". It makes about 5 dozen 2-inch cookies, which is plenty for a table of children. Plan on about 2 hours 42 minutes in all, most of it chilling."] },
+            "Ingredients for the cookies, as King Arthur lists them:",
+            {
+              list: [
+                "1 1/4 cups (142g) confectioners' sugar",
+                "18 tablespoons (255g) salted butter, at room temperature",
+                "1 large egg yolk",
+                "1/2 teaspoon table salt",
+                "1/4 teaspoon King Arthur Fiori di Sicilia, or a flavor of your choice",
+                "2 3/4 cups (330g) King Arthur Unbleached All-Purpose Flour",
+              ],
+            },
+            "King Arthur's own notes: with unsalted butter, use 1 teaspoon of salt. In place of the Fiori di Sicilia you can use 2 teaspoons of vanilla extract, 1 teaspoon of almond extract, or both. Almond extract adds almonds to the allergen label below.",
+            "Beat the sugar, butter, egg yolk, salt and flavoring together until smooth. Stir in the flour. If the dough won't come together, add a tablespoon of water. Split it in two, flatten each half into a disk, and chill them for 2 hours or overnight.",
+            "Heat the oven to 350°F. Let a disk sit out for 20 to 30 minutes, until it rolls but is still cold. Roll it between 1/8 and 3/16 inch thick, cut your shapes, and gather the scraps to roll again. Bake on ungreased or parchment-lined sheets for 12 to 14 minutes, until the cookies are set and barely brown at the edges. Cool them on the pan. Wait until they are completely cool before anyone ices one.",
+            "Please keep the children out of the raw dough. It has a raw egg yolk and raw flour in it, and both are a reason to wait for the oven.",
+          ],
+        },
+        {
+          id: "icing",
+          heading: "Make the icing",
+          body: [
+            "Source: the icing printed on the same King Arthur page.",
+            "Ingredients for the icing:",
+            {
+              list: [
+                "2 1/4 cups (255g) confectioners' sugar",
+                "2 1/2 to 3 tablespoons (35g to 43g) milk",
+                "2 tablespoons (39g) light corn syrup",
+                "Natural food coloring, optional",
+                "1 cup (227g) coarse sparkling sugar or colored sugars, for decorating, optional",
+              ],
+            },
+            "Stir the sugar, 2 1/2 tablespoons of milk and the corn syrup together. If it is stiff, add milk a teaspoon at a time. Try it on one cookie first, and add milk or sugar until it spreads the way you like. Divide it into small bowls and tint each one. Sprinkle sugar on while the icing is still wet, because it won't stick once the icing sets.",
+          ],
+        },
+        {
+          id: "contest",
+          heading: "Run the decorating contest",
+          body: [
+            "Give the kids their own category with its own prize, apart from the grown-up bakers. A plain cookie with icing and sprinkles is a full entry, so a child doesn't need to bake anything. Put the cooled cookies, the icing bowls and the sugars on a table, and give each child 3 or 4 cookies to work on.",
+            "If there are enough older children, let them judge the kids' category as a panel. Every child who enters gets a ribbon or a sticker, win or not. That is the part they remember. The prize is for one cookie, and the ribbon is for all of them.",
+            { parts: ["Number the finished plates and score them with the printable cookie score sheet, the same way you would judge the adults' cookies. The full rules, the categories, how to break a tie and how to judge blind are in our free guide, ", { text: "How to run a Christmas cookie contest", href: "/guides/christmas-cookie-contest/" }, ", and the sheet is the ", { text: "cookie contest score sheet", href: "/printables/cookie-contest-score-sheet/" }, "."] },
+          ],
+        },
+        {
+          id: "labels",
+          heading: "Label the plates",
+          body: [
+            "Ask everyone to label nuts, dairy and gluten, and put the label on the plate. This recipe has wheat (flour), dairy (butter, and milk in the icing) and eggs (the yolk), and nuts too if you use the almond extract. Our guide's usual line covers nuts, dairy and gluten; we added eggs because the dough has one. King Arthur's page carries no allergen statement, so this list comes from the ingredients above.",
+          ],
+        },
+      ],
+      faq: [
+        { q: "Can the kids eat the dough?", a: "No. It has raw egg yolk and raw flour. Wait for the baked cookie." },
+        { q: "Does it have to be this recipe?", a: "No. A plain cookie with icing and sprinkles is an entry, so store-bought dough works too. This recipe is one that King Arthur says holds its shape." },
+        { q: "How many cookies does it make?", a: "King Arthur says about 5 dozen at 2 inches." },
+      ],
+      credit: "Recipe: King Arthur Baking, Holiday butter cookies. We have no connection to King Arthur Baking.",
+      runItText: "Run the whole contest in the Cookoff Champs app: guests vote on their phones, free, without seeing who baked what.",
     },
     {
       id: "chili",

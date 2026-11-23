@@ -23,7 +23,7 @@ describe("guides content (SW-63)", () => {
     const shape = (c: GuidesContent) =>
       c.guides.map((g) => [g.id, g.printableId, g.steps.length, g.sections.map((s) => s.id), g.faq.length]);
     expect(shape(es)).toEqual(shape(en));
-    expect(en.guides.map((g) => g.id)).toEqual(["pie", "cookie", "chili"]);
+    expect(en.guides.map((g) => g.id)).toEqual(["pie", "cookie", "sugar-cookies", "chili"]);
   });
 
   it("publishes English under /guides/ and Spanish under /es/guias/", () => {
@@ -39,10 +39,12 @@ describe("guides content (SW-63)", () => {
 
   it("lists every guide in the sitemap", () => {
     const paths = guidePaths(versions);
-    expect(paths).toHaveLength(6);
+    expect(paths).toHaveLength(8);
     const xml = sitemap([...printablePaths(printables), ...paths]);
     expect(xml).toContain(`<loc>${ORIGIN}/guides/judge-a-chili-cookoff/</loc>`);
     expect(xml).toContain(`<loc>${ORIGIN}/es/guias/concurso-de-pays-de-accion-de-gracias/</loc>`);
+    expect(xml).toContain(`<loc>${ORIGIN}/guides/sugar-cookies-for-decorating/</loc>`);
+    expect(xml).toContain(`<loc>${ORIGIN}/es/guias/galletas-de-azucar-para-decorar/</loc>`);
   });
 });
 
@@ -85,7 +87,7 @@ describe("a guide's page", () => {
   });
 
   it("covers the advice each guide promises: blind voting, ties and kids", () => {
-    for (const g of en.guides) {
+    for (const g of en.guides.filter((x) => x.id !== "sugar-cookies")) {
       const ids = g.sections.map((s) => s.id);
       expect(ids).toContain("ties");
       expect(ids).toContain("kids");
@@ -112,7 +114,7 @@ describe("a guide's page", () => {
 
 describe("a guide's structured data", () => {
   it("holds a HowTo with every step and an FAQPage with every question, read back as JSON", () => {
-    const g = en.guides[2]!;
+    const g = en.guides.find((x) => x.id === "chili")!;
     const d = doc(en, g.id);
     const data = JSON.parse(d.querySelector('script[type="application/ld+json"]')!.textContent!);
     const [howTo, faq] = data["@graph"];
@@ -129,6 +131,42 @@ describe("a guide's structured data", () => {
     const json = guideJsonLd(en, g);
     expect(json).not.toContain("<");
     expect(JSON.parse(json)["@graph"][1].mainEntity[0].acceptedAnswer.text).toBe("</script><b>");
+  });
+});
+
+describe("the sugar cookie guide (MKT-123)", () => {
+  const find = (c: GuidesContent) => c.guides.find((g) => g.id === "sugar-cookies")!;
+
+  it("links the cookie contest guide's kids section to it, and it back, in both languages", () => {
+    for (const [c, other] of [[en, "/guides/sugar-cookies-for-decorating/"], [es, "/es/guias/galletas-de-azucar-para-decorar/"]] as const) {
+      expect(find(c).path).toBe(other);
+      const kids = doc(c, "cookie").querySelector("#kids")!;
+      expect([...kids.querySelectorAll("a")].map((a) => a.getAttribute("href"))).toContain(other);
+      const back = [...doc(c, "sugar-cookies").querySelectorAll("a")].map((a) => a.getAttribute("href"));
+      expect(back).toContain(c.guides.find((g) => g.id === "cookie")!.path);
+    }
+  });
+
+  it("links the two languages both ways", () => {
+    expect(doc(en, "sugar-cookies").querySelector("a.lang")!.getAttribute("href")).toBe("/es/guias/galletas-de-azucar-para-decorar/");
+    expect(doc(es, "sugar-cookies").querySelector("a.lang")!.getAttribute("href")).toBe("/guides/sugar-cookies-for-decorating/");
+  });
+
+  it("credits King Arthur with a link, and makes no claim of testing or timing", () => {
+    for (const c of [en, es]) {
+      const d = doc(c, "sugar-cookies");
+      const ka = d.querySelector('a[href^="https://www.kingarthurbaking.com/"]')!;
+      expect(ka.getAttribute("rel")).toBe("noopener");
+      expect(d.querySelector(".guide-credit")!.textContent).toContain("King Arthur Baking");
+      expect(d.querySelector("main")!.textContent).not.toMatch(/within a minute|we (have )?tested|probamos|dentro de un minuto/i);
+      expect(d.querySelector("#run-it p")!.textContent).toBe(find(c).runItText);
+    }
+  });
+
+  it("keeps the quantities the same in both languages", () => {
+    const nums = (c: GuidesContent) =>
+      JSON.stringify(find(c).sections.slice(0, 2).map((s) => s.body.filter((b) => typeof b !== "string" && "list" in b).map((b) => (b as { list: string[] }).list.map((i) => i.replace(/ g\b/g, "g").match(/\((\d+g?) ?g?\)|\d+ \d\/\d|\d\/\d|\d+/g)))));
+    expect(nums(es)).toEqual(nums(en));
   });
 });
 

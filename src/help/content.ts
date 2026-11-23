@@ -67,6 +67,7 @@ export const en: HelpContent = {
   guides: [
     { text: "Pie contest guide", href: "/guides/thanksgiving-pie-contest/" },
     { text: "Cookie contest guide", href: "/guides/christmas-cookie-contest/" },
+    { text: "Sugar cookie decorating guide", href: "/guides/sugar-cookies-for-decorating/" },
     { text: "Chili judging guide", href: "/guides/judge-a-chili-cookoff/" },
   ],
   noticesLink: "Open-source licences",
