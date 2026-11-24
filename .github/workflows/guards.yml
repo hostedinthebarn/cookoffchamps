@@ -1,0 +1,101 @@
+# Layer 1 guards (GEN-233 / GEN-314). No model, no secrets, no quota. A second, independent check
+# beside ci.yml's check-publish: it stops a merge, and ci.yml's deploy still runs check-publish itself.
+# Actions pinned to the same SHAs as ci.yml.
+name: Guards
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 6 * * 1'   # weekly: a new advisory should show up on main, not on a stranger's PR
+permissions:
+  contents: read
+concurrency:
+  group: guards-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  PAYLOAD_DIR: public      # wrangler.jsonc assets.directory
+  BUILD_CMD: npm run build # what `npm run deploy` runs before check-publish and wrangler
+  LINT_SCRIPT: typecheck   # no lint script and no linter in this repo; adding eslint is a new tool, Gary's call
+  # The deploy gate's own list (scripts/check-publish.mjs ALLOWED); keep the two identical, never wider.
+  ALLOWED_EXT: 'html|css|js|map|svg|png|webmanifest|xml|txt|pdf'
+
+jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with: { fetch-depth: 0, persist-credentials: false }
+      - name: Use the guard scripts and allowlist from the base branch
+        if: github.event_name == 'pull_request'
+        env: { BASE_SHA: '${{ github.event.pull_request.base.sha }}' }
+        run: |
+          # A PR must not rewrite the checker that judges it. On the PR that first adds these files there is no base copy, so the PR's own are used.
+          for f in scripts/ci/secret-scan.sh scripts/ci/check-payload.sh .ci/secret-scan-allow.tsv; do
+            if git cat-file -e "$BASE_SHA:$f" 2>/dev/null; then git show "$BASE_SHA:$f" > "$f"; fi
+          done
+      - name: Scan lines added by this change
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then base=$PR_BASE; elif [ "$EVENT" = push ]; then base=$PUSH_BEFORE; else base=''; fi
+          # new branch, schedule or unknown before-commit: scan from the empty tree, i.e. the whole repo
+          if [ -z "$base" ] || [ "$base" = 0000000000000000000000000000000000000000 ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            base=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+          fi
+          bash scripts/ci/secret-scan.sh diff "$base"
+
+  deploy-payload:
+    name: Deploy payload
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with: { fetch-depth: 0, persist-credentials: false }
+      - name: Use the guard scripts and allowlist from the base branch
+        if: github.event_name == 'pull_request'
+        env: { BASE_SHA: '${{ github.event.pull_request.base.sha }}' }
+        run: |
+          for f in scripts/ci/secret-scan.sh scripts/ci/check-payload.sh .ci/secret-scan-allow.tsv; do
+            if git cat-file -e "$BASE_SHA:$f" 2>/dev/null; then git show "$BASE_SHA:$f" > "$f"; fi
+          done
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      # The build prints the printables to PDF (SW-62), so it needs Chromium, as in ci.yml.
+      - run: npx playwright install --with-deps chromium
+      - run: ${{ env.BUILD_CMD }}
+      - name: File-type allowlist on the exact payload
+        run: bash scripts/ci/check-payload.sh "$PAYLOAD_DIR"
+      - name: Secret scan on the exact payload
+        run: bash scripts/ci/secret-scan.sh dir "$PAYLOAD_DIR"
+
+  dependency-audit:
+    name: Dependency audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with: { node-version: 22 }
+      - run: npm audit --audit-level=high   # needs no npm ci; reads the lockfile. Covers dev deps too: say if Gary wants --omit=dev.
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Run the repo's own lint script (fails if it doesn't exist)
+        run: |
+          node -e 'const s=require("./package.json").scripts||{}; if(!s[process.env.LINT_SCRIPT]){console.error("package.json has no script: "+process.env.LINT_SCRIPT);process.exit(1)}'
+          npm run "$LINT_SCRIPT"
