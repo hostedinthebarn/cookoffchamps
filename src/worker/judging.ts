@@ -5,6 +5,7 @@ import { HttpError, json, readJson, requireText } from "./http";
 import { langOf } from "./i18n";
 import { newId } from "./ids";
 import { activeJudge } from "./judges";
+import { PRESET_NAMES, type PresetName } from "../shared/foodTypes";
 import { type Card, entryScore, rankScores, type ScorePlacing } from "../shared/scoring";
 
 // Scoring for pro events (SW-25; the vault's pro-events.md, rules 6 and 8–15).
@@ -12,10 +13,8 @@ import { type Card, entryScore, rankScores, type ScorePlacing } from "../shared/
 /** At most this many criteria: a judge scores every one for every dish. */
 export const MAX_CRITERIA = 8;
 
-type PresetName = "chili" | "bbq" | "general";
-
 // Rule 8's starting points, taste weighted highest as in sanctioned judging.
-// Chili follows the chili cookoff criteria (aroma, colour, consistency, taste,
+// Chili follows the chili cookoff criteria (aroma, color, consistency, taste,
 // aftertaste); BBQ the three KCBS ones. Names are added in the organizer's
 // language and are theirs to rename after that.
 const PRESETS: Record<PresetName, { en: string; es: string; weight: number }[]> = {
@@ -23,7 +22,7 @@ const PRESETS: Record<PresetName, { en: string; es: string; weight: number }[]> 
     { en: "Taste", es: "Sabor", weight: 2 },
     { en: "Consistency", es: "Consistencia", weight: 1.5 },
     { en: "Aroma", es: "Aroma", weight: 1 },
-    { en: "Colour", es: "Color", weight: 1 },
+    { en: "Color", es: "Color", weight: 1 },
     { en: "Aftertaste", es: "Regusto", weight: 1 },
   ],
   bbq: [
@@ -73,7 +72,7 @@ export async function applyPreset(request: Request, env: Env, eventId: string): 
   const { event } = await requireOrganizer(env, eventId, email);
   requireCriteriaEditable(event);
   const body = await readJson(request);
-  if (!Object.hasOwn(PRESETS, String(body.preset))) throw new HttpError(400, "preset must be chili, bbq or general");
+  if (!(PRESET_NAMES as readonly string[]).includes(String(body.preset))) throw new HttpError(400, "preset must be chili, bbq or general");
   const preset = PRESETS[body.preset as PresetName];
   const lang = langOf(body.lang);
   await env.DB.batch([

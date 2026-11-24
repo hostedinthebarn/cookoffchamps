@@ -30,7 +30,7 @@ export interface Sheet {
   /** Where the page is published; the PDF is the same path with .pdf instead of the trailing slash. */
   path: string;
   /** The ?ref= the QR code carries, counted by the Worker. */
-  ref: "pie" | "cookie" | "chili";
+  ref: string;
   /** The guide (SW-63) that goes with this sheet, in this language. */
   guidePath: string;
   title: string;
@@ -74,7 +74,7 @@ export const en: PrintablesContent = {
   path: "/printables/",
   title: "Free cookoff printables",
   description:
-    "Free printable ballots and score sheets for a Thanksgiving pie contest, a Christmas cookie contest and a chili cookoff. Letter-size PDFs.",
+    "Free printable ballots and score sheets for a Thanksgiving pie contest, a Christmas cookie contest, a chili cookoff and a backyard BBQ cookoff. Letter-size PDFs.",
   intro: "Ballots, score sheets and tally sheets for your next contest. Free to print and share, no sign-up.",
   appHref: "/",
   downloadPdf: "Download the PDF",
@@ -153,7 +153,7 @@ export const en: PrintablesContent = {
         },
         {
           heading: "Printable chili judging sheet",
-          text: "One row per chili, scored from 1 to 10 on aroma, colour, consistency, taste and aftertaste. It's in the same PDF as the ballots.",
+          text: "One row per chili, scored from 1 to 10 on aroma, color, consistency, taste and aftertaste. It's in the same PDF as the ballots.",
           to: "pdf",
           linkText: "Download the PDF",
         },
@@ -177,10 +177,60 @@ export const en: PrintablesContent = {
           scale: "Score each from 1 (poor) to 10 (excellent).",
           judge: "Judge",
           entry: "Chili #",
-          criteria: ["Aroma", "Colour", "Consistency", "Taste", "Aftertaste"],
+          criteria: ["Aroma", "Color", "Consistency", "Taste", "Aftertaste"],
           total: "Total",
         },
         { kind: "tally", heading: "Chili cookoff tally", columns: ["Chili #", "Chili", "Cook", "Votes", "Total"], note: TALLY_NOTE },
+      ],
+    },
+    {
+      id: "bbq",
+      path: "/printables/bbq-cookoff-judging-sheet/",
+      ref: "bbq",
+      guidePath: "/guides/backyard-bbq-cookoff/",
+      title: "Free BBQ Cook-Off Judging Sheet and Ballot (PDF)",
+      h1: "Free printable BBQ cook-off judging sheet and ballot",
+      description:
+        "Print a free BBQ cook-off judging sheet (taste, tenderness, appearance), a people's-choice ballot and a tally sheet, in one PDF. Letter-size.",
+      intro:
+        "One free PDF for a backyard BBQ cook-off: a judging sheet for the judges, people's-choice ballots for the guests and a tally sheet to count the votes.",
+      sections: [
+        {
+          heading: "Printable BBQ judging sheet",
+          text: "One row per entry, scored from 1 to 10 on taste, tenderness and appearance. Taste counts double and tenderness one and a half times, the same weights as the BBQ preset in the app. It's a friendly backyard format, not an official KCBS score card.",
+          to: "pdf",
+          linkText: "Download the PDF",
+        },
+        {
+          heading: "People's-choice ballot and tally",
+          text: "Six guest ballots to a page, cut apart, and a tally sheet for counting. They're in the same PDF as the judging sheet.",
+          to: "pdf",
+          linkText: "Download the PDF",
+        },
+        {
+          heading: "Rather vote on phones? Run it free on Cookoff Champs",
+          text: "Skip the paper: guests vote on their phones and the app counts.",
+          to: "app",
+          linkText: "Go to Cookoff Champs",
+        },
+      ],
+      tips: [
+        "Number every entry and keep the cook list out of sight, so judges and guests score the barbecue and not the cook.",
+        "Judge one meat at a time (ribs, brisket, chicken, pork) so scores aren't compared across different cuts.",
+        "Multiply each score by its weight, then add the row. The highest total wins. Keep the people's choice separate, so guests have a prize to vote for too.",
+      ],
+      parts: [
+        {
+          kind: "scores",
+          heading: "BBQ judging sheet",
+          scale: "Score each from 1 (poor) to 10 (excellent). Taste counts ×2, tenderness ×1.5, appearance ×1.",
+          judge: "Judge",
+          entry: "Entry #",
+          criteria: ["Taste (×2)", "Tenderness (×1.5)", "Appearance (×1)"],
+          total: "Weighted total",
+        },
+        { kind: "slips", heading: "People's choice BBQ", lines: ["My favorite BBQ"] },
+        { kind: "tally", heading: "BBQ cookoff tally", columns: ["Entry #", "Dish", "Cook", "Votes", "Total"], note: TALLY_NOTE },
       ],
     },
   ],

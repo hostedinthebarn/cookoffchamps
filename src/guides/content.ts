@@ -108,7 +108,7 @@ export const en: GuidesContent = {
           body: [
             "The pie contest is only fair if guests cannot tell who baked what. Put the pies on a table with numbered cards, keep the baker list with one person, and ask bakers not to hover.",
             "Pies that are obviously someone's, like the one in grandmother's dish, are hard to hide. Move them to plain plates, or accept it and let those votes ride.",
-            "Ask guests not to vote for their own pie. In a small group that is an honour-system rule, and it works better than you would expect.",
+            "Ask guests not to vote for their own pie. In a small group that is an honor-system rule, and it works better than you would expect.",
           ],
         },
         {
@@ -138,7 +138,7 @@ export const en: GuidesContent = {
       faq: [
         { q: "How many pies do I need for a contest?", a: "Three is enough to make it a contest. Around eight to twelve is the practical maximum for guests to taste them all without getting full." },
         { q: "Should the pies be judged or voted on?", a: "For a family gathering, let all guests vote. It is more fun, and you do not need to find judges. For a larger or more serious event, a small panel of three judges, with a guests' prize on top, works well." },
-        { q: "How do we stop people voting for their own pie?", a: "Ask them not to, and number the pies so most people do not know which is theirs. If the group is small, it is an honour system." },
+        { q: "How do we stop people voting for their own pie?", a: "Ask them not to, and number the pies so most people do not know which is theirs. If the group is small, it is an honor system." },
         { q: "What if two pies tie?", a: "Call them co-champions, or taste only the tied pies again and vote by show of hands. Agree on the method before voting." },
       ],
     },
@@ -301,7 +301,7 @@ export const en: GuidesContent = {
       printableId: "chili",
       title: "How to judge a chili cookoff",
       description:
-        "How to judge a chili cookoff: score aroma, colour, consistency, taste and aftertaste, taste blind, break ties and include kids' entries. Free printable judging sheet.",
+        "How to judge a chili cookoff: score aroma, color, consistency, taste and aftertaste, taste blind, break ties and include kids' entries. Free printable judging sheet.",
       intro:
         "Chili judging has a long tradition, and a few rules make it fair. Here is a simple way to run it at a church supper, an office or a backyard.",
       stepsTitle: "The short version",
@@ -319,7 +319,7 @@ export const en: GuidesContent = {
           heading: "What judges score",
           body: [
             "Many cookoffs judge on five things. Score each from 1 to 5, or from 1 to 10 if you want more room.",
-            { list: ["Aroma: does it smell inviting before the first spoonful?", "Colour: a rich, appetising colour, not grey or watery.", "Consistency: not soup, not paste.", "Taste: the main score, the balance of spice, salt, heat and depth.", "Aftertaste: what is left a moment later, good or not."] },
+            { list: ["Aroma: does it smell inviting before the first spoonful?", "Color: a rich, appetizing color, not gray or watery.", "Consistency: not soup, not paste.", "Taste: the main score, the balance of spice, salt, heat and depth.", "Aftertaste: what is left a moment later, good or not."] },
             "Official cookoffs use their own scoring rules, so if you plan to enter a sanctioned event, check theirs. At home, any consistent scale is fine.",
           ],
         },
@@ -351,15 +351,92 @@ export const en: GuidesContent = {
           id: "kids",
           heading: "Kids' entries",
           body: [
-            { list: ["A kids' category, with a mild chili, keeps heat out of the comparison.", "Young tasters can vote in the people's choice with a sticker.", "Offer a mild option and a clearly labelled hot one, so no child gets a surprise."] },
+            { list: ["A kids' category, with a mild chili, keeps heat out of the comparison.", "Young tasters can vote in the people's choice with a sticker.", "Offer a mild option and a clearly labeled hot one, so no child gets a surprise."] },
           ],
         },
       ],
       faq: [
-        { q: "What do chili judges look for?", a: "Most scoring sheets use aroma, colour, consistency, taste and aftertaste. Taste usually counts the most." },
+        { q: "What do chili judges look for?", a: "Most scoring sheets use aroma, color, consistency, taste and aftertaste. Taste usually counts the most." },
         { q: "How many chilis can a judge taste?", a: "Around eight to ten before palates tire. With more, split the entries into rounds, with the top few from each round in a final." },
         { q: "How do you keep chili judging blind?", a: "Number identical cups, keep the cook list out of sight, and keep cooks away from the judges." },
         { q: "How should we settle a tie?", a: "Agree on the method beforehand. The highest taste score is the usual tie-break; a re-taste is the next." },
+      ],
+    },
+    {
+      id: "bbq",
+      path: "/guides/backyard-bbq-cookoff/",
+      printableId: "bbq",
+      title: "How to run a backyard BBQ cook-off",
+      description:
+        "How to run a backyard BBQ cook-off: pick meat categories, use blind turn-in boxes, judge taste, tenderness and appearance, break ties and stay food-safe. Free printable judging sheet.",
+      intro:
+        "A backyard BBQ cook-off needs more planning than a pie contest, because the food is hot, it takes hours and everyone's meat is ready at once. A few rules set early keep it fair, keep it safe and keep it fun. This is a friendly format for a yard or a church lot, not a sanctioned KCBS contest, which has its own rules and trained judges.",
+      stepsTitle: "The short version",
+      steps: [
+        { name: "Pick the categories", text: "Choose the meats that can win: ribs, brisket, chicken, pork, or whatever your cooks are good at." },
+        { name: "Set a turn-in time", text: "Every cook hands in their entry at the same time, so the food is judged at the same temperature." },
+        { name: "Use blind turn-in boxes", text: "A helper puts each entry in a plain box with a number, and keeps the cook list out of sight." },
+        { name: "Judge one meat at a time", text: "Judges score taste, tenderness and appearance for each entry before moving on." },
+        { name: "Let guests vote too", text: "Guests taste the leftovers from numbered trays and mark a people's-choice ballot, or vote on their phones." },
+        { name: "Add it up and announce", text: "Weight the scores, check for ties, and read third, second and then first before saying whose it was." },
+      ],
+      sections: [
+        {
+          id: "categories",
+          heading: "Choosing meat categories",
+          body: [
+            "Brisket and chicken don't compare, so judge each meat on its own. Pick the ones your cooks actually make.",
+            { list: ["Ribs: the crowd favorite, and the easiest to enter.", "Brisket: long cook, big prize.", "Chicken: thighs are forgiving, and it is the cheapest entry.", "Pork: pulled pork or pork shoulder.", "A sauce or side category, if you want more cooks to win something."] },
+            "Three or four categories are plenty. A grand champion can be the best total across the categories, or a separate vote.",
+          ],
+        },
+        {
+          id: "blind",
+          heading: "Blind turn-in boxes",
+          body: [
+            "The contest is only fair if judges cannot tell whose barbecue they are eating. The usual way is a numbered box.",
+            { list: ["Each cook brings their entry in a plain container, with no name, logo or sauce label on it.", "At turn-in, a helper moves it to an identical box with a number card, and writes the number against the cook's name.", "Keep that list with one person who is not judging, and do not read it out until the winners are announced.", "Ask cooks not to hover by the judging table."] },
+            "Pick the numbers at random so nobody can guess the order cooks arrived in.",
+          ],
+        },
+        {
+          id: "judging",
+          heading: "Judging: taste, tenderness and appearance",
+          body: [
+            "Three things to score keeps it simple. Our printable sheet scores each from 1 to 10 and counts taste double and tenderness one and a half times, the same weights as the BBQ preset in the app. The weights are our own friendly-contest choice, not an official scale.",
+            { list: ["Taste: the main score. Seasoning, smoke and balance.", "Tenderness: should be done but not mush. Ribs should pull clean from the bone without falling off it.", "Appearance: how the entry looks in the box, before the first bite."] },
+            "Judge one meat at a time, and have judges score each entry before talking about it. A common order is lighter to richer: chicken, then ribs, then pork and brisket. Water and plain bread between entries help.",
+          ],
+        },
+        {
+          id: "ties",
+          heading: "Breaking ties",
+          body: [
+            "Agree on the method before the scores come in.",
+            { list: ["Highest taste score wins: the simplest tie-break.", "A re-taste of the tied entries by the judges.", "Co-champions, with two prizes.", "Let the people's-choice vote decide between the tied entries."] },
+          ],
+        },
+        {
+          id: "kids",
+          heading: "Kids and guests",
+          body: [
+            { list: ["Let guests vote for a people's choice, kids included. A sticker on a numbered tray is enough for young children.", "Offer a sauce on the side and a clearly labeled hot one, so no child gets a surprise.", "Give young cooks their own category, with a ribbon for every child."] },
+          ],
+        },
+        {
+          id: "safety",
+          heading: "Food safety",
+          body: [
+            "Barbecue sits out for a long time at a contest, so plan for it. These are USDA guidelines, which we have not tested:",
+            { list: ["Cook poultry to 165°F, and pork and whole cuts of beef to 145°F, checked with a thermometer.", "Keep hot food at 140°F or above, and cold sides at 40°F or below.", "Throw away food that has sat out more than two hours, or one hour if it is over 90°F outside.", "Label allergens on the number card where you can: nuts, dairy, gluten, and shellfish in any sauce."] },
+          ],
+        },
+      ],
+      faq: [
+        { q: "How many entries do I need for a BBQ cook-off?", a: "Three is enough to make it a contest. Beyond about eight or ten per meat, judges get full and the scores drift." },
+        { q: "Should the BBQ be judged or voted on?", a: "For a family gathering, let all guests vote. For a bigger event, add a small panel of judges with score sheets, and give a guests' prize on top." },
+        { q: "Is this the same as a KCBS contest?", a: "No. KCBS sanctions its own contests with its own rules and certified judges. This is a friendly format for the backyard, and the printable sheet is not an official KCBS score card." },
+        { q: "How do we judge a cook-off fairly?", a: "Number every entry in an identical box, hide the cook list, judge one meat at a time and have judges score before they talk." },
       ],
     },
   ],

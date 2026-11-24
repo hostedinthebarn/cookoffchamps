@@ -14,7 +14,7 @@ export const es: PrintablesContent = {
   path: "/es/imprimibles/",
   title: "Imprimibles gratis para tu concurso",
   description:
-    "Boletas y hojas de puntos gratis para imprimir: concurso de pays de Acción de Gracias, concurso de galletas navideñas y concurso de chili. PDF tamaño carta.",
+    "Boletas y hojas de puntos gratis para imprimir: concurso de pays de Acción de Gracias, concurso de galletas navideñas, concurso de chili y concurso de barbacoa. PDF tamaño carta.",
   intro: "Boletas, hojas de puntos y hojas de conteo para tu próximo concurso. Gratis para imprimir y compartir, sin registrarte.",
   appHref: "/?lang=es",
   downloadPdf: "Descargar el PDF",
@@ -99,6 +99,55 @@ export const es: PrintablesContent = {
           total: "Total",
         },
         { kind: "tally", heading: "Conteo del concurso de chili", columns: ["Chili #", "Chili", "Cocinero", "Votos", "Total"], note: TALLY_NOTE },
+      ],
+    },
+    {
+      id: "bbq",
+      path: "/es/imprimibles/hoja-del-jurado-concurso-de-barbacoa/",
+      ref: "bbq",
+      guidePath: "/es/guias/concurso-de-barbacoa-en-casa/",
+      title: "Hoja del jurado y boleta para concurso de barbacoa",
+      description:
+        "Hoja del jurado gratis para imprimir para un concurso de barbacoa (sabor, suavidad, presentación), boleta del voto del público y hoja de conteo, todo en un PDF. Tamaño carta.",
+      intro:
+        "Un PDF gratis para un concurso de barbacoa en casa: una hoja para el jurado, boletas del voto del público para los invitados y una hoja de conteo.",
+      sections: [
+        {
+          heading: "Hoja del jurado para barbacoa",
+          text: "Una fila por participante, calificada del 1 al 10 en sabor, suavidad y presentación. El sabor vale doble y la suavidad una vez y media, los mismos pesos que la plantilla de barbacoa de la app. Es un formato amistoso para el patio, no una hoja oficial de KCBS.",
+          to: "pdf",
+          linkText: "Descargar el PDF",
+        },
+        {
+          heading: "Boleta del voto del público y conteo",
+          text: "Seis boletas por hoja para recortar, y una hoja de conteo. Están en el mismo PDF que la hoja del jurado.",
+          to: "pdf",
+          linkText: "Descargar el PDF",
+        },
+        {
+          heading: "¿Prefieres votar por celular? Hazlo gratis en Cookoff Champs",
+          text: "Olvídate del papel: los invitados votan en su teléfono y la app cuenta.",
+          to: "app",
+          linkText: "Ir a Cookoff Champs",
+        },
+      ],
+      tips: [
+        "Numera cada participante y guarda la lista de cocineros fuera de la vista, para que el jurado y los invitados califiquen la barbacoa y no a quien la hizo.",
+        "Juzga una carne a la vez (costillas, brisket, pollo, cerdo) para no comparar cortes distintos.",
+        "Multiplica cada calificación por su peso y suma la fila. Gana el total más alto. Deja aparte el voto del público, para que los invitados también tengan un premio por el que votar.",
+      ],
+      parts: [
+        {
+          kind: "scores",
+          heading: "Hoja del jurado: barbacoa",
+          scale: "Califica cada una del 1 (malo) al 10 (excelente). El sabor vale ×2, la suavidad ×1.5 y la presentación ×1.",
+          judge: "Juez",
+          entry: "Núm.",
+          criteria: ["Sabor (×2)", "Suavidad (×1.5)", "Presentación (×1)"],
+          total: "Total con pesos",
+        },
+        { kind: "slips", heading: "Voto del público: barbacoa", lines: ["Mi barbacoa favorita"] },
+        { kind: "tally", heading: "Conteo del concurso de barbacoa", columns: ["Núm.", "Platillo", "Cocinero", "Votos", "Total"], note: TALLY_NOTE },
       ],
     },
   ],

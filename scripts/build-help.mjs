@@ -24,6 +24,7 @@ await build({
       `export { en as guidesEn } from "./src/guides/content.ts"; export { es as guidesEs } from "./src/guides/content-es.ts";`,
       `export { storyPage, storiesIndexPage, storyPaths, todayInTexas, publishedStories, withLiveStoryLinks } from "./src/stories/render.ts";`,
       `export { en as storiesEn } from "./src/stories/content.ts";`,
+      `export { FOOD_TYPES, heldBack as foodHeldBack, liveSheets, liveGuides } from "./src/shared/foodTypes.ts";`,
       `export { qrSvg } from "./src/client/qr.ts";`,
       `export { privacyPage } from "./src/privacy/render.ts";`,
       `export { en as privacyEn, es as privacyEs } from "./src/privacy/content.ts";`,
@@ -39,7 +40,7 @@ await build({
   outfile: tmp,
   logLevel: "warning",
 });
-const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, storyPage, storiesIndexPage, storyPaths, todayInTexas, publishedStories, withLiveStoryLinks, storiesEn, qrSvg, qrTarget, privacyPage, privacyEn, privacyEs } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
+const { helpPage, sitemap, robots, en, es, sheetPage, indexPage, printablePaths, printEn, printEs, guidePage, guidePaths, guidesEn, guidesEs, storyPage, storiesIndexPage, storyPaths, todayInTexas, publishedStories, withLiveStoryLinks, storiesEn, FOOD_TYPES, foodHeldBack, liveSheets, liveGuides, qrSvg, qrTarget, privacyPage, privacyEn, privacyEs } = await import(`${pathToFileURL(tmp).href}?t=${Date.now()}`);
 
 const versions = [en, es]; // English first: it's the x-default for search engines
 for (const content of versions) {
@@ -49,7 +50,14 @@ for (const content of versions) {
 }
 // The printables (SW-62): an index and a page per sheet, in each language. The
 // PDFs are printed from these pages afterwards by scripts/build-printables.mjs.
-const printVersions = [printEn, printEs];
+// A food type with a publishDate still ahead (SW-123) is left out here, in the code: its printable,
+// PDF, guides and sitemap entries. Start clean, so a held-back page left in public/ by an earlier
+// build can never ship (the PDFs are printed from whatever is in these folders).
+const today = process.env.BUILD_DATE || todayInTexas();
+const held = foodHeldBack(today, FOOD_TYPES);
+for (const t of FOOD_TYPES) if (t.publishDate && t.publishDate > today) console.log(`food type ${t.id} held back until ${t.publishDate} (today is ${today})`);
+for (const dir of ["printables", "guides", "es/imprimibles", "es/guias"]) fs.rmSync(path.join(pub, dir), { recursive: true, force: true });
+const printVersions = [printEn, printEs].map((c) => liveSheets(c, held));
 const write = (p, html) => {
   const dir = path.join(pub, ...p.split("/").filter(Boolean));
   fs.mkdirSync(dir, { recursive: true });
@@ -62,14 +70,13 @@ for (const content of printVersions) {
   }
 }
 
-// Stories go live on their datePublished, Texas time (SW-124). BUILD_DATE=YYYY-MM-DD previews another day.
-const today = process.env.BUILD_DATE || todayInTexas();
+// Stories go live on their datePublished, Texas time (SW-124), by the same `today`.
 const liveStories = publishedStories(storiesEn, today);
 const heldBack = storiesEn.stories.filter((s) => !liveStories.stories.includes(s));
 for (const s of heldBack) console.log(`story ${s.id} held back until ${s.datePublished} (today is ${today})`);
 
 // The holiday guides (SW-63): a page per search intent, in each language. Links to held-back stories are left out.
-const guideVersions = [guidesEn, guidesEs].map((g) => withLiveStoryLinks(g, liveStories));
+const guideVersions = [guidesEn, guidesEs].map((g) => withLiveStoryLinks(liveGuides(g, held), liveStories));
 for (const content of guideVersions) {
   for (const guide of content.guides) write(guide.path, guidePage(content, guideVersions, printVersions, guide.id));
 }

@@ -305,5 +305,82 @@ export const es: GuidesContent = {
         { q: "¿Cómo resolvemos un empate?", a: "Acuerda el método de antemano. Lo habitual es la nota más alta de sabor; el siguiente paso es volver a probar." },
       ],
     },
+    {
+      id: "bbq",
+      path: "/es/guias/concurso-de-barbacoa-en-casa/",
+      printableId: "bbq",
+      title: "Cómo organizar un concurso de barbacoa en casa",
+      description:
+        "Cómo organizar un concurso de barbacoa en el patio: elige categorías de carne, usa cajas numeradas a ciegas, califica sabor, suavidad y presentación, desempata y cuida la comida. Hoja del jurado gratis.",
+      intro:
+        "Un concurso de barbacoa necesita más planeación que uno de pays, porque la comida está caliente, lleva horas y toda la carne está lista a la vez. Unas cuantas reglas puestas a tiempo lo hacen justo, seguro y divertido. Este es un formato amistoso para el patio o el estacionamiento de la iglesia, no un concurso oficial de KCBS, que tiene sus propias reglas y jueces capacitados.",
+      stepsTitle: "La versión corta",
+      steps: [
+        { name: "Elige las categorías", text: "Escoge las carnes que pueden ganar: costillas, brisket, pollo, cerdo, o lo que sepan hacer tus cocineros." },
+        { name: "Fija una hora de entrega", text: "Todos entregan a la misma hora, para que la comida se juzgue a la misma temperatura." },
+        { name: "Usa cajas numeradas a ciegas", text: "Un ayudante pone cada participante en una caja sencilla con un número, y guarda la lista de cocineros fuera de la vista." },
+        { name: "Juzga una carne a la vez", text: "El jurado califica sabor, suavidad y presentación de cada participante antes de pasar al siguiente." },
+        { name: "Deja votar a los invitados", text: "Los invitados prueban lo que sobra de las charolas numeradas y marcan una boleta del voto del público, o votan en su celular." },
+        { name: "Suma y anuncia", text: "Aplica los pesos, revisa si hay empates y lee tercero, segundo y luego primero antes de decir de quién era." },
+      ],
+      sections: [
+        {
+          id: "categories",
+          heading: "Elegir las categorías de carne",
+          body: [
+            "El brisket y el pollo no se comparan, así que juzga cada carne por separado. Escoge las que tus cocineros sí hacen.",
+            { list: ["Costillas: la favorita de todos y la más fácil de entrar.", "Brisket: cocción larga, premio grande.", "Pollo: los muslos perdonan errores y es la entrada más barata.", "Cerdo: carne deshebrada o paleta de cerdo.", "Una categoría de salsa o de guarnición, si quieres que más cocineros ganen algo."] },
+            "Tres o cuatro categorías bastan. El gran campeón puede ser el mejor total entre categorías, o una votación aparte.",
+          ],
+        },
+        {
+          id: "blind",
+          heading: "Cajas numeradas a ciegas",
+          body: [
+            "El concurso solo es justo si el jurado no sabe de quién es la barbacoa que está probando. La forma habitual es una caja numerada.",
+            { list: ["Cada cocinero trae su participante en un recipiente sencillo, sin nombre, logotipo ni etiqueta de salsa.", "Al entregarlo, un ayudante lo pasa a una caja igual con una tarjeta con número y anota el número junto al nombre del cocinero.", "Esa lista la guarda una persona que no sea jurado, y no se lee hasta anunciar a los ganadores.", "Pide a los cocineros que no merodeen cerca de la mesa del jurado."] },
+            "Escoge los números al azar para que nadie adivine en qué orden llegaron los cocineros.",
+          ],
+        },
+        {
+          id: "judging",
+          heading: "Calificar: sabor, suavidad y presentación",
+          body: [
+            "Tres cosas que calificar lo mantienen sencillo. Nuestra hoja para imprimir califica cada una del 1 al 10 y cuenta el sabor doble y la suavidad una vez y media, los mismos pesos que la plantilla de barbacoa de la app. Los pesos son nuestra elección para un concurso amistoso, no una escala oficial.",
+            { list: ["Sabor: la calificación principal. Condimento, humo y equilibrio.", "Suavidad: debe estar cocida pero no deshecha. Las costillas deben salir limpias del hueso sin caerse solas.", "Presentación: cómo se ve en la caja, antes del primer bocado."] },
+            "Juzga una carne a la vez, y que el jurado califique cada participante antes de comentarlo. Un orden común va de lo más ligero a lo más fuerte: pollo, luego costillas, luego cerdo y brisket. Agua y pan sencillo entre una prueba y otra ayudan.",
+          ],
+        },
+        {
+          id: "ties",
+          heading: "Desempates",
+          body: [
+            "Acuerden el método antes de que lleguen las calificaciones.",
+            { list: ["Gana la calificación de sabor más alta: el desempate más sencillo.", "El jurado vuelve a probar los participantes empatados.", "Cocampeones, con dos premios.", "Que el voto del público decida entre los empatados."] },
+          ],
+        },
+        {
+          id: "kids",
+          heading: "Niños e invitados",
+          body: [
+            { list: ["Deja votar al público, niños incluidos. A los más pequeños les basta una calcomanía en una charola numerada.", "Ofrece la salsa aparte y una picante bien etiquetada, para que ningún niño se lleve una sorpresa.", "Dale a los jóvenes cocineros su propia categoría, con un listón para cada niño."] },
+          ],
+        },
+        {
+          id: "safety",
+          heading: "Seguridad de los alimentos",
+          body: [
+            "En un concurso la barbacoa pasa mucho tiempo fuera, así que planéalo. Estas son recomendaciones del USDA, que no hemos probado:",
+            { list: ["Cocina el ave a 165°F, y el cerdo y los cortes enteros de res a 145°F, comprobado con termómetro.", "Mantén la comida caliente a 140°F o más, y las guarniciones frías a 40°F o menos.", "Tira la comida que lleve más de dos horas fuera, o una hora si afuera hay más de 90°F.", "Anota los alérgenos en la tarjeta con número cuando puedas: nueces, lácteos, gluten y mariscos en cualquier salsa."] },
+          ],
+        },
+      ],
+      faq: [
+        { q: "¿Cuántos participantes necesito para un concurso de barbacoa?", a: "Con tres ya es un concurso. Pasando de ocho o diez por carne, el jurado se llena y las calificaciones se desvían." },
+        { q: "¿La barbacoa se juzga o se vota?", a: "En una reunión familiar, deja votar a todos. Para un evento más grande, agrega un jurado pequeño con hojas de puntos, y un premio del público además." },
+        { q: "¿Es lo mismo que un concurso de KCBS?", a: "No. KCBS autoriza sus propios concursos con sus reglas y jueces certificados. Este es un formato amistoso para el patio, y la hoja para imprimir no es una hoja oficial de KCBS." },
+        { q: "¿Cómo se juzga un concurso con justicia?", a: "Numera cada participante en una caja igual, esconde la lista de cocineros, juzga una carne a la vez y que el jurado califique antes de comentar." },
+      ],
+    },
   ],
 };

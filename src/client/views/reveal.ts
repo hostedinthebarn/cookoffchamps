@@ -66,7 +66,7 @@ export function placeLabel(step: RevealStep): string {
   return m().common.place(step.place, step.entryIds.length > 1);
 }
 
-const CONFETTI_COLOURS = ["var(--gold)", "var(--accent)", "var(--good)", "var(--silver)", "var(--bronze)", "var(--confetti-extra)"];
+const CONFETTI_COLORS = ["var(--gold)", "var(--accent)", "var(--good)", "var(--silver)", "var(--bronze)", "var(--confetti-extra)"];
 
 /**
  * A one-off shower of confetti for the champion. The pieces are spread by a
@@ -83,7 +83,7 @@ export function confetti(count = 72): HTMLElement {
       `--w:${8 + ((i * 7) % 8)}px`,
       `--r:${360 + ((i * 97) % 540)}deg`,
       `--sway:${((i * 61) % 160) - 80}px`,
-      `--c:${CONFETTI_COLOURS[i % CONFETTI_COLOURS.length]}`,
+      `--c:${CONFETTI_COLORS[i % CONFETTI_COLORS.length]}`,
     ].join(";");
     box.append(h("span", { style }));
   }

@@ -45,7 +45,7 @@ describe("printables content (SW-62)", () => {
     const paths = printablePaths(versions);
     expect(paths).toContain("/printables/");
     expect(paths).toContain("/es/imprimibles/boleta-concurso-de-chili/");
-    expect(paths).toHaveLength(8);
+    expect(paths).toHaveLength(10);
     const xml = sitemap(paths);
     expect(xml).toContain(`<loc>${ORIGIN}/help/</loc>`);
     expect(xml).toContain(`<loc>${ORIGIN}/printables/chili-cookoff-ballot/</loc>`);
@@ -121,7 +121,7 @@ describe("a printable's page", () => {
     expect(scores.querySelector("h2")!.textContent).toBe("Chili judging sheet");
     expect(scores.querySelector(".sheet-line")!.textContent).toBe("Judge");
     expect([...scores.querySelectorAll("th")].map((th) => th.textContent)).toEqual([
-      "Chili #", "Aroma", "Colour", "Consistency", "Taste", "Aftertaste", "Total",
+      "Chili #", "Aroma", "Color", "Consistency", "Taste", "Aftertaste", "Total",
     ]);
     expect(scores.querySelectorAll("tbody tr")).toHaveLength(SCORE_ROWS);
     expect(scores.querySelectorAll("tbody tr:first-child td")).toHaveLength(7);

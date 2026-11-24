@@ -23,7 +23,7 @@ describe("guides content (SW-63)", () => {
     const shape = (c: GuidesContent) =>
       c.guides.map((g) => [g.id, g.printableId, g.steps.length, g.sections.map((s) => s.id), g.faq.length]);
     expect(shape(es)).toEqual(shape(en));
-    expect(en.guides.map((g) => g.id)).toEqual(["pie", "cookie", "sugar-cookies", "chili"]);
+    expect(en.guides.map((g) => g.id)).toEqual(["pie", "cookie", "sugar-cookies", "chili", "bbq"]);
   });
 
   it("publishes English under /guides/ and Spanish under /es/guias/", () => {
@@ -39,7 +39,7 @@ describe("guides content (SW-63)", () => {
 
   it("lists every guide in the sitemap", () => {
     const paths = guidePaths(versions);
-    expect(paths).toHaveLength(8);
+    expect(paths).toHaveLength(10);
     const xml = sitemap([...printablePaths(printables), ...paths]);
     expect(xml).toContain(`<loc>${ORIGIN}/guides/judge-a-chili-cookoff/</loc>`);
     expect(xml).toContain(`<loc>${ORIGIN}/es/guias/concurso-de-pays-de-accion-de-gracias/</loc>`);
