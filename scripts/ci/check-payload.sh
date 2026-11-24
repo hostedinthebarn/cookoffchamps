@@ -5,9 +5,13 @@
 set -euo pipefail
 dir=${1:?usage: check-payload.sh <payload-dir>}
 [ -d "$dir" ] || { echo "no such directory: $dir (did the build run?)" >&2; exit 2; }
-ALLOWED_EXT=${ALLOWED_EXT:-'html|htm|css|js|mjs|svg|png|jpg|jpeg|gif|webp|avif|ico|woff|woff2|txt|xml|webmanifest|pdf'}
+# This repo's list, identical to scripts/check-publish.mjs ALLOWED (the workflow sets the same value).
+ALLOWED_EXT=${ALLOWED_EXT:-'html|css|js|map|svg|png|webmanifest|xml|txt|pdf'}
 ALLOWED_NAMES=${ALLOWED_NAMES:-'_headers|_redirects'}
 DENY='(^|/)(CLAUDE\.md|memory)(/|$)|\.(md|py|sh|env|pem|key|csr|rtf)$'
+# List first, so a traversal error fails the check instead of vanishing inside a process substitution.
+list=$(mktemp); trap 'rm -f "$list"' EXIT
+find "$dir" -mindepth 1 \( -type f -o -type l \) -print0 >"$list" || { echo "listing $dir failed" >&2; exit 2; }
 fail=0; count=0
 while IFS= read -r -d '' f; do
   count=$((count+1)); rel=${f#"$dir"/}; base=${rel##*/}
@@ -20,7 +24,7 @@ while IFS= read -r -d '' f; do
   elif [[ $base =~ ^($ALLOWED_NAMES)$ ]]; then :
   else why='not on the web-asset allowlist'; fi
   if [ -n "$why" ]; then echo "::error file=$rel::$why"; fail=1; fi
-done < <(find "$dir" -mindepth 1 \( -type f -o -type l \) -print0)
+done <"$list"
 # An empty payload would pass vacuously: that means the build or the path is wrong.
 [ "$count" -gt 0 ] || { echo "payload $dir is empty: refusing to pass" >&2; exit 1; }
 echo "check-payload: $count files in $dir"
