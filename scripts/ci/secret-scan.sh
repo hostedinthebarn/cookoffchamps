@@ -23,17 +23,29 @@ P=$work/paths L=$work/lines N=$work/nums; : >"$P"; : >"$L"; : >"$N"
 case $mode in
   diff)
     base=$(git merge-base "$arg" HEAD 2>/dev/null || echo "$arg")
-    # --text: a PR can mark files binary in .gitattributes, and git diff would then print no lines for them.
     # --no-textconv/--no-ext-diff: no repo-configured filter decides what the scanner sees.
     # R and C: a renamed or copied file's added lines are scanned too.
-    git -c core.quotePath=false diff -U0 --no-color --text --no-textconv --no-ext-diff --diff-filter=AMRC \
+    git -c core.quotePath=false diff -U0 --no-color --no-textconv --no-ext-diff --diff-filter=AMRC \
       "$base" HEAD >"$work/patch"
     # A "+++ b/" line is a file header only before the first hunk of a file; inside a hunk it's content.
-    awk -v P="$P" -v L="$L" -v N="$N" '
+    # Files git reports as binary are listed separately, for the check below.
+    LC_ALL=C awk -v P="$P" -v L="$L" -v N="$N" -v B="$work/binary" '
       /^diff --git /                    { inh = 0; f = ""; next }
+      !inh && /^Binary files .* and b\/.* differ$/ { s = $0; sub(/^Binary files .* and b\//, "", s); sub(/ differ$/, "", s); print s >> B; next }
       !inh && /^\+\+\+ /                { f = ($0 ~ /^\+\+\+ b\//) ? substr($0, 7) : ""; next }
       /^@@ /                            { inh = 1; match($0, /\+[0-9]+/); ln = substr($0, RSTART + 1, RLENGTH - 1) + 0; next }
-      inh && /^\+/                      { print f >> P; print substr($0, 2) >> L; print ln >> N; ln++ }' "$work/patch" ;;
+      inh && /^\+/                      { print f >> P; print substr($0, 2) >> L; print ln >> N; ln++ }' "$work/patch"
+    # A PR can mark a text file binary in .gitattributes, and git diff then prints none of its lines. Git's own
+    # test for binary is a NUL byte in the first 8000 bytes; a reported-binary file without one is text, so all
+    # of it is scanned. Real binaries (images, PDFs) have NULs and are left to the payload check.
+    if [ -s "$work/binary" ]; then
+      while IFS= read -r bf; do
+        git cat-file blob "HEAD:$bf" >"$work/blob"
+        if [ "$(head -c 8000 "$work/blob" | LC_ALL=C tr -d '\000' | wc -c)" -eq "$(head -c 8000 "$work/blob" | wc -c)" ]; then
+          LC_ALL=C awk -v f="$bf" -v P="$P" -v L="$L" -v N="$N" '{ print f >> P; print $0 >> L; print NR >> N }' "$work/blob"
+        fi
+      done <"$work/binary"
+    fi ;;
   dir)
     [ -d "$arg" ] || { echo "no such directory: $arg" >&2; exit 2; }
     find "$arg" -type f -not -path '*/.git/*' -print0 >"$work/files"   # a traversal error stops the scan (set -e)
@@ -67,7 +79,10 @@ while read -r n; do
       case $glob in ''|'#'*) continue ;; esac
       [ -n "$sub" ] || continue
       # shellcheck disable=SC2254
-      case $path in $glob) rest=${rest//"$sub"/} ;; esac
+      # Cut every literal occurrence (awk index(), not bash ${//}: that is near-quadratic on a one-line bundle).
+      case $path in $glob) rest=$(printf '%s' "$rest" | S="$sub" LC_ALL=C awk '{ s = ENVIRON["S"]
+          out = ""; while ((i = index($0, s)) > 0) { out = out substr($0, 1, i - 1); $0 = substr($0, i + length(s)) }
+          printf "%s", out $0 }') ;; esac
     done <"$allow"
   fi
   if matches "$rest"; then echo "::error file=$path,line=$num::secret-shaped text (content not printed)"; fail=1; fi

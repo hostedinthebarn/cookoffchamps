@@ -54,6 +54,9 @@ printf 'long/app.js\tno pass%s here\n' "word" > allow.tsv
 expect fail "row exempts its phrase only; another pattern on the same line still fails" env SECRET_SCAN_ALLOW=$t/allow.tsv bash "$SCAN" dir long
 printf '%s\n' "there is no pass""word here" > long/app.js
 expect pass "row exempts its phrase when nothing else is on the line" env SECRET_SCAN_ALLOW=$t/allow.tsv bash "$SCAN" dir long
+printf '%s\n' "re = /pass""word\s*[:=]/i" > long/app.js
+printf 'long/app.js\t/pass%s\\s*[:=]/i\n' "word" > allow.tsv
+expect pass "a row with backslashes matches literally" env SECRET_SCAN_ALLOW=$t/allow.tsv bash "$SCAN" dir long
 mkdir -p unreadable; echo x > unreadable/a.txt; mkdir unreadable/locked; chmod 000 unreadable/locked
 expect fail "a payload that can't be fully read fails the scan" bash "$SCAN" dir unreadable
 expect fail "a payload that can't be fully listed fails the check" bash "$PAY" unreadable
