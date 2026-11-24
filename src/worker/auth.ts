@@ -39,6 +39,7 @@ export async function hashIp(env: Env, ip: string): Promise<string> {
  * newlines, so backslashes and control characters are refused outright.
  */
 export function safeNext(next: string | null): string {
+  // eslint-disable-next-line no-control-regex -- matching control characters is the point: they are refused
   if (!next || !next.startsWith("/") || next.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(next)) return "/";
   return next;
 }
