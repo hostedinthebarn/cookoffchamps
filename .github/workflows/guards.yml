@@ -22,7 +22,7 @@ concurrency:
 env:
   PAYLOAD_DIR: public      # wrangler.jsonc assets.directory
   BUILD_CMD: npm run build # what `npm run deploy` runs before check-publish and wrangler
-  LINT_SCRIPT: typecheck   # no lint script and no linter in this repo; adding eslint is a new tool, Gary's call
+  LINT_SCRIPT: lint        # typecheck, then ESLint with zero warnings (package.json)
   # The deploy gate's own list (scripts/check-publish.mjs ALLOWED); keep the two identical, never wider.
   ALLOWED_EXT: 'html|css|js|map|svg|png|webmanifest|xml|txt|pdf'
 
