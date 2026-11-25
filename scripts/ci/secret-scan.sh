@@ -25,8 +25,9 @@ has_nul() { [ "$(head -c 8000 "$1" | LC_ALL=C tr -d '\000' | wc -c)" -ne "$(head
 add_file() { # add_file <label> <file>: every line of a file, NULs read as spaces so nothing hides behind one
   case $1 in *$'\n'*) echo "secret-scan: a path contains a newline" >&2; exit 2 ;; esac
   if printf '%s\n' "$1" | grep -qiE "$MEDIA" && has_nul "$2"; then return 0; fi
-  LC_ALL=C tr '\000' ' ' <"$2" | LC_ALL=C awk -v f="$1" -v P="$P" -v L="$L" -v N="$N" \
-    '{ print f >> P; print $0 >> L; print NR >> N }'
+  # The name goes through ENVIRON: awk -v would turn a literal backslash-n in it into a newline.
+  LC_ALL=C tr '\000' ' ' <"$2" | F="$1" LC_ALL=C awk -v P="$P" -v L="$L" -v N="$N" \
+    '{ print ENVIRON["F"] >> P; print $0 >> L; print NR >> N }'
 }
 
 case $mode in
@@ -37,21 +38,24 @@ case $mode in
     git -c core.quotePath=false diff -U0 --no-color --no-textconv --no-ext-diff --diff-filter=AMRC \
       "$base" HEAD >"$work/patch"
     # A "+++ b/" line is a file header only before the first hunk of a file; inside a hunk it's content.
-    # Files git reports as binary are listed separately, for the check below.
-    LC_ALL=C awk -v P="$P" -v L="$L" -v N="$N" -v B="$work/binary" '
+    LC_ALL=C awk -v P="$P" -v L="$L" -v N="$N" '
       /^diff --git /                    { inh = 0; f = ""; next }
-      !inh && /^Binary files .* and b\/.* differ$/ { s = $0; sub(/^Binary files .* and b\//, "", s); sub(/ differ$/, "", s); print s >> B; next }
       !inh && /^\+\+\+ /                { f = ($0 ~ /^\+\+\+ b\//) ? substr($0, 7) : ""; next }
       /^@@ /                            { inh = 1; match($0, /\+[0-9]+/); ln = substr($0, RSTART + 1, RLENGTH - 1) + 0; next }
       inh && /^\+/                      { print f >> P; print substr($0, 2) >> L; print ln >> N; ln++ }' "$work/patch"
     # Files git reports as binary (a NUL byte, or a .gitattributes mark a PR could add) print no lines, so each
     # is read whole from HEAD. Only real media files with a NUL are skipped; the payload check covers those.
-    if [ -s "$work/binary" ]; then
-      while IFS= read -r bf; do
-        git cat-file blob "HEAD:$bf" >"$work/blob"
-        add_file "$bf" "$work/blob"
-      done <"$work/binary"
-    fi ;;
+    # The list comes from NUL-delimited --numstat ("-<TAB>-" marks binary), never from git's human-readable
+    # notice, so any filename survives. A rename record is "-<TAB>-<TAB>" then the old and new paths.
+    git -c core.quotePath=false diff --numstat -z --no-textconv --no-ext-diff --diff-filter=AMRC "$base" HEAD >"$work/numstat"
+    while IFS= read -r -d '' rec; do
+      path=${rec#*$'\t'*$'\t'}
+      if [ -z "$path" ]; then IFS= read -r -d '' _old; IFS= read -r -d '' path; fi
+      case $rec in -$'\t'-$'\t'*) ;; *) continue ;; esac
+      git cat-file blob "HEAD:$path" >"$work/blob"
+      add_file "$path" "$work/blob"
+    done <"$work/numstat"
+    ;;
   dir)
     [ -d "$arg" ] || { echo "no such directory: $arg" >&2; exit 2; }
     find "$arg" -type f -not -path '*/.git/*' -print0 >"$work/files"   # a traversal error stops the scan (set -e)

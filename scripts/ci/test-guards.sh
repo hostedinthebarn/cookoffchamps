@@ -12,6 +12,10 @@ expect() { # expect <pass|fail> <label> <cmd...>
   if "$@" >/dev/null 2>&1; then got=pass; else got=fail; fi
   if [ "$got" = "$want" ]; then pass=$((pass+1)); else bad=$((bad+1)); echo "WRONG: $label (wanted $want, got $got)"; fi
 }
+hit() { # hit <label> <cmd...>: the scan must FIND something (exit 1 and an ::error line), not just crash
+  label=$1; shift; out=$("$@" 2>&1); rc=$?
+  if [ "$rc" = 1 ] && [[ $out == *"::error file="* ]]; then pass=$((pass+1)); else bad=$((bad+1)); echo "WRONG: $label (exit $rc, no hit)"; fi
+}
 fakes=("client_""secret=abc12345" "GOC""SPX-abcdefghijk" "my_api""_key = 'zzz'" "-----BEGIN RSA PRIV""ATE KEY-----"
        "refresh_""token: 1//abc" "AK""IAABCDEFGHIJKLMNOP" "Authorization: Bear""er abc.def" "pass""word = hunter2" "?tok""en=abc")
 i=0
@@ -42,10 +46,10 @@ out=$(bash "$SCAN" dir od 2>&1 || true); case $out in *::error*) ;; *) bad=$((ba
 # hardening (CodeRabbit on PR #38): ways a change could hide a line from the diff scan
 git checkout -q -B attr "$base"; printf '*.js binary\n' > .gitattributes; printf '%s\n' "pass""word = hunter2" > hid.js
 git add .gitattributes hid.js; git commit -qm attr
-expect fail "a .gitattributes binary mark doesn't hide added lines" bash "$SCAN" diff "$base"
+hit "a .gitattributes binary mark doesn't hide added lines" bash "$SCAN" diff "$base"
 git checkout -q -B ren "$base"; printf 'line %s\n' $(seq 1 30) > big.txt; git add big.txt; git commit -qm big; b3=$(git rev-parse HEAD)
 git mv big.txt moved.txt; printf '%s\n' "pass""word = hunter2" >> moved.txt; git add moved.txt; git commit -qm mv
-expect fail "a renamed file's added lines are scanned" bash "$SCAN" diff "$b3"
+hit "a renamed file's added lines are scanned" bash "$SCAN" diff "$b3"
 git checkout -q -B hdr "$base"; printf '%s\n' "++ b/x.js pass""word = hunter2" > h.txt; git add h.txt; git commit -qm hdr
 expect fail "an added line that looks like a +++ header doesn't end the hunk" bash "$SCAN" diff "$base"
 # an allowlist row exempts only its own phrase, not the rest of the line
@@ -59,15 +63,21 @@ printf 'long/app.js\t/pass%s\\s*[:=]/i\n' "word" > allow.tsv
 expect pass "a row with backslashes matches literally" env SECRET_SCAN_ALLOW=$t/allow.tsv bash "$SCAN" dir long
 # second CodeRabbit pass: NUL bytes and colons in names
 mkdir -p nul; printf 'x = 1\000%s\n' "pass""word = hunter2" > nul/app.js
-expect fail "a NUL byte doesn't hide a secret in a text file" bash "$SCAN" dir nul
+hit "a NUL byte doesn't hide a secret in a text file" bash "$SCAN" dir nul
 printf '\211PNG\000\000%s\n' "pass""word" > nul/app.js; mv nul/app.js nul/real.png
 expect pass "a real binary image is skipped" bash "$SCAN" dir nul
 printf '%s\n' "pass""word = hunter2" > nul/fake.png
-expect fail "a text file named .png is still scanned" bash "$SCAN" dir nul
+hit "a text file named .png is still scanned" bash "$SCAN" dir nul
 rm -rf nul; mkdir -p colon; printf '%s\n' "pass""word = hunter2" > 'colon/a:12:b.js'
-expect fail "a colon in a file name doesn't break the scan" bash "$SCAN" dir colon
+hit "a colon in a file name doesn't break the scan" bash "$SCAN" dir colon
 git checkout -q -B nuldiff "$base"; printf 'x\000%s\n' "pass""word = hunter2" > n.js; git add n.js; git commit -qm nul
-expect fail "diff mode reads past a NUL in a non-media file" bash "$SCAN" diff "$base"
+hit "diff mode reads past a NUL in a non-media file" bash "$SCAN" diff "$base"
+git checkout -q -B oddname "$base"; printf '*.js binary\n' > .gitattributes; printf '%s\n' "pass""word = hunter2" > 'odd\tna\\nme.js'
+git add .gitattributes 'odd\tna\\nme.js'; git commit -qm odd
+hit "a binary-marked file with backslashes in its name is still read" bash "$SCAN" diff "$base"
+git checkout -q -B renbin "$base"; printf '*.dat binary\n' > .gitattributes; printf 'row %s\n' $(seq 1 40) > keep.dat; git add .gitattributes keep.dat; git commit -qm k; b4=$(git rev-parse HEAD)
+git mv keep.dat moved.dat; printf '%s\n' "pass""word = hunter2" >> moved.dat; git add moved.dat; git commit -qm mv
+hit "a renamed binary-marked file is read" bash "$SCAN" diff "$b4"
 mkdir -p unreadable; echo x > unreadable/a.txt; mkdir unreadable/locked; chmod 000 unreadable/locked
 expect fail "a payload that can't be fully read fails the scan" bash "$SCAN" dir unreadable
 expect fail "a payload that can't be fully listed fails the check" bash "$PAY" unreadable
