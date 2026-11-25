@@ -47,7 +47,7 @@ export async function putPhoto(env: Env, eventId: string, entryId: string, file:
  * GET /api/photos/<key> — public, like the event page itself.
  *
  * Served from the edge cache when it can be, so a room full of phones loading the
- * same dishes costs one R2 read per photo per data centre, not one per phone. Keys
+ * same dishes costs one R2 read per photo per data center, not one per phone. Keys
  * never repeat, so a cached copy can't go stale; a deleted photo may linger at the
  * edge, but only under a URL nothing links to any more.
  */

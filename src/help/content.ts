@@ -38,7 +38,7 @@ export interface HelpContent {
   printablesHref: string;
   /** Footer links to the holiday guides (SW-63), in this language. */
   guides: { text: string; href: string }[];
-  /** The footer link to the third-party licence notices (SW-89). */
+  /** The footer link to the third-party license notices (SW-89). */
   noticesLink: string;
   partOf: string;
   /** The privacy page (BIZ-38): linked from the footer and from the Privacy section. */
@@ -70,7 +70,7 @@ export const en: HelpContent = {
     { text: "Sugar cookie decorating guide", href: "/guides/sugar-cookies-for-decorating/" },
     { text: "Chili judging guide", href: "/guides/judge-a-chili-cookoff/" },
   ],
-  noticesLink: "Open-source licences",
+  noticesLink: "Open-source licenses",
   partOf: "Part of",
   privacyLink: "Privacy Policy",
   privacyHref: "/privacy/",

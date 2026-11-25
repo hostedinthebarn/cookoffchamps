@@ -5,6 +5,7 @@ import { h, mount, photoUrl } from "../dom";
 import { errorText, lang, m } from "../i18n";
 import { resizePhoto } from "../photo";
 import { renderQr } from "../qr";
+import { PRESET_NAMES } from "../../shared/foodTypes";
 import { formatScore } from "../../shared/scoring";
 import type { ManageEntry, ManageView, Totals } from "../types";
 import { chosenKind, kindChoice } from "./home";
@@ -537,7 +538,7 @@ export async function manageView(ctx: Ctx, eventId: string): Promise<() => void>
 
     if (setup) {
       const presets = h("p", { class: "presets" }, t.presets);
-      for (const preset of ["chili", "bbq", "general"]) {
+      for (const preset of PRESET_NAMES) {
         presets.append(
           h("button", {
             type: "button",

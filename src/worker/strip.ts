@@ -33,7 +33,7 @@ const ascii = (bytes: Uint8Array, at: number, length: number) => String.fromChar
 // --- JPEG -----------------------------------------------------------------------
 
 // APP1–APP15 hold EXIF (with GPS), XMP, IPTC and maker notes; COM is free text.
-// APP0 (JFIF) and an ICC colour profile in APP2 carry no personal data and are kept.
+// APP0 (JFIF) and an ICC color profile in APP2 carry no personal data and are kept.
 const isMetadataSegment = (marker: number, bytes: Uint8Array, at: number) =>
   marker === 0xfe || (marker >= 0xe1 && marker <= 0xef && !(marker === 0xe2 && ascii(bytes, at + 4, 12) === "ICC_PROFILE\0"));
 
