@@ -71,11 +71,14 @@ jobs:
       # The build prints the printables to PDF (SW-62), so it needs Chromium, as in ci.yml.
       - run: npx playwright install --with-deps chromium
       - run: ${{ env.BUILD_CMD }}
+      # A tar keeps each entry's type. upload-artifact on its own would copy a symlink's target as a plain
+      # file and drop a broken one, so the payload check's symlink rule could never fire.
+      - name: Pack the payload as built
+        run: tar -cf "$RUNNER_TEMP/payload.tar" "$PAYLOAD_DIR"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: payload
-          path: ${{ env.PAYLOAD_DIR }}
-          include-hidden-files: true   # a dotfile must reach the check, not be dropped on the way
+          path: ${{ runner.temp }}/payload.tar
           if-no-files-found: error
           retention-days: 3
 
@@ -99,7 +102,17 @@ jobs:
             else git show "HEAD:$f" > "$G/${f##*/}"; fi
           done
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        with: { name: payload, path: '${{ runner.temp }}/p/${{ env.PAYLOAD_DIR }}' }
+        with: { name: payload, path: '${{ runner.temp }}/a' }
+      - name: Reject links and stray paths, then unpack
+        env: { T: '${{ runner.temp }}/a/payload.tar', D: '${{ runner.temp }}/p' }
+        run: |
+          # Only regular files and directories, and only under the payload directory, before anything is extracted.
+          bad=$(tar -tvf "$T" | cut -c1 | grep -cv '^[-d]$' || true)
+          [ "$bad" = 0 ] || { echo "::error::payload holds $bad link or special entries (symlink, hard link, device)"; exit 1; }
+          stray=$(tar -tf "$T" | grep -cvE "^${PAYLOAD_DIR}(/|$)" || true)
+          dots=$(tar -tf "$T" | grep -cE '(^|/)\.\.(/|$)' || true)
+          [ "$stray" = 0 ] && [ "$dots" = 0 ] || { echo "::error::payload has entries outside $PAYLOAD_DIR/"; exit 1; }
+          mkdir -p "$D" && tar -xf "$T" -C "$D" --no-same-owner --no-same-permissions
       - name: File-type allowlist on the exact payload
         working-directory: ${{ runner.temp }}/p
         env: { G: '${{ runner.temp }}/guards' }

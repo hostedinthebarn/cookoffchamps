@@ -20,6 +20,15 @@ as=(); for p in "${PAT_S[@]}"; do as+=(-e "$p"); done
 work=$(mktemp -d); trap 'rm -rf "$work"' EXIT
 P=$work/paths L=$work/lines N=$work/nums; : >"$P"; : >"$L"; : >"$N"
 
+MEDIA='\.(png|jpe?g|gif|webp|avif|ico|pdf|woff2?)$'   # the only files that may be skipped, and only if truly binary
+has_nul() { [ "$(head -c 8000 "$1" | LC_ALL=C tr -d '\000' | wc -c)" -ne "$(head -c 8000 "$1" | wc -c)" ]; }
+add_file() { # add_file <label> <file>: every line of a file, NULs read as spaces so nothing hides behind one
+  case $1 in *$'\n'*) echo "secret-scan: a path contains a newline" >&2; exit 2 ;; esac
+  if printf '%s\n' "$1" | grep -qiE "$MEDIA" && has_nul "$2"; then return 0; fi
+  LC_ALL=C tr '\000' ' ' <"$2" | LC_ALL=C awk -v f="$1" -v P="$P" -v L="$L" -v N="$N" \
+    '{ print f >> P; print $0 >> L; print NR >> N }'
+}
+
 case $mode in
   diff)
     base=$(git merge-base "$arg" HEAD 2>/dev/null || echo "$arg")
@@ -35,24 +44,22 @@ case $mode in
       !inh && /^\+\+\+ /                { f = ($0 ~ /^\+\+\+ b\//) ? substr($0, 7) : ""; next }
       /^@@ /                            { inh = 1; match($0, /\+[0-9]+/); ln = substr($0, RSTART + 1, RLENGTH - 1) + 0; next }
       inh && /^\+/                      { print f >> P; print substr($0, 2) >> L; print ln >> N; ln++ }' "$work/patch"
-    # A PR can mark a text file binary in .gitattributes, and git diff then prints none of its lines. Git's own
-    # test for binary is a NUL byte in the first 8000 bytes; a reported-binary file without one is text, so all
-    # of it is scanned. Real binaries (images, PDFs) have NULs and are left to the payload check.
+    # Files git reports as binary (a NUL byte, or a .gitattributes mark a PR could add) print no lines, so each
+    # is read whole from HEAD. Only real media files with a NUL are skipped; the payload check covers those.
     if [ -s "$work/binary" ]; then
       while IFS= read -r bf; do
         git cat-file blob "HEAD:$bf" >"$work/blob"
-        if [ "$(head -c 8000 "$work/blob" | LC_ALL=C tr -d '\000' | wc -c)" -eq "$(head -c 8000 "$work/blob" | wc -c)" ]; then
-          LC_ALL=C awk -v f="$bf" -v P="$P" -v L="$L" -v N="$N" '{ print f >> P; print $0 >> L; print NR >> N }' "$work/blob"
-        fi
+        add_file "$bf" "$work/blob"
       done <"$work/binary"
     fi ;;
   dir)
     [ -d "$arg" ] || { echo "no such directory: $arg" >&2; exit 2; }
     find "$arg" -type f -not -path '*/.git/*' -print0 >"$work/files"   # a traversal error stops the scan (set -e)
-    rc=0; xargs -0 -r grep -IHn -e '' <"$work/files" >"$work/all" || rc=$?
-    [ "$rc" -le 1 ] || { echo "secret-scan: reading the payload failed (grep/xargs exit $rc)" >&2; exit 2; }
-    sed -E 's/^([^:]*):([0-9]+):/\1\t\2\t/' "$work/all" >"$work/split"
-    cut -f1 "$work/split" >"$P"; cut -f2 "$work/split" >"$N"; cut -f3- "$work/split" >"$L" ;;
+    # One file at a time, so no filename (colons and all) is ever parsed out of grep output.
+    while IFS= read -r -d '' f; do
+      [ -r "$f" ] || { echo "secret-scan: can't read a payload file" >&2; exit 2; }
+      add_file "$f" "$f"
+    done <"$work/files" ;;
   *) echo "unknown mode $mode" >&2; exit 2 ;;
 esac
 

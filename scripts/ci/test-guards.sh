@@ -57,6 +57,17 @@ expect pass "row exempts its phrase when nothing else is on the line" env SECRET
 printf '%s\n' "re = /pass""word\s*[:=]/i" > long/app.js
 printf 'long/app.js\t/pass%s\\s*[:=]/i\n' "word" > allow.tsv
 expect pass "a row with backslashes matches literally" env SECRET_SCAN_ALLOW=$t/allow.tsv bash "$SCAN" dir long
+# second CodeRabbit pass: NUL bytes and colons in names
+mkdir -p nul; printf 'x = 1\000%s\n' "pass""word = hunter2" > nul/app.js
+expect fail "a NUL byte doesn't hide a secret in a text file" bash "$SCAN" dir nul
+printf '\211PNG\000\000%s\n' "pass""word" > nul/app.js; mv nul/app.js nul/real.png
+expect pass "a real binary image is skipped" bash "$SCAN" dir nul
+printf '%s\n' "pass""word = hunter2" > nul/fake.png
+expect fail "a text file named .png is still scanned" bash "$SCAN" dir nul
+rm -rf nul; mkdir -p colon; printf '%s\n' "pass""word = hunter2" > 'colon/a:12:b.js'
+expect fail "a colon in a file name doesn't break the scan" bash "$SCAN" dir colon
+git checkout -q -B nuldiff "$base"; printf 'x\000%s\n' "pass""word = hunter2" > n.js; git add n.js; git commit -qm nul
+expect fail "diff mode reads past a NUL in a non-media file" bash "$SCAN" diff "$base"
 mkdir -p unreadable; echo x > unreadable/a.txt; mkdir unreadable/locked; chmod 000 unreadable/locked
 expect fail "a payload that can't be fully read fails the scan" bash "$SCAN" dir unreadable
 expect fail "a payload that can't be fully listed fails the check" bash "$PAY" unreadable
