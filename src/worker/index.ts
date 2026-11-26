@@ -23,6 +23,7 @@ import { savePaper } from "./paper";
 import { getPhoto } from "./photos";
 import { castVote, lookupCode, publicEvent } from "./public";
 import { cookComments, exportResults } from "./results";
+import { servePins } from "./pins";
 import { purgeIpHashes } from "./purge";
 import { canonicalRedirect, isCrossSite, withSecurityHeaders } from "./security";
 import { guideRefs, printableRefs } from "../shared/foodTypes";
@@ -141,6 +142,10 @@ async function respond(request: Request, env: Env, url: URL, isApi: boolean): Pr
   const canonical = canonicalRedirect(url, env);
   if (canonical) return Response.redirect(canonical, 301);
   if (!isApi) {
+    if (url.pathname.startsWith("/pins/")) {
+      const pins = await servePins(request, env, url.pathname);
+      if (pins) return pins;
+    }
     await countRef(request, env, url);
     return env.ASSETS.fetch(request);
   }
