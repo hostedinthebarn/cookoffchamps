@@ -1,6 +1,8 @@
 export interface Env {
   DB: D1Database;
   PHOTOS: R2Bucket;
+  /** Pinterest pins and their images (SW-122), uploaded by the brain box when a social batch is approved. */
+  PINS: R2Bucket;
   ASSETS: Fetcher;
   /** "log" keeps emails in the dev outbox; "resend" sends through Resend. */
   EMAIL_MODE: "log" | "resend";
