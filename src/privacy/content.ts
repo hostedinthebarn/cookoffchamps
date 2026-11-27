@@ -43,7 +43,7 @@ export const en: PrivacyContent = {
   linkText: "Privacy Policy",
   description: "What Cookoff Champs keeps about organizers, cooks and guests, for how long, and who else handles it.",
   updatedLabel: "Last updated",
-  updated: "2026-11-18",
+  updated: "2026-11-27",
   appHref: "/",
   helpLink: "Help and questions",
   helpHref: "/help/#privacy",
@@ -63,6 +63,13 @@ export const en: PrivacyContent = {
         "Cooks: the name, dish and photo the organizer enters.",
         "Guests: a random ID in a cookie, kept with your vote. No guest names or emails.",
         "IP addresses: only in a scrambled form (a keyed hash), to limit login emails and code guesses. It can't be turned back into the address without a secret key that only the app holds.",
+      ],
+    },
+    {
+      id: "emails",
+      title: "Emails from us",
+      body: [
+        "We email organizers their login links, and co-organizers their invites. After your event, Gary, who built Cookoff Champs, may email you once from gary@cookoffchamps.com to ask how it went. If you reply that you'd rather not hear from us, we won't email you again. We don't add you to a mailing list or use your address for advertising.",
       ],
     },
     {
@@ -105,6 +112,7 @@ export const en: PrivacyContent = {
       title: "Who else handles it",
       body: [
         "Cloudflare (hosting, storage, anti-bot check, visit counts) and Resend (email). They process it for us, not for themselves. We don't sell data.",
+        "Google handles the email Gary sends and receives from gary@cookoffchamps.com, including your reply if you write back.",
         "Anthropic runs the AI that reads messages and comments on our social media accounts and writes Cindy's replies.",
         "We also read the analytics for our own social media accounts (Facebook, Instagram, YouTube and Pinterest) to see how our posts do. That's about our posts and holds nothing about the people who use the app.",
       ],
@@ -119,7 +127,10 @@ export const en: PrivacyContent = {
     {
       id: "changes",
       title: "Changes",
-      body: ["We'll date this page and note what changed."],
+      body: [
+        "We'll date this page and note what changed.",
+        "2026-11-27: Added \"Emails from us\" and Google under \"Who else handles it\". After an event, we may email the organizer once to ask how it went.",
+      ],
     },
   ],
 };
@@ -132,7 +143,7 @@ export const es: PrivacyContent = {
   linkText: "Política de privacidad",
   description: "Qué guarda Cookoff Champs de quien organiza, quien cocina y los invitados, por cuánto tiempo y quién más lo maneja.",
   updatedLabel: "Última actualización",
-  updated: "2026-11-18",
+  updated: "2026-11-27",
   appHref: "/?lang=es",
   helpLink: "Ayuda y preguntas",
   helpHref: "/es/ayuda/#privacy",
@@ -152,6 +163,13 @@ export const es: PrivacyContent = {
         "Quien cocina: el nombre, el platillo y la foto que escribe quien organiza.",
         "Invitados: un identificador al azar en una cookie, guardado con tu voto. Sin nombres ni correos de invitados.",
         "Direcciones IP: solo de forma codificada (un hash con clave), para limitar los correos de acceso y los intentos de código. No se puede convertir de nuevo en la dirección sin una clave secreta que solo tiene la app.",
+      ],
+    },
+    {
+      id: "emails",
+      title: "Correos que te enviamos",
+      body: [
+        "A quien organiza le enviamos sus enlaces para entrar, y a quien coorganiza, su invitación. Después de tu concurso, Gary, quien creó Cookoff Champs, puede escribirte una sola vez desde gary@cookoffchamps.com para preguntarte cómo te fue. Si le respondes que prefieres que no te escriba, no te volvemos a escribir. No te agregamos a ninguna lista de correo ni usamos tu correo para publicidad.",
       ],
     },
     {
@@ -194,6 +212,7 @@ export const es: PrivacyContent = {
       title: "Quién más lo maneja",
       body: [
         "Cloudflare (alojamiento, almacenamiento, verificación contra robots y conteo de visitas) y Resend (correo). Lo procesan por nosotros, no para sí mismos. No vendemos datos.",
+        "Google maneja el correo que Gary envía y recibe desde gary@cookoffchamps.com, incluida tu respuesta si le escribes.",
         "Anthropic hace funcionar la IA que lee los mensajes y comentarios de nuestras cuentas en redes sociales y escribe las respuestas de Cindy.",
         "También leemos las estadísticas de nuestras propias cuentas en redes sociales (Facebook, Instagram, YouTube y Pinterest) para ver cómo les va a nuestras publicaciones. Son datos sobre nuestras publicaciones y no incluyen nada sobre las personas que usan la app.",
       ],
@@ -208,7 +227,10 @@ export const es: PrivacyContent = {
     {
       id: "changes",
       title: "Cambios",
-      body: ["Pondremos fecha a esta página y anotaremos qué cambió."],
+      body: [
+        "Pondremos fecha a esta página y anotaremos qué cambió.",
+        "2026-11-27: Agregamos \"Correos que te enviamos\" y a Google en \"Quién más lo maneja\". Después de un concurso, podemos escribirle una sola vez a quien organizó para preguntarle cómo le fue.",
+      ],
     },
   ],
 };
