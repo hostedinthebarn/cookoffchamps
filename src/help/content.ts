@@ -377,7 +377,7 @@ export const en: HelpContent = {
           id: "organizer-data",
           q: "What do you store about organizers?",
           a: [
-            "Your email address and the events you run. Login links work once and expire after 15 minutes. Once you're logged in, you stay logged in on that browser for 30 days.",
+            "Your email address and the events you run. Login links work once and expire after 15 minutes. Once you're logged in, you stay logged in on that browser for 30 days. After your event, Gary may email you once to ask how it went.",
           ],
         },
         {
@@ -426,7 +426,7 @@ export const en: HelpContent = {
           id: "other-handlers",
           q: "Who else handles the data?",
           a: [
-            "Cloudflare runs the app, stores events and photos, and runs the anti-bot check. Resend delivers login and invite emails. We don't sell data or share app data with anyone else. Anthropic runs the AI that reads messages and comments on our social media accounts and writes Cindy's replies.",
+            "Cloudflare runs the app, stores events and photos, and runs the anti-bot check. Resend delivers login and invite emails; Gary's own emails go through Google. We don't sell data or share app data with anyone else. Anthropic runs the AI that reads messages and comments on our social media accounts and writes Cindy's replies.",
           ],
         },
         {

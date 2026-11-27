@@ -337,7 +337,7 @@ export const es: HelpContent = {
           id: "organizer-data",
           q: "¿Qué guardan de quien organiza?",
           a: [
-            "Tu correo y los concursos que organizas. Los enlaces para entrar funcionan una sola vez y vencen en 15 minutos. Ya que entraste, tu sesión sigue abierta en ese navegador por 30 días.",
+            "Tu correo y los concursos que organizas. Los enlaces para entrar funcionan una sola vez y vencen en 15 minutos. Ya que entraste, tu sesión sigue abierta en ese navegador por 30 días. Después de tu concurso, Gary puede escribirte una sola vez para preguntarte cómo te fue.",
           ],
         },
         {
@@ -386,7 +386,7 @@ export const es: HelpContent = {
           id: "other-handlers",
           q: "¿Quién más maneja los datos?",
           a: [
-            "Cloudflare hace funcionar la app, guarda los concursos y las fotos, y hace la verificación contra robots. Resend entrega los correos de acceso y de invitación. No vendemos los datos ni compartimos los datos de la app con nadie más. Anthropic hace funcionar la IA que lee los mensajes y comentarios de nuestras cuentas en redes sociales y escribe las respuestas de Cindy.",
+            "Cloudflare hace funcionar la app, guarda los concursos y las fotos, y hace la verificación contra robots. Resend entrega los correos de acceso y de invitación; los correos propios de Gary pasan por Google. No vendemos los datos ni compartimos los datos de la app con nadie más. Anthropic hace funcionar la IA que lee los mensajes y comentarios de nuestras cuentas en redes sociales y escribe las respuestas de Cindy.",
           ],
         },
         {
